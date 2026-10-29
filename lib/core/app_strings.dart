@@ -4,4 +4,6 @@ class AppStrings {
   AppStrings._();
 
   static const String volver = 'Volver';
+  static const String compartir = 'Compartir';
+  static const String descargar = 'Descargar';
 }
