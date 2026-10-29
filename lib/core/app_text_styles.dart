@@ -19,4 +19,8 @@ class AppTextStyles {
   /// Título de pantalla, por ejemplo "Historial de movimientos".
   static TextStyle get screenTitle =>
       _poppins(20, FontWeight.w600, AppColors.titleColor);
+
+  /// Texto de los botones de acción. El color cambia según la variante.
+  static TextStyle button(Color color) =>
+      _poppins(14, FontWeight.w600, color);
 }
