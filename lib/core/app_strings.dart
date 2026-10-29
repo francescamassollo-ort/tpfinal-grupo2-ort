@@ -6,4 +6,10 @@ class AppStrings {
   static const String volver = 'Volver';
   static const String compartir = 'Compartir';
   static const String descargar = 'Descargar';
+  static const String filtros = 'Filtros';
+
+  static const String historialTitulo = 'Historial de movimientos';
+  static const String historialVacio = 'Todavía no hay movimientos registrados';
+  static const String movimientoEntrada = 'Entrada de stock';
+  static const String movimientoSalida = 'Salida de stock';
 }
