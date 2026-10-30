@@ -1,0 +1,38 @@
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+
+import 'app_colors.dart';
+
+/// Estilos de texto del diseño de Figma. Todos usan Poppins.
+class AppTextStyles {
+  AppTextStyles._();
+
+  static TextStyle _poppins(double size, FontWeight weight, Color color) {
+    return GoogleFonts.poppins(
+      fontSize: size,
+      fontWeight: weight,
+      color: color,
+      letterSpacing: 0,
+    );
+  }
+
+  /// Título de pantalla, por ejemplo "Historial de movimientos".
+  static TextStyle get screenTitle =>
+      _poppins(20, FontWeight.w600, AppColors.titleColor);
+
+  /// Nombre del elemento en las filas de listado.
+  static TextStyle get itemName =>
+      _poppins(16, FontWeight.w500, AppColors.bodyColor);
+
+  /// Línea de detalle debajo del nombre (usuario y fecha).
+  static TextStyle get itemDetail =>
+      _poppins(13, FontWeight.w400, AppColors.bodyColor);
+
+  /// Variación numérica a la derecha de la fila, con su signo.
+  static TextStyle get amount =>
+      _poppins(20, FontWeight.w500, AppColors.bodyColor);
+
+  /// Texto de los botones de acción. El color cambia según la variante.
+  static TextStyle button(Color color) =>
+      _poppins(14, FontWeight.w600, color);
+}

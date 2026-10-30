@@ -29,6 +29,9 @@ final GoRouter appRouter = GoRouter(
     GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
     GoRoute(path: '/register', builder: (context, state) => const RegisterScreen()),
 
+    // Historial va sin barra inferior ni botón flotante, como en el diseño.
+    GoRoute(path: '/historial', builder: (context, state) => const HistorialScreen()),
+
     // ShellRoute: todas estas rutas comparten el mismo AppShell
     // (barra inferior + drawer), que no se reconstruye al navegar entre ellas.
     ShellRoute(
@@ -40,7 +43,6 @@ final GoRouter appRouter = GoRouter(
         GoRoute(path: '/insumo/alta', builder: (context, state) => const InsumoAltaScreen()),
         GoRoute(path: '/scanner', builder: (context, state) => const ScannerScreen()),
         GoRoute(path: '/consumo', builder: (context, state) => const ConsumoScreen()),
-        GoRoute(path: '/historial', builder: (context, state) => const HistorialScreen()),
         GoRoute(path: '/alertas', builder: (context, state) => const AlertasScreen()),
         GoRoute(path: '/compras', builder: (context, state) => const ComprasScreen()),
         GoRoute(path: '/tp', builder: (context, state) => const TpListaScreen()),
