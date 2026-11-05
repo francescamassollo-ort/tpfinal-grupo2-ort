@@ -8,9 +8,9 @@ class HandyTextField extends StatelessWidget{
   const HandyTextField({super.key, required this.textForHint});
 
   @override
-  Widget build(BuildContext context){
+  Widget build(BuildContext context){ 
     return TextField(
-      decoration: InputDecoration(
+      decoration: InputDecoration( // move la decoracion para usar textField normalmente
         hintText: textForHint,
         hintStyle: TextStyle(
         //background: ,

@@ -30,7 +30,7 @@ class AuthService {
       */
       if (e.code == 'email-already-in-use') {
         // Handle email already registered
-        // deberia de enviar un alerta, pero dejar las data de textField como esta
+        // deberia de enviar un alerta, pero dejar las data de textField como está
       }
       return null;
     } catch (e) {
@@ -53,8 +53,10 @@ class AuthService {
       debugPrint("FirebaseAuthException during sign-in: ${e.code} - ${e.message}");
       if (e.code == 'user-not-found') {
         // Handle no user found
+        // enviar alerta, no borrar mail en textField
       } else if (e.code == 'wrong-password') {
         // Handle incorrect password
+        // borrar contraseña en el textField
       }
       return null;
     } catch (e) {
@@ -74,32 +76,125 @@ class AuthService {
     }
   }
 
-  // Example: Google Sign-In (requires additional setup for iOS/Android/Web)
-  // This is a simplified example, a full implementation involves more steps
-  // with google_sign_in package.
-  Future<User?> signInWithGoogle() async {
-    try {
-      // Trigger the Google Sign-In flow
-      // final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
-      // final GoogleSignInAuthentication googleAuth = await googleUser!.authentication;
+  // aca iria autenticacion con ****** si se pide >.>
+}
 
-      // Create a new credential
-      // final OAuthCredential credential = GoogleAuthProvider.credential(
-      //   accessToken: googleAuth.accessToken,
-      //   idToken: googleAuth.idToken,
-      // );
+/*
+// Example of how AuthWrapper might look to manage navigation based on auth state
+class AuthWrapper extends StatelessWidget {
+  const AuthWrapper({super.key});
 
-      // Sign in to Firebase with the credential
-      // UserCredential result = await _auth.signInWithCredential(credential);
-      // return result.user;
-      debugPrint("Google Sign-In not fully implemented in this snippet, requires google_sign_in package.");
-      return null;
-    } catch (e) {
-      debugPrint("Error with Google Sign-In: $e");
-      return null;
-    }
+  @override
+  Widget build(BuildContext context) {
+    // Access the user stream from AuthService
+    return StreamBuilder<User?>( // esto debe estar en inventario
+      stream: AuthService().user, // Listen to authentication state changes
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          // While waiting for the authentication state to be determined, show a loading spinner
+          return const Scaffold(body: Center(child: CircularProgressIndicator()));
+        } else if (snapshot.hasData) {
+          // If there is user data, the user is signed in
+          //return const HomeScreen(); // Navigate to your main app screen
+          //ESTO MUESTRA EL INVENTARIO
+        } else {
+          // If there is no user data, the user is signed out
+          //return const SignInScreen(); // Navigate to your sign-in screen
+          //esto te envia a welcome_screen
+        }
+      },
+    );
   }
 }
+
+class SignInScreen extends StatelessWidget {  //suponiendo welcome screen
+  const SignInScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final AuthService _auth = AuthService();
+    final TextEditingController _emailController = TextEditingController();
+    final TextEditingController _passwordController = TextEditingController();
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('Sign In')),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            TextField(controller: _emailController, decoration: const InputDecoration(labelText: 'Email')),
+            TextField(controller: _passwordController, decoration: const InputDecoration(labelText: 'Password'), obscureText: true),
+            ElevatedButton(
+              onPressed: () async {
+                User? user = await _auth.signInWithEmailAndPassword(_emailController.text, _passwordController.text);
+                if (user != null) {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Signed In Successfully!')));
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Sign In Failed.')));
+                }
+              },
+              child: const Text('Sign In'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                User? user = await _auth.registerWithEmailAndPassword(_emailController.text, _passwordController.text);
+                if (user != null) {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Registered Successfully!')));
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Registration Failed.')));
+                }
+              },
+              child: const Text('Register'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final AuthService _auth = AuthService();
+    final User? currentUser = FirebaseAuth.instance.currentUser; // Get current user
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Home Screen'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () async {
+              await _auth.signOut();
+            },
+          ),
+        ],
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('Welcome, ${currentUser?.email ?? 'Guest'}!'),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () {
+                // Navigate to other parts of your app
+                print('Navigate to profile or settings');
+              },
+              child: const Text('Go to Profile'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+*/
+
 
 /*
 import 'package:firebase_auth/firebase_auth.dart';
