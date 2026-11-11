@@ -32,6 +32,18 @@ class AppTextStyles {
   static TextStyle get amount =>
       _poppins(20, FontWeight.w500, AppColors.bodyColor);
 
+  /// Nombre en las tarjetas de la lista de compras.
+  static TextStyle get listItemTitle =>
+      _poppins(16, FontWeight.w600, AppColors.bodyColor);
+
+  /// Línea debajo del nombre en la lista de compras (por ejemplo el stock).
+  static TextStyle get listItemSubtitle =>
+      _poppins(14, FontWeight.w400, AppColors.bodyColor);
+
+  /// Enlace de texto subrayado, como "+Agregar sugerencias del sistema".
+  static TextStyle get link => _poppins(13, FontWeight.w400, AppColors.bodyColor)
+      .copyWith(decoration: TextDecoration.underline);
+
   /// Texto de los botones de acción. El color cambia según la variante.
   static TextStyle button(Color color) =>
       _poppins(14, FontWeight.w600, color);
