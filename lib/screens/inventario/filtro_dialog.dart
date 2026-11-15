@@ -40,6 +40,12 @@ class _FiltroDialogState extends State<FiltroDialog> {
     final ubicaciones =
         widget.insumos.map((i) => i.ubicacion).toSet().toList()..sort();
 
+    // Si lo que estaba elegido ya no existe (por ej. se movió el único
+    // insumo de esa ubicación), volvemos a "Todas". El desplegable falla si
+    // su valor no está entre las opciones.
+    if (!categorias.contains(_categoria)) _categoria = null;
+    if (!ubicaciones.contains(_ubicacion)) _ubicacion = null;
+
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
