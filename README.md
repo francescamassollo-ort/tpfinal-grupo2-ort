@@ -104,11 +104,11 @@ Todo el código está en `lib/`.
 | Carpeta | Contenido |
 |---|---|
 | `core/` | Tema, colores, textos (`AppStrings`), estilos de texto, rutas (`app_router.dart`) y el `AppShell` con la barra inferior y el menú lateral |
-| `widgets/` | Componentes reutilizables: fondo decorativo, encabezado de pantalla, tarjeta con contorno, botón de acción, fila de Compartir y Descargar, y los botones y campos de las pantallas de acceso |
+| `widgets/` | Componentes reutilizables: fondo decorativo, encabezado de pantalla, tarjeta con contorno, botón de acción, fila de Compartir y Descargar, selector de cantidad, tarjeta de insumo, y los botones y campos de las pantallas de acceso |
 | `screens/<área>/` | Pantallas de cada flujo: `auth`, `inventario`, `consumo`, `historial`, `alertas`, `compras`, `tp`, `usuarios`, `perfil` |
 | `providers/` | Estado de la app con Riverpod |
-| `models/` | Modelos de dominio (por ahora `TrabajoPractico`) |
-| `services/` | Acceso a Firebase (en construcción) |
+| `models/` | Modelos de dominio: `Insumo` y `TrabajoPractico` |
+| `services/` | Acceso a Firestore: `InsumoService` (colección `insumos`) y `TpService` (colección `listasTP`) |
 
 ## Navegación
 - La app arranca en **Inventario**. El login queda para el final.
@@ -132,8 +132,8 @@ Todo el código está en `lib/`.
 ### Inventario
 | Pantalla | Ruta | Estado |
 |---|---|---|
-| Inventario | `/inventario` | 🔍 En revisión (`feat/inventario`: modelo `Insumo`, servicio de Firestore, buscador, filtros y tarjetas) |
-| Buscar y filtrar | `/inventario/filtro` | ⏳ Placeholder |
+| Inventario | `/inventario` | ✅ Funcional (lee los insumos de Firestore, con buscador, filtros y tarjetas) |
+| Buscar y filtrar | `/inventario/filtro` | ⏳ Placeholder (hoy el filtro es un diálogo dentro de Inventario) |
 | Detalle de insumo | `/insumo` | ⏳ Placeholder |
 | Alta de insumo | `/insumo/alta` | ⏳ Placeholder |
 | Escáner | `/scanner` | ⏳ Placeholder |
@@ -149,7 +149,7 @@ Todo el código está en `lib/`.
 ### Trabajos prácticos
 | Pantalla | Ruta | Estado |
 |---|---|---|
-| Lista de trabajos prácticos | `/tp` | ⏳ Placeholder (el modelo `TrabajoPractico` ya está) |
+| Lista de trabajos prácticos | `/tp` | ⏳ Placeholder (el modelo, el servicio y el provider de `TrabajoPractico` ya están) |
 | Detalle de trabajo práctico | `/tp/detalle` | ⏳ Placeholder |
 | Nuevo trabajo práctico | `/tp/nuevo` | ⏳ Placeholder |
 
