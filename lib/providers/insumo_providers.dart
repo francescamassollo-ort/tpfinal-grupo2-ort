@@ -12,3 +12,14 @@ final insumosProvider = StreamProvider<List<Insumo>>((ref) {
   final service = InsumoService();
   return service.watchInsumos();
 });
+
+// Un insumo puntual, buscado por id dentro de la lista en tiempo real.
+// ".family" = provider con parámetro: se usa como insumoPorIdProvider(id).
+// Como mira insumosProvider, si el insumo cambia en Firestore, el Detalle
+// se actualiza solo. Devuelve null si no hay ningún insumo con ese id.
+final insumoPorIdProvider =
+    Provider.family<AsyncValue<Insumo?>, String>((ref, id) {
+  return ref.watch(insumosProvider).whenData(
+        (insumos) => insumos.where((i) => i.id == id).firstOrNull,
+      );
+});

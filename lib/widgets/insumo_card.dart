@@ -7,9 +7,12 @@ import '../models/insumo.dart';
 // stock y (si corresponde) la etiqueta "Stock bajo" o "Por vencer".
 // Es un StatelessWidget común: recibe el insumo y lo dibuja, nada más.
 class InsumoCard extends StatelessWidget {
-  const InsumoCard({required this.insumo, super.key});
+  const InsumoCard({required this.insumo, this.onTap, super.key});
 
   final Insumo insumo;
+  // Qué hacer al tocar la tarjeta. Lo decide quien la usa (por ej.
+  // Inventario abre el Detalle), así la tarjeta sirve en otras pantallas.
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -27,55 +30,61 @@ class InsumoCard extends StatelessWidget {
 
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          children: [
-            // Punto de color.
-            CircleAvatar(radius: 5, backgroundColor: color),
-            const SizedBox(width: 12),
-            // Nombre y ubicación. Expanded ocupa todo el ancho que sobra,
-            // así el stock queda pegado a la derecha.
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+      // Recorta el efecto de "toque" para que respete las esquinas redondeadas.
+      clipBehavior: Clip.antiAlias,
+      // InkWell: hace que la tarjeta se pueda tocar y muestra el efecto.
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: [
+              // Punto de color.
+              CircleAvatar(radius: 5, backgroundColor: color),
+              const SizedBox(width: 12),
+              // Nombre y ubicación. Expanded ocupa todo el ancho que sobra,
+              // así el stock queda pegado a la derecha.
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      insumo.nombre,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(insumo.ubicacion),
+                  ],
+                ),
+              ),
+              // Stock y, debajo, la etiqueta si hay una.
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    insumo.nombre,
+                    '${insumo.stock} u.',
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  const SizedBox(height: 2),
-                  Text(insumo.ubicacion),
+                  if (etiqueta != null) ...[
+                    const SizedBox(height: 2),
+                    Row(
+                      children: [
+                        Icon(Icons.error, size: 12, color: color),
+                        const SizedBox(width: 4),
+                        Text(
+                          etiqueta,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ],
               ),
-            ),
-            // Stock y, debajo, la etiqueta si hay una.
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  '${insumo.stock} u.',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                if (etiqueta != null) ...[
-                  const SizedBox(height: 2),
-                  Row(
-                    children: [
-                      Icon(Icons.error, size: 12, color: color),
-                      const SizedBox(width: 4),
-                      Text(
-                        etiqueta,
-                        style: const TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ],
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

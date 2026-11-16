@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../models/insumo.dart';
 import '../../providers/insumo_providers.dart';
@@ -72,8 +73,13 @@ class InventarioScreen extends ConsumerWidget {
                   }
                   return ListView.builder(
                     itemCount: insumos.length,
-                    itemBuilder: (context, index) =>
-                        InsumoCard(insumo: insumos[index]),
+                    itemBuilder: (context, index) => InsumoCard(
+                      insumo: insumos[index],
+                      // push (no go): apila el Detalle, así "volver"
+                      // regresa a Inventario. Solo viaja el id en la ruta.
+                      onTap: () =>
+                          context.push('/insumo/${insumos[index].id}'),
+                    ),
                   );
                 },
                 loading: () => const Center(child: CircularProgressIndicator()),
