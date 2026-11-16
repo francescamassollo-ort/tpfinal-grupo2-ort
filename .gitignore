@@ -43,3 +43,6 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Contexto de proyecto para Claude Code, solo local (tiene datos del cliente)
+CLAUDE.md
