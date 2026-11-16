@@ -111,15 +111,18 @@ void main() {
 
     test('las críticas van primero y después por nombre', () {
       final alertas = AlertaService.generar([
+        _insumo('0', nombre: 'Aceite', vencimiento: hoy.add(const Duration(days: 5))),
         _insumo('1', nombre: 'Zinc', stock: 2, umbral: 5),
         _insumo('2', nombre: 'Agar', stock: 0),
         _insumo('3', nombre: 'Buffer', stock: 1, umbral: 5),
         _insumo('4', nombre: 'Etanol', vencimiento: hoy.subtract(const Duration(days: 2))),
       ]);
 
+      // Aceite solo tiene vencimiento cercano (advertencia), por eso va
+      // último aunque alfabéticamente sea el primero.
       expect(
         alertas.map((a) => a.productoNombre).toList(),
-        ['Agar', 'Etanol', 'Buffer', 'Zinc'],
+        ['Agar', 'Buffer', 'Etanol', 'Zinc', 'Aceite'],
       );
       expect(alertas.first.severidad, SeveridadAlerta.critica);
       expect(alertas.last.severidad, SeveridadAlerta.advertencia);
@@ -144,7 +147,7 @@ void main() {
     test('cada tipo tiene la severidad esperada', () {
       expect(TipoAlerta.sinStock.severidad, SeveridadAlerta.critica);
       expect(TipoAlerta.vencido.severidad, SeveridadAlerta.critica);
-      expect(TipoAlerta.stockBajo.severidad, SeveridadAlerta.advertencia);
+      expect(TipoAlerta.stockBajo.severidad, SeveridadAlerta.critica);
       expect(TipoAlerta.vencimientoCercano.severidad, SeveridadAlerta.advertencia);
     });
   });

@@ -1,17 +1,19 @@
 /// Qué tan urgente es una alerta. Define el color con que se muestra.
 enum SeveridadAlerta {
-  /// Hay que actuar ya: sin stock o vencido.
+  /// Hay que actuar ya: sin stock, stock bajo o vencido. Se muestra en rojo,
+  /// igual que Inventario marca el stock bajo.
   critica,
 
-  /// Hay que prestar atención: stock bajo o vencimiento cercano.
+  /// Hay que prestar atención: vencimiento cercano. Se muestra en naranja,
+  /// igual que Inventario marca "Por vencer".
   advertencia,
 }
 
 /// Motivo de una alerta. Cada tipo tiene su severidad.
 enum TipoAlerta {
   sinStock(SeveridadAlerta.critica),
+  stockBajo(SeveridadAlerta.critica),
   vencido(SeveridadAlerta.critica),
-  stockBajo(SeveridadAlerta.advertencia),
   vencimientoCercano(SeveridadAlerta.advertencia);
 
   const TipoAlerta(this.severidad);
