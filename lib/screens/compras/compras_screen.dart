@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/app_colors.dart';
 import '../../core/app_strings.dart';
 import '../../core/app_text_styles.dart';
-import '../../providers/compras_provider.dart';
+import '../../providers/lista_compra_provider.dart';
 import '../../widgets/app_decorative_background.dart';
 import '../../widgets/app_screen_header.dart';
 import '../../widgets/share_download_actions.dart';
@@ -17,9 +17,8 @@ import 'compras_fab.dart';
 class ComprasScreen extends ConsumerWidget {
   const ComprasScreen({super.key});
 
-  // Estas acciones todavía no existen: sugerencias, buscar, papelera, agregar,
-  // compartir y descargar quedan sin función hasta que se definan.
-  static const VoidCallback? _onSugerencias = null;
+  // Estas acciones todavía no existen: buscar, papelera, agregar, compartir y
+  // descargar quedan sin función hasta que se definan.
   static const VoidCallback? _onBuscar = null;
   static const VoidCallback? _onPapelera = null;
   static const VoidCallback? _onAgregar = null;
@@ -28,8 +27,8 @@ class ComprasScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final items = ref.watch(comprasProvider);
-    final notifier = ref.read(comprasProvider.notifier);
+    final items = ref.watch(itemsCompraProvider);
+    final acciones = ref.read(comprasAccionesProvider);
 
     return Scaffold(
       backgroundColor: AppColors.screenBackground,
@@ -41,33 +40,43 @@ class ComprasScreen extends ConsumerWidget {
                 title: AppStrings.comprasTitulo,
                 onBack: () => _volver(context),
               ),
-              const _AccionesSuperiores(
-                onSugerencias: _onSugerencias,
+              _AccionesSuperiores(
+                onSugerencias: () => _agregarSugerencias(context, ref),
                 onBuscar: _onBuscar,
                 onPapelera: _onPapelera,
               ),
               Expanded(
-                child: items.isEmpty
-                    ? Center(
-                        child: Text(
-                          AppStrings.comprasVacia,
-                          style: AppTextStyles.listItemSubtitle,
+                child: items.when(
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
+                  error: (error, stack) => Center(
+                    child: Text(
+                      AppStrings.comprasError,
+                      style: AppTextStyles.listItemSubtitle,
+                    ),
+                  ),
+                  data: (lista) => lista.isEmpty
+                      ? Center(
+                          child: Text(
+                            AppStrings.comprasVacia,
+                            style: AppTextStyles.listItemSubtitle,
+                          ),
+                        )
+                      : ListView.separated(
+                          padding: const EdgeInsets.fromLTRB(36, 8, 36, 20),
+                          itemCount: lista.length,
+                          separatorBuilder: (context, index) =>
+                              const SizedBox(height: 12),
+                          itemBuilder: (context, index) {
+                            final item = lista[index];
+                            return CompraTile(
+                              item: item,
+                              onDecrement: () => acciones.decrementar(item.id),
+                              onIncrement: () => acciones.incrementar(item.id),
+                            );
+                          },
                         ),
-                      )
-                    : ListView.separated(
-                        padding: const EdgeInsets.fromLTRB(36, 8, 36, 20),
-                        itemCount: items.length,
-                        separatorBuilder: (context, index) =>
-                            const SizedBox(height: 12),
-                        itemBuilder: (context, index) {
-                          final item = items[index];
-                          return CompraTile(
-                            item: item,
-                            onDecrement: () => notifier.decrementar(item.id),
-                            onIncrement: () => notifier.incrementar(item.id),
-                          );
-                        },
-                      ),
+                ),
               ),
               // 28 del borde derecho y 47 hasta los botones (12 ya los pone
               // ShareDownloadActions), según Figma.
@@ -87,6 +96,28 @@ class ComprasScreen extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  // Agrega a la lista los insumos con stock bajo y avisa cuántos se sumaron.
+  Future<void> _agregarSugerencias(BuildContext context, WidgetRef ref) async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final agregados =
+          await ref.read(comprasAccionesProvider).agregarSugerencias();
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            agregados == 0
+                ? AppStrings.comprasSinSugerencias
+                : AppStrings.comprasSugerenciasAgregadas(agregados),
+          ),
+        ),
+      );
+    } catch (_) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text(AppStrings.comprasErrorSugerencias)),
+      );
+    }
   }
 
   // Si se llegó desde otra pantalla vuelve atrás; si no (por ejemplo desde el
