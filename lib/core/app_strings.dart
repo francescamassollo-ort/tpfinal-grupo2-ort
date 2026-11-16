@@ -30,4 +30,14 @@ class AppStrings {
   static const String historialVacio = 'Todavía no hay movimientos registrados';
   static const String movimientoEntrada = 'Entrada de stock';
   static const String movimientoSalida = 'Salida de stock';
+
+  static const String alertasTitulo = 'Alertas';
+  static const String alertasVacia = 'No hay alertas por ahora';
+  static const String alertasError = 'No se pudieron cargar las alertas';
+  static const String alertaSinStock = 'Sin stock';
+  static const String alertaStockBajo = 'Stock bajo';
+  static const String alertaVencimientoCercano = 'Vencimiento cercano';
+  static const String alertaVencido = 'Vencido';
+  static const String alertaCritica = 'Alerta crítica';
+  static const String alertaAdvertencia = 'Advertencia';
 }
