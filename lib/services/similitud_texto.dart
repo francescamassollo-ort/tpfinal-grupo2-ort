@@ -64,7 +64,7 @@ class SimilitudTexto {
   /// Si los números de los nombres son distintos ("Ácido 1M" y "Ácido 2M")
   /// devuelve 0: son productos distintos aunque el texto se parezca.
   static double entreNombres(String a, String b) {
-    if (!_mismosNumeros(a, b)) return 0;
+    if (!mismosNumeros(a, b)) return 0;
 
     final normalizadoA = normalizar(a);
     final normalizadoB = normalizar(b);
@@ -74,7 +74,9 @@ class SimilitudTexto {
     return 1 - distancia(normalizadoA, normalizadoB) / largo;
   }
 
-  static bool _mismosNumeros(String a, String b) {
+  /// Los dos textos tienen los mismos números, en el mismo orden. Dos nombres
+  /// con números distintos ("1M" y "2M") son productos distintos.
+  static bool mismosNumeros(String a, String b) {
     final numerosA = numerosEn(a);
     final numerosB = numerosEn(b);
     if (numerosA.length != numerosB.length) return false;
