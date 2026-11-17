@@ -3,35 +3,35 @@ import 'package:flutter/foundation.dart';
 
 class InsumoRequerido {
   const InsumoRequerido({
-    required this.productoId,
+    required this.insumoId,
     required this.cantidad,
     required this.unidad,
   });
 
-  final String productoId;
+  final String insumoId;
   final double cantidad;
   final String unidad;
 
   factory InsumoRequerido.fromMap(Map<String, dynamic> map) => InsumoRequerido(
-        productoId: map['productoId'] as String,
+        insumoId: map['insumoId'] as String,
         cantidad: (map['cantidad'] as num).toDouble(),
         unidad: map['unidad'] as String,
       );
 
   Map<String, dynamic> toMap() =>
-      {'productoId': productoId, 'cantidad': cantidad, 'unidad': unidad};
+      {'insumoId': insumoId, 'cantidad': cantidad, 'unidad': unidad};
 
   @override
   bool operator ==(Object other) =>
       other is InsumoRequerido &&
-      other.productoId == productoId &&
+      other.insumoId == insumoId &&
       other.cantidad == cantidad &&
       other.unidad == unidad;
-
+ 
   @override
-  int get hashCode => Object.hash(productoId, cantidad, unidad);
+  int get hashCode => Object.hash(insumoId, cantidad, unidad);
 }
-
+ 
 class TrabajoPractico {
   const TrabajoPractico({
     required this.id,
@@ -41,14 +41,14 @@ class TrabajoPractico {
     required this.insumos,
     this.activo = true,
   });
-
+ 
   final String id;
   final String nombre;
   final String descripcion;
   final DateTime fecha;
   final List<InsumoRequerido> insumos;
   final bool activo;
-
+ 
   factory TrabajoPractico.fromFirestore(
     DocumentSnapshot<Map<String, dynamic>> snapshot,
     SnapshotOptions? options,
@@ -60,12 +60,13 @@ class TrabajoPractico {
       descripcion: (data['descripcion'] as String?) ?? '',
       fecha: (data['fecha'] as Timestamp).toDate(),
       insumos: ((data['insumos'] as List?) ?? [])
-          .map((e) => InsumoRequerido.fromMap(e as Map<String, dynamic>))
+          .map((e) =>
+              InsumoRequerido.fromMap(Map<String, dynamic>.from(e as Map)))
           .toList(),
       activo: (data['activo'] as bool?) ?? true,
     );
   }
-
+ 
   Map<String, dynamic> toFirestore() => {
         'nombre': nombre,
         'descripcion': descripcion,
@@ -73,7 +74,7 @@ class TrabajoPractico {
         'insumos': insumos.map((e) => e.toMap()).toList(),
         'activo': activo,
       };
-
+ 
   TrabajoPractico copyWith({
     String? nombre,
     String? descripcion,
@@ -89,7 +90,7 @@ class TrabajoPractico {
         insumos: insumos ?? this.insumos,
         activo: activo ?? this.activo,
       );
-
+ 
   @override
   bool operator ==(Object other) =>
       other is TrabajoPractico &&
@@ -99,7 +100,7 @@ class TrabajoPractico {
       other.fecha == fecha &&
       other.activo == activo &&
       listEquals(other.insumos, insumos);
-
+ 
   @override
   int get hashCode =>
       Object.hash(id, nombre, descripcion, fecha, activo, Object.hashAll(insumos));
