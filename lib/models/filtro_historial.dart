@@ -59,4 +59,16 @@ class FiltroHistorial {
 
   static DateTime _soloDia(DateTime fecha) =>
       DateTime(fecha.year, fecha.month, fecha.day);
+
+  @override
+  bool operator ==(Object other) =>
+      other is FiltroHistorial &&
+      other.productoId == productoId &&
+      other.usuarioId == usuarioId &&
+      other.desde == desde &&
+      other.hasta == hasta &&
+      other.tipo == tipo;
+
+  @override
+  int get hashCode => Object.hash(productoId, usuarioId, desde, hasta, tipo);
 }
