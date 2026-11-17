@@ -110,11 +110,11 @@ Todo el código está en `lib/`.
 | Carpeta | Contenido |
 |---|---|
 | `core/` | Tema, colores, textos (`AppStrings`), estilos de texto, rutas (`app_router.dart`) y el `AppShell` con la barra inferior y el menú lateral |
-| `widgets/` | Componentes reutilizables: fondo decorativo, encabezado de pantalla, tarjeta con contorno, botón de acción, fila de Compartir y Descargar, selector de cantidad, tarjeta de insumo, y los botones y campos de las pantallas de acceso |
+| `widgets/` | Componentes reutilizables: fondo decorativo, encabezado de pantalla, tarjeta con contorno, botón de acción, fila de Compartir y Descargar, selector de formato (PDF o Excel), selector de cantidad, tarjeta de insumo, y los botones y campos de las pantallas de acceso |
 | `screens/<área>/` | Pantallas de cada flujo: `auth`, `inventario`, `consumo`, `historial`, `alertas`, `compras`, `tp`, `usuarios`, `perfil` |
 | `providers/` | Estado de la app con Riverpod |
 | `models/` | Modelos de dominio: `Insumo`, `TrabajoPractico`, `ListaCompra` y `Alerta` |
-| `services/` | Acceso a Firestore: `InsumoService` (colección `insumos`), `TpService` (colección `listasTP`) y `ListaCompraService` (colección `listaCompras`). `AlertaService` no usa Firestore: genera las alertas a partir de los insumos |
+| `services/` | Acceso a Firestore: `InsumoService` (colección `insumos`), `TpService` (colección `listasTP`) y `ListaCompraService` (colección `listaCompras`). `AlertaService` no usa Firestore: genera las alertas a partir de los insumos. `ListaCompraExportador` arma el PDF y el CSV de la lista de compras y `ArchivoService` los comparte o los guarda en el teléfono |
 
 Las pruebas unitarias están en `test/` (fuera de `lib/`).
 
@@ -152,7 +152,7 @@ Las pruebas unitarias están en `test/` (fuera de `lib/`).
 |---|---|---|
 | Historial de movimientos | `/historial` | 🎭 Demostración (6 movimientos de ejemplo; filtros, Compartir y Descargar todavía sin acción) |
 | Alertas | `/alertas` | ✅ Funcional (alertas calculadas desde los insumos: sin stock, stock bajo, vencido y vencimiento cercano; filtro, marcar como vista y abrir el detalle todavía sin acción) |
-| Lista de compras | `/compras` | ✅ Funcional (colección `listaCompras` de Firestore: cantidad editable con mínimo 1 y sugerencias del sistema para los insumos con stock bajo; buscar, papelera, agregar a mano, Compartir y Descargar todavía sin acción) |
+| Lista de compras | `/compras` | ✅ Funcional (colección `listaCompras` de Firestore: cantidad editable con mínimo 1 y sugerencias del sistema para los insumos con stock bajo; Compartir y Descargar en PDF o Excel (CSV); buscar, papelera y agregar a mano todavía sin acción) |
 
 ### Trabajos prácticos
 | Pantalla | Ruta | Estado |
