@@ -74,7 +74,7 @@ Firebase ya viene configurado en el repositorio (`android/app/google-services.js
 ```
 flutter test
 ```
-Las pruebas están en `test/` y cubren la lógica que no depende de Firebase (por ahora, la lista de compras y las alertas).
+Las pruebas están en `test/` y cubren la lógica que no depende de Firebase (por ahora, la lista de compras, las alertas y el historial).
 
 ### Problemas conocidos
 | Síntoma | Causa y solución |
@@ -114,7 +114,7 @@ Todo el código está en `lib/`.
 | `screens/<área>/` | Pantallas de cada flujo: `auth`, `inventario`, `consumo`, `historial`, `alertas`, `compras`, `tp`, `usuarios`, `perfil` |
 | `providers/` | Estado de la app con Riverpod |
 | `models/` | Modelos de dominio: `Insumo`, `TrabajoPractico`, `ListaCompra` y `Alerta` |
-| `services/` | Acceso a Firestore: `InsumoService` (colección `insumos`), `TpService` (colección `listasTP`) y `ListaCompraService` (colección `listaCompras`). `AlertaService` no usa Firestore: genera las alertas a partir de los insumos |
+| `services/` | Acceso a Firestore: `InsumoService` (colección `insumos`), `TpService` (colección `listasTP`) `ListaCompraService` (colección `listaCompras`) y `HistorialService` (colección `movimientosStock`, solo lectura: los movimientos los escribe quien cambia el stock). `AlertaService` no usa Firestore: genera las alertas a partir de los insumos |
 
 Las pruebas unitarias están en `test/` (fuera de `lib/`).
 
@@ -150,7 +150,7 @@ Las pruebas unitarias están en `test/` (fuera de `lib/`).
 ### Historial, alertas y compras
 | Pantalla | Ruta | Estado |
 |---|---|---|
-| Historial de movimientos | `/historial` | 🎭 Demostración (6 movimientos de ejemplo; filtros, Compartir y Descargar todavía sin acción) |
+| Historial de movimientos | `/historial` | ✅ Funcional (lee la colección `movimientosStock` de Firestore en tiempo real, los últimos 500, y muestra el nombre del insumo; aparece vacío hasta que Alta y Consumo registren movimientos; filtros, Compartir y Descargar todavía sin acción) |
 | Alertas | `/alertas` | ✅ Funcional (alertas calculadas desde los insumos: sin stock, stock bajo, vencido y vencimiento cercano; tocar una alerta abre el detalle del insumo; el filtro y marcar como vista todavía sin acción) |
 | Lista de compras | `/compras` | ✅ Funcional (colección `listaCompras` de Firestore: cantidad editable con mínimo 1 y sugerencias del sistema para los insumos con stock bajo; buscar, papelera, agregar a mano, Compartir y Descargar todavía sin acción) |
 
