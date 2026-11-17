@@ -52,21 +52,31 @@ class HistorialScreen extends ConsumerWidget {
                 ),
               ),
               Expanded(
-                child: movimientos.isEmpty
-                    ? Center(
-                        child: Text(
-                          AppStrings.historialVacio,
-                          style: AppTextStyles.itemDetail,
+                child: movimientos.when(
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
+                  error: (error, stack) => Center(
+                    child: Text(
+                      AppStrings.historialError,
+                      style: AppTextStyles.itemDetail,
+                    ),
+                  ),
+                  data: (lista) => lista.isEmpty
+                      ? Center(
+                          child: Text(
+                            AppStrings.historialVacio,
+                            style: AppTextStyles.itemDetail,
+                          ),
+                        )
+                      : ListView.separated(
+                          padding: const EdgeInsets.fromLTRB(36, 8, 36, 20),
+                          itemCount: lista.length,
+                          separatorBuilder: (context, index) =>
+                              const SizedBox(height: 12),
+                          itemBuilder: (context, index) =>
+                              MovimientoTile(item: lista[index]),
                         ),
-                      )
-                    : ListView.separated(
-                        padding: const EdgeInsets.fromLTRB(36, 8, 36, 20),
-                        itemCount: movimientos.length,
-                        separatorBuilder: (context, index) =>
-                            const SizedBox(height: 12),
-                        itemBuilder: (context, index) =>
-                            MovimientoTile(item: movimientos[index]),
-                      ),
+                ),
               ),
               const ShareDownloadActions(
                 onShare: _onCompartir,

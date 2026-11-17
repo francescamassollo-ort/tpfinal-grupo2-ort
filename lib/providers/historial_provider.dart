@@ -2,9 +2,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/movimiento_stock.dart';
-import '../screens/historial/historial_sample_data.dart';
+import '../screens/historial/historial_items.dart';
 import '../screens/historial/movimiento_item.dart';
 import '../services/historial_service.dart';
+import 'insumo_providers.dart';
 
 final historialServiceProvider =
     Provider((ref) => HistorialService(FirebaseFirestore.instance));
@@ -15,9 +16,22 @@ final movimientosStockProvider = StreamProvider<List<MovimientoStock>>(
   (ref) => ref.watch(historialServiceProvider).watchMovimientos(),
 );
 
-// Lista de movimientos que muestra la pantalla de Historial. Por ahora son los
-// datos de ejemplo; cuando exista el servicio de stock, este provider pasa a
-// leer los movimientos reales y la pantalla no cambia.
-final historialProvider = Provider<List<MovimientoItem>>(
-  (ref) => historialSampleData,
-);
+// Lo que muestra la pantalla de Historial: cada movimiento cruzado con su
+// insumo para tener el nombre. El movimiento solo guarda el id del insumo, así
+// un cambio de nombre se ve también en los movimientos viejos.
+final historialProvider = Provider<AsyncValue<List<MovimientoItem>>>((ref) {
+  final movimientos = ref.watch(movimientosStockProvider);
+  final insumos = ref.watch(insumosProvider);
+
+  return movimientos.when(
+    loading: () => const AsyncLoading<List<MovimientoItem>>(),
+    error: (error, stack) => AsyncError<List<MovimientoItem>>(error, stack),
+    data: (lista) => insumos.whenData(
+      (todos) => HistorialItems.armar(
+        movimientos: lista,
+        insumos: todos,
+        ahora: DateTime.now(),
+      ),
+    ),
+  );
+});

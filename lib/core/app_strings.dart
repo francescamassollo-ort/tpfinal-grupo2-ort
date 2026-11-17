@@ -28,6 +28,10 @@ class AppStrings {
 
   static const String historialTitulo = 'Historial de movimientos';
   static const String historialVacio = 'Todavía no hay movimientos registrados';
+  static const String historialError = 'No se pudo cargar el historial';
+  static const String historialInsumoEliminado = 'Insumo eliminado';
+  static const String historialHoy = 'Hoy';
+  static const String historialAyer = 'Ayer';
   static const String movimientoEntrada = 'Entrada de stock';
   static const String movimientoSalida = 'Salida de stock';
 
