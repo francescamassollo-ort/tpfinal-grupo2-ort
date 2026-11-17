@@ -185,7 +185,7 @@ void main() {
     servidor.cuerpoDeRespuesta = '{"error":{"message":"algo falló"}}';
 
     try {
-      await cliente(clave: 'gsk_clave-secreta-de-prueba')
+      await cliente(clave: 'clave-secreta-de-prueba')
           .responder(instrucciones: 'a', consulta: 'b');
       fail('tenía que fallar');
     } on ModeloDeLenguajeException catch (e) {
