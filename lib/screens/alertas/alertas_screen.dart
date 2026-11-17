@@ -73,8 +73,15 @@ class AlertasScreen extends ConsumerWidget {
                           itemCount: lista.length,
                           separatorBuilder: (context, index) =>
                               const SizedBox(height: 12),
-                          itemBuilder: (context, index) =>
-                              AlertaTile(alerta: lista[index]),
+                          itemBuilder: (context, index) {
+                            final alerta = lista[index];
+                            return AlertaTile(
+                              alerta: alerta,
+                              // Abre el insumo, igual que al tocarlo en Inventario.
+                              onTap: () =>
+                                  context.push('/insumo/${alerta.productoId}'),
+                            );
+                          },
                         ),
                 ),
               ),

@@ -23,7 +23,7 @@ App móvil hecha con Flutter y Firebase.
 ### Requisitos
 | | Recomendado |
 |---|---|
-| Flutter | **3.47.x estable** (trae Dart 3.13). Es la versión con la que está generado el `pubspec.lock`. El proyecto exige como mínimo Dart `^3.11.4` |
+| Flutter | **3.41.6 o superior**, estable. Está verificado que `dev` compila con la 3.41.6 (Dart 3.11.4, el mínimo que exige el proyecto, `^3.11.4`). El `pubspec.lock` lo generó una 3.47, así que también se puede usar esa |
 | JDK | **17 o 21**. El JDK 25 que trae la última versión de Android Studio no funciona con el Gradle del proyecto |
 | Android Studio | Última versión estable, con el Android SDK y las **Android SDK Command-line Tools** (SDK Manager, pestaña SDK Tools) |
 | Dispositivo de prueba | Emulador de Android (probado en Pixel 7 con Android 16, API 36) o un teléfono con depuración USB |
@@ -34,7 +34,7 @@ La app está configurada para **Android**. No corre en el navegador ni en escrit
 
 ### 1. Instalar Flutter
 1. Seguir la guía oficial: https://docs.flutter.dev/install
-2. Verificar con `flutter --version` que sea la 3.47.x, y revisar el resto con `flutter doctor`.
+2. Verificar con `flutter --version` que sea la 3.41.6 o una posterior, y revisar el resto con `flutter doctor`.
 
 ### 2. Usar un JDK 17 o 21
 Si la terminal usa el JDK de Android Studio y es el 25, indicarle a Flutter cuál usar (una sola vez):
@@ -70,10 +70,16 @@ La app arranca en **Inventario**: el login todavía no está conectado a Firebas
 Firebase ya viene configurado en el repositorio (`android/app/google-services.json` y
 `lib/firebase_options.dart`), no hace falta crear nada.
 
+### 7. Correr las pruebas
+```
+flutter test
+```
+Las pruebas están en `test/` y cubren la lógica que no depende de Firebase (por ahora, la lista de compras y las alertas).
+
 ### Problemas conocidos
 | Síntoma | Causa y solución |
 |---|---|
-| `Module was compiled with an incompatible version of Kotlin` en la tarea `:firebase_auth:compileDebugKotlin` | **Pendiente de arreglar en el proyecto.** `firebase_auth` ya no compila con el Kotlin 2.2.20 de `android/settings.gradle.kts`. Se reprodujo en una copia limpia de `dev` con Flutter 3.47. Una solución probada con Flutter 3.41.6: subir el plugin `org.jetbrains.kotlin.android` a 2.3.21 y, en `android/app/build.gradle.kts`, reemplazar `kotlinOptions { jvmTarget = ... }` por `kotlin { compilerOptions { jvmTarget.set(JvmTarget.JVM_17) } }` |
+| `Module was compiled with an incompatible version of Kotlin` en la tarea `:firebase_auth:compileDebugKotlin` | Es de una versión vieja del proyecto: `firebase_auth` necesita Kotlin 2.4. Ya está resuelto en `dev` (plugin de Kotlin 2.4.0 y `jvmTarget` con `compilerOptions`). Si aparece, actualizar la rama con `dev` |
 | Error de Gradle que solo muestra un número de versión, como `25.0.2` | Gradle está usando el JDK 25. Usar un JDK 17 o 21 (paso 2) |
 | `Building with plugins requires symlink support` | Falta activar el Modo de desarrollador de Windows y abrir una terminal nueva |
 | La app abre pero queda en blanco o en el logo de Flutter, con `channel-error` de Firebase en el log | No se registraron los plugins. Correr `flutter clean`, `flutter pub get` y volver a compilar |
@@ -84,11 +90,11 @@ Firebase ya viene configurado en el repositorio (`android/app/google-services.js
 ### Versiones
 | Componente | Versión |
 |---|---|
-| Flutter | 3.47.x |
-| Dart | 3.13 (mínimo `^3.11.4`) |
+| Flutter | 3.41.6 o superior (el lock lo generó una 3.47) |
+| Dart | 3.11.4 o superior (mínimo `^3.11.4`) |
 | Gradle | 8.14 |
 | Android Gradle Plugin | 8.11.1 |
-| Kotlin | 2.2.20 (ver problema conocido de `firebase_auth`) |
+| Kotlin | 2.4.0 |
 | Plugin Google Services | 4.3.15 |
 | Java (compilación) | 17 |
 | firebase_core | ^5.0.0 |
@@ -107,20 +113,22 @@ Todo el código está en `lib/`.
 | `widgets/` | Componentes reutilizables: fondo decorativo, encabezado de pantalla, tarjeta con contorno, botón de acción, fila de Compartir y Descargar, selector de cantidad, tarjeta de insumo, y los botones y campos de las pantallas de acceso |
 | `screens/<área>/` | Pantallas de cada flujo: `auth`, `inventario`, `consumo`, `historial`, `alertas`, `compras`, `tp`, `usuarios`, `perfil` |
 | `providers/` | Estado de la app con Riverpod |
-| `models/` | Modelos de dominio: `Insumo` y `TrabajoPractico` |
-| `services/` | Acceso a Firestore: `InsumoService` (colección `insumos`) y `TpService` (colección `listasTP`) |
+| `models/` | Modelos de dominio: `Insumo`, `TrabajoPractico`, `ListaCompra` y `Alerta` |
+| `services/` | Acceso a Firestore: `InsumoService` (colección `insumos`), `TpService` (colección `listasTP`) y `ListaCompraService` (colección `listaCompras`). `AlertaService` no usa Firestore: genera las alertas a partir de los insumos |
+
+Las pruebas unitarias están en `test/` (fuera de `lib/`).
 
 ## Navegación
 - La app arranca en **Inventario**. El login queda para el final.
-- **Dentro del `AppShell`** (barra inferior y menú lateral, que muestra opciones según el rol): Inventario, Insumos, Consumo, Alertas, Trabajos prácticos, Usuarios y Perfil.
+- **Dentro del `AppShell`** (barra inferior y menú lateral, que muestra opciones según el rol): Inventario, Detalle de insumo (`/insumo/:id`), Alta de insumo, Consumo, Alertas, Trabajos prácticos, Usuarios y Perfil.
 - **Fuera del `AppShell`**, a pantalla completa: Welcome, Login, Register, **Historial** y **Lista de compras**.
 
 ### Decisiones de navegación
 - **Historial y Lista de compras** van fuera del `AppShell` porque en el diseño no llevan la barra inferior del shell. Lista de compras tiene además su propio botón flotante circular. La flecha de volver regresa a la pantalla anterior o, si no hay, a Inventario.
-- **Alertas** tendrá que ajustar su lugar cuando se construya: el diseño lleva barra inferior pero no el botón flotante del shell.
+- **Alertas** va dentro del `AppShell` porque el diseño lleva la barra inferior, pero sin el botón flotante: el shell recibe la ruta actual (`location`) y lo esconde solo en `/alertas`.
 
 ## Seguimiento de pantallas
-⏳ Placeholder: la ruta existe y la pantalla todavía no está hecha · 🚧 En construcción: interfaz armada, sin datos reales de Firebase · 🎭 Demostración: funciona con datos de ejemplo · 🔍 En revisión: hecha en una rama, todavía sin mergear a `dev` · ✅ Funcional: con datos reales de Firebase
+⏳ Placeholder: la ruta existe y la pantalla todavía no está hecha · 🚧 En construcción: interfaz armada, sin datos reales de Firebase · 🎭 Demostración: funciona con datos de ejemplo · 🔍 En revisión: hecha en una rama, todavía sin mergear a `dev` · ✅ Funcional: con datos reales (de Firebase o calculados a partir de ellos); las acciones que dependen de decisiones pendientes quedan indicadas
 
 ### Acceso
 | Pantalla | Ruta | Estado |
@@ -134,7 +142,7 @@ Todo el código está en `lib/`.
 |---|---|---|
 | Inventario | `/inventario` | ✅ Funcional (lee los insumos de Firestore, con buscador, filtros y tarjetas) |
 | Buscar y filtrar | `/inventario/filtro` | ⏳ Placeholder (hoy el filtro es un diálogo dentro de Inventario) |
-| Detalle de insumo | `/insumo` | ⏳ Placeholder |
+| Detalle de insumo | `/insumo/:id` | ✅ Funcional (lee el insumo de Firestore en tiempo real; Editar y Baja avisan "Próximamente"; Historial y Registrar consumo navegan a sus pantallas) |
 | Alta de insumo | `/insumo/alta` | ⏳ Placeholder |
 | Escáner | `/scanner` | ⏳ Placeholder |
 | Consumo | `/consumo` | ⏳ Placeholder |
@@ -143,8 +151,8 @@ Todo el código está en `lib/`.
 | Pantalla | Ruta | Estado |
 |---|---|---|
 | Historial de movimientos | `/historial` | 🎭 Demostración (6 movimientos de ejemplo; filtros, Compartir y Descargar todavía sin acción) |
-| Alertas | `/alertas` | ⏳ Placeholder |
-| Lista de compras | `/compras` | 🔍 En revisión (`feat/compras`: 4 ítems de ejemplo con cantidad editable, cantidad mínima 1; sugerencias, buscar, papelera, agregar, Compartir y Descargar sin acción) |
+| Alertas | `/alertas` | ✅ Funcional (alertas calculadas desde los insumos: sin stock, stock bajo, vencido y vencimiento cercano; tocar una alerta abre el detalle del insumo; el filtro y marcar como vista todavía sin acción) |
+| Lista de compras | `/compras` | ✅ Funcional (colección `listaCompras` de Firestore: cantidad editable con mínimo 1 y sugerencias del sistema para los insumos con stock bajo; buscar, papelera, agregar a mano, Compartir y Descargar todavía sin acción) |
 
 ### Trabajos prácticos
 | Pantalla | Ruta | Estado |
@@ -166,8 +174,8 @@ Todo el código está en `lib/`.
 - Cada Pull Request enlaza su issue con `Part of #N`.
 
 ## Uso de IA
-Parte del desarrollo (las pantallas de Historial y Lista de compras y sus componentes compartidos) se hizo
-con Claude (Anthropic) como asistente. Lo que propuso se revisó, se compiló y se probó en el emulador antes
+Parte del desarrollo (las pantallas de Historial, Lista de compras y Alertas, sus modelos, servicios y pruebas,
+y los componentes compartidos) se hizo con Claude (Anthropic) como asistente. Lo que propuso se revisó, se compiló y se probó en el emulador antes
 de subirlo.
 
 - **Por pasos chicos:** antes de escribir, se acordaba qué archivos cambiaban y en cuántos commits.
