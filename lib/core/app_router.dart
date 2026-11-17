@@ -1,5 +1,5 @@
 import 'package:go_router/go_router.dart';
-
+import '../screens/auth/auth_logic/auth_service.dart';
 import '../screens/alertas/alertas_screen.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/auth/register_screen.dart';
@@ -22,9 +22,10 @@ import 'app_shell.dart';
 // Login queda para el final (lo pidió el profe), por eso se arranca
 // directo en /inventario en vez de /welcome o /login.
 final GoRouter appRouter = GoRouter(
-  initialLocation: '/inventario',
+  initialLocation: '/auth', //'inventario',
   routes: [
     // Pantallas sin barra ni drawer (todavía no hay sesión iniciada).
+    GoRoute(path: '/auth', builder: (context, state) => const AuthWrapper()),
     GoRoute(path: '/welcome', builder: (context, state) => const WelcomeScreen()),
     GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
     GoRoute(path: '/register', builder: (context, state) => const RegisterScreen()),

@@ -1,5 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import '../welcome_screen.dart';
+import '../../inventario/inventario_screen.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -23,11 +25,19 @@ class AuthService {
       // Catch specific Firebase authentication exceptions for better error handling
       debugPrint("FirebaseAuthException during registration: ${e.code} - ${e.message}");
       // You can display a user-friendly message based on e.code
-      /*
+      
       if (e.code == 'weak-password') {
         // Handle weak password - espera al menos 6 caracteres!!
+        /*
+        esto deberia
+          _ tirar una alarma
+          _ borrar contraseña
+          _ retener usuario para no reescribirlo
+        */
+        
+        return null;
       } else 
-      */
+      
       if (e.code == 'email-already-in-use') {
         // Handle email already registered
         // deberia de enviar un alerta, pero dejar las data de textField como está
@@ -79,7 +89,7 @@ class AuthService {
   // aca iria autenticacion con ****** si se pide >.>
 }
 
-/*
+
 // Example of how AuthWrapper might look to manage navigation based on auth state
 class AuthWrapper extends StatelessWidget {
   const AuthWrapper({super.key});
@@ -87,7 +97,7 @@ class AuthWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Access the user stream from AuthService
-    return StreamBuilder<User?>( // esto debe estar en inventario
+    return StreamBuilder<User?>(
       stream: AuthService().user, // Listen to authentication state changes
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -95,18 +105,18 @@ class AuthWrapper extends StatelessWidget {
           return const Scaffold(body: Center(child: CircularProgressIndicator()));
         } else if (snapshot.hasData) {
           // If there is user data, the user is signed in
-          //return const HomeScreen(); // Navigate to your main app screen
           //ESTO MUESTRA EL INVENTARIO
+          return const InventarioScreen(); // Navigate to your main app screen
         } else {
           // If there is no user data, the user is signed out
           //return const SignInScreen(); // Navigate to your sign-in screen
-          //esto te envia a welcome_screen
+          return const WelcomeScreen();
         }
       },
     );
   }
 }
-
+/*
 class SignInScreen extends StatelessWidget {  //suponiendo welcome screen
   const SignInScreen({super.key});
 
@@ -196,7 +206,13 @@ class HomeScreen extends StatelessWidget {
 */
 
 
+
+
+
 /*
+
+segunda copia de lo anterior, esta para borrar cuando termine
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart'; // For UI elements like SnackBar
 
