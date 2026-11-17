@@ -7,11 +7,13 @@ import '../../models/alerta.dart';
 import '../../widgets/outlined_list_card.dart';
 
 /// Una fila de Alertas: círculo con signo de exclamación del color de la
-/// severidad, nombre del insumo y el motivo de la alerta debajo.
+/// severidad, nombre del insumo y el motivo de la alerta debajo. Si se pasa
+/// [onTap], la fila se puede tocar (por ejemplo para abrir el insumo).
 class AlertaTile extends StatelessWidget {
-  const AlertaTile({required this.alerta, super.key});
+  const AlertaTile({required this.alerta, this.onTap, super.key});
 
   final Alerta alerta;
+  final VoidCallback? onTap;
 
   // Tamaño del círculo y espacio hasta el texto, según Figma.
   static const double _circleSize = 37;
@@ -22,6 +24,7 @@ class AlertaTile extends StatelessWidget {
     final critica = alerta.severidad == SeveridadAlerta.critica;
 
     return OutlinedListCard(
+      onTap: onTap,
       padding: const EdgeInsets.fromLTRB(17, 12, 20, 12),
       child: Row(
         children: [
