@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import 'app_colors.dart';
 
@@ -6,6 +7,8 @@ import 'app_colors.dart';
 /// Se usa una sola vez, en MaterialApp(theme: appTheme).
 final ThemeData appTheme = ThemeData(
   useMaterial3: true,
+  // Poppins es la tipografía del diseño; se descarga con google_fonts.
+  textTheme: GoogleFonts.poppinsTextTheme(),
   scaffoldBackgroundColor: AppColors.background,
   colorScheme: ColorScheme.fromSeed(
     seedColor: AppColors.primary,
