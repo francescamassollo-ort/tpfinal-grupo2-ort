@@ -18,6 +18,10 @@ dependencies:
   pdf: ">=3.12.0 <3.13.0"
   file_saver: 0.4.0
   share_plus: ^13.3.1
+  # image la usa pdf. La 4.11.0 pide archive ^4.0.9 pero necesita una función de
+  # una archive más nueva, y pdf 3.12.0 no deja pasar de archive 4.0.9: con la
+  # 4.11.0 no compila. Se puede quitar al actualizar pdf (3.13 pide Flutter 3.44).
+  image: ">=4.1.0 <4.11.0"
 
 dev_dependencies:
   flutter_test:
