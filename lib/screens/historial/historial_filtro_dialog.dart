@@ -44,6 +44,10 @@ class _HistorialFiltroDialogState extends State<HistorialFiltroDialog> {
     // falla si su valor no está entre las opciones.
     if (!insumos.any((i) => i.id == _productoId)) _productoId = null;
 
+    // Dos insumos pueden llamarse igual (por ejemplo, el mismo producto en dos
+    // armarios). A esos se les suma la ubicación para poder distinguirlos.
+    final repetidos = _nombresRepetidos(insumos);
+
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: SingleChildScrollView(
@@ -93,7 +97,10 @@ class _HistorialFiltroDialogState extends State<HistorialFiltroDialog> {
                 ...insumos.map(
                   (i) => DropdownMenuItem(
                     value: i.id,
-                    child: Text(i.nombre, overflow: TextOverflow.ellipsis),
+                    child: Text(
+                      _etiqueta(i, repetidos),
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                 ),
               ],
@@ -191,6 +198,23 @@ class _HistorialFiltroDialogState extends State<HistorialFiltroDialog> {
   static DateTime _hoy() {
     final ahora = DateTime.now();
     return DateTime(ahora.year, ahora.month, ahora.day);
+  }
+
+  // Nombres que tienen más de un insumo, sin distinguir mayúsculas.
+  static Set<String> _nombresRepetidos(List<Insumo> insumos) {
+    final vistos = <String>{};
+    final repetidos = <String>{};
+    for (final insumo in insumos) {
+      final nombre = insumo.nombre.toLowerCase();
+      if (!vistos.add(nombre)) repetidos.add(nombre);
+    }
+    return repetidos;
+  }
+
+  // "Algodon - Armario 5" si el nombre se repite; si no, solo el nombre.
+  static String _etiqueta(Insumo insumo, Set<String> repetidos) {
+    final repetido = repetidos.contains(insumo.nombre.toLowerCase());
+    return repetido ? '${insumo.nombre} - ${insumo.ubicacion}' : insumo.nombre;
   }
 }
 

@@ -5,12 +5,13 @@ import 'package:tpfinal_grupo2/models/insumo.dart';
 import 'package:tpfinal_grupo2/models/movimiento_stock.dart';
 import 'package:tpfinal_grupo2/screens/historial/historial_filtro_dialog.dart';
 
-Insumo _insumo(String id, String nombre) => Insumo(
+Insumo _insumo(String id, String nombre, {String ubicacion = 'Estante 1'}) =>
+    Insumo(
       id: id,
       nombre: nombre,
       tipo: InsumoTipo.comprado,
       stock: 10,
-      ubicacion: 'Estante 1',
+      ubicacion: ubicacion,
       umbralMinimo: 2,
     );
 
@@ -25,6 +26,7 @@ class _Resultado {
 Future<_Resultado> _abrir(
   WidgetTester tester, {
   FiltroHistorial actual = const FiltroHistorial(),
+  List<Insumo>? insumos,
 }) async {
   final resultado = _Resultado();
   await tester.pumpWidget(
@@ -38,7 +40,7 @@ Future<_Resultado> _abrir(
                   context: context,
                   builder: (_) => HistorialFiltroDialog(
                     filtroActual: actual,
-                    insumos: _insumos,
+                    insumos: insumos ?? _insumos,
                   ),
                 );
               },
@@ -182,6 +184,49 @@ void main() {
 
     expect(resultado.filtro!.desde, isNull);
     expect(resultado.filtro!.hasta, DateTime(2026, 11, 10));
+  });
+
+  group('insumos con el mismo nombre', () {
+    final repetidos = [
+      _insumo('a1', 'Algodon', ubicacion: 'Estante 5'),
+      _insumo('a2', 'algodon', ubicacion: 'Armario 5'),
+      _insumo('e1', 'Etanol'),
+    ];
+
+    testWidgets('se distinguen sumando la ubicación', (tester) async {
+      await _abrir(tester, insumos: repetidos);
+
+      await tester.tap(find.widgetWithText(InputDecorator, 'Insumo'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Algodon - Estante 5'), findsOneWidget);
+      expect(find.text('algodon - Armario 5'), findsOneWidget);
+    });
+
+    testWidgets('los nombres que no se repiten quedan como están',
+        (tester) async {
+      await _abrir(tester, insumos: repetidos);
+
+      await tester.tap(find.widgetWithText(InputDecorator, 'Insumo'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Etanol'), findsOneWidget);
+      expect(find.text('Etanol - Estante 1'), findsNothing);
+    });
+
+    testWidgets('elegir uno devuelve el id de ese insumo y no del otro',
+        (tester) async {
+      final resultado = await _abrir(tester, insumos: repetidos);
+
+      await _elegirOpcion(
+        tester,
+        campo: 'Insumo',
+        opcion: 'algodon - Armario 5',
+      );
+      await _tocar(tester, 'Filtrar');
+
+      expect(resultado.filtro!.productoId, 'a2');
+    });
   });
 
   testWidgets('cerrar tocando afuera no devuelve nada', (tester) async {
