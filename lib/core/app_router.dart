@@ -39,7 +39,8 @@ final GoRouter appRouter = GoRouter(
     // ShellRoute: todas estas rutas comparten el mismo AppShell
     // (barra inferior + drawer), que no se reconstruye al navegar entre ellas.
     ShellRoute(
-      builder: (context, state, child) => AppShell(child: child),
+      builder: (context, state, child) =>
+          AppShell(location: state.uri.path, child: child),
       routes: [
         GoRoute(path: '/inventario', builder: (context, state) => const InventarioScreen()),
         GoRoute(path: '/inventario/filtro', builder: (context, state) => const BuscarFiltroScreen()),

@@ -9,21 +9,27 @@ import '../providers/role_provider.dart';
 // según la ruta actual, por eso la barra y el drawer no "parpadean" al
 // navegar entre pantallas.
 class AppShell extends ConsumerWidget {
-  const AppShell({required this.child, super.key});
+  const AppShell({required this.location, required this.child, super.key});
 
+  /// Ruta actual, para saber si hay que mostrar el botón flotante.
+  final String location;
   final Widget child;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final role = ref.watch(roleProvider);
+    // El diseño de Alertas no lleva el botón flotante.
+    final mostrarBotonAgregar = location != '/alertas';
 
     return Scaffold(
       drawer: _AppDrawer(role: role),
       body: child,
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => context.push('/insumo/alta'),
-        child: const Icon(Icons.add),
-      ),
+      floatingActionButton: mostrarBotonAgregar
+          ? FloatingActionButton(
+              onPressed: () => context.push('/insumo/alta'),
+              child: const Icon(Icons.add),
+            )
+          : null,
       bottomNavigationBar: BottomAppBar(
         shape: const CircularNotchedRectangle(),
         child: Row(
