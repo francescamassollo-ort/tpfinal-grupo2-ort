@@ -44,8 +44,14 @@ final GoRouter appRouter = GoRouter(
       routes: [
         GoRoute(path: '/inventario', builder: (context, state) => const InventarioScreen()),
         GoRoute(path: '/inventario/filtro', builder: (context, state) => const BuscarFiltroScreen()),
-        GoRoute(path: '/insumo', builder: (context, state) => const InsumoDetalleScreen()),
+        // /insumo/alta va antes que /insumo/:id; si no, go_router tomaría
+        // "alta" como si fuera el id de un insumo.
         GoRoute(path: '/insumo/alta', builder: (context, state) => const InsumoAltaScreen()),
+        GoRoute(
+          path: '/insumo/:id',
+          builder: (context, state) =>
+              InsumoDetalleScreen(insumoId: state.pathParameters['id']!),
+        ),
         GoRoute(path: '/scanner', builder: (context, state) => const ScannerScreen()),
         GoRoute(path: '/consumo', builder: (context, state) => const ConsumoScreen()),
         GoRoute(path: '/alertas', builder: (context, state) => const AlertasScreen()),
