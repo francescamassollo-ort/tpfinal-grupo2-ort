@@ -151,7 +151,7 @@ Las pruebas unitarias están en `test/` (fuera de `lib/`).
 | Pantalla | Ruta | Estado |
 |---|---|---|
 | Historial de movimientos | `/historial` | 🎭 Demostración (6 movimientos de ejemplo; filtros, Compartir y Descargar todavía sin acción) |
-| Alertas | `/alertas` | ✅ Funcional (alertas calculadas desde los insumos: sin stock, stock bajo, vencido y vencimiento cercano; filtro, marcar como vista y abrir el detalle todavía sin acción) |
+| Alertas | `/alertas` | ✅ Funcional (alertas calculadas desde los insumos: sin stock, stock bajo, vencido y vencimiento cercano; tocar una alerta abre el detalle del insumo; el filtro y marcar como vista todavía sin acción) |
 | Lista de compras | `/compras` | ✅ Funcional (colección `listaCompras` de Firestore: cantidad editable con mínimo 1 y sugerencias del sistema para los insumos con stock bajo; buscar, papelera, agregar a mano, Compartir y Descargar todavía sin acción) |
 
 ### Trabajos prácticos
