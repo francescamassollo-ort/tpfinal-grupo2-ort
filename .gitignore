@@ -46,3 +46,6 @@ app.*.map.json
 
 # Contexto de proyecto para Claude Code, solo local (tiene datos del cliente)
 CLAUDE.md
+
+# Claves de API locales. Nunca se suben: copiar env.example.json a env.json y completarlo.
+env.json
