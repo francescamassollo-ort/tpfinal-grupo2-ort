@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:tpfinal_grupo2/models/insumo.dart';
 import 'package:tpfinal_grupo2/models/movimiento_stock.dart';
 import 'package:tpfinal_grupo2/models/prediccion_stock.dart';
+import 'package:tpfinal_grupo2/models/trabajo_practico.dart';
 import 'package:tpfinal_grupo2/services/stock_prediction_service.dart';
 
 // Miércoles 18/11/2026, 12:00. La próxima compra es el 1/12: dentro de 13 días.
@@ -38,12 +39,34 @@ List<PrediccionStock> _predecir(
   List<Insumo> insumos,
   List<MovimientoStock> movimientos, {
   int ventanaDias = 30,
+  List<TrabajoPractico> tps = const [],
 }) {
   return StockPredictionService.predecir(
     insumos: insumos,
     movimientos: movimientos,
+    trabajosPracticos: tps,
     ahora: _ahora,
     ventanaDias: ventanaDias,
+  );
+}
+
+// Un trabajo práctico en [fecha] que pide [pedidos] (insumoId -> cantidad).
+TrabajoPractico _tp(
+  String nombre,
+  DateTime fecha,
+  Map<String, double> pedidos, {
+  bool activo = true,
+}) {
+  return TrabajoPractico(
+    id: nombre,
+    nombre: nombre,
+    descripcion: '',
+    fecha: fecha,
+    insumos: [
+      for (final e in pedidos.entries)
+        InsumoRequerido(insumoId: e.key, cantidad: e.value, unidad: 'u'),
+    ],
+    activo: activo,
   );
 }
 
@@ -237,6 +260,216 @@ void main() {
       expect(
         [for (final p in resultado) p.productoNombre],
         ['Barbijo', 'Etanol', 'Pipetas', 'Agar'],
+      );
+    });
+  });
+
+  group('trabajos prácticos planificados', () {
+    test('suma lo que piden los TP antes de la compra', () {
+      final resultado = _predecir(
+        [_insumo('p1', 'Etanol', stock: 10)],
+        const [],
+        tps: [
+          _tp('PCR', DateTime(2026, 11, 20, 9), {'p1': 4}),
+          _tp('Gel', DateTime(2026, 11, 25, 9), {'p1': 3}),
+        ],
+      );
+
+      final p = resultado.single;
+      expect(p.demandaPlanificada, 7);
+      expect(p.trabajosPracticos, ['PCR', 'Gel']);
+      expect(p.faltaParaTps, isFalse);
+      expect(p.enRiesgo, isFalse);
+    });
+
+    test('un insumo solo del plan aparece sin ritmo', () {
+      final p = _predecir(
+        [_insumo('p1', 'Etanol')],
+        const [],
+        tps: [_tp('PCR', DateTime(2026, 11, 20), {'p1': 2})],
+      ).single;
+
+      expect(p.consumoDiario, 0);
+      expect(p.diasRestantes, isNull);
+      expect(p.fechaAgotamiento, isNull);
+      expect(p.seAgotaAntesDeLaCompra, isFalse);
+    });
+
+    test('avisa cuál es el primer TP para el que no alcanza', () {
+      // Stock 5. PCR pide 3 (alcanza, quedan 2); Gel pide 4 (acumulado 7 > 5).
+      final p = _predecir(
+        [_insumo('p1', 'Etanol', stock: 5)],
+        const [],
+        tps: [
+          _tp('Gel', DateTime(2026, 11, 25), {'p1': 4}),
+          _tp('PCR', DateTime(2026, 11, 20), {'p1': 3}),
+        ],
+      ).single;
+
+      expect(p.faltaParaTps, isTrue);
+      expect(p.enRiesgo, isTrue);
+      expect(p.primerTpSinCobertura!.nombre, 'Gel');
+      expect(p.primerTpSinCobertura!.fecha, DateTime(2026, 11, 25));
+    });
+
+    test('si el stock alcanza justo, está cubierto', () {
+      final p = _predecir(
+        [_insumo('p1', 'Etanol', stock: 7)],
+        const [],
+        tps: [
+          _tp('PCR', DateTime(2026, 11, 20), {'p1': 3}),
+          _tp('Gel', DateTime(2026, 11, 25), {'p1': 4}),
+        ],
+      ).single;
+
+      expect(p.faltaParaTps, isFalse);
+    });
+
+    test('un solo TP que pide más que el stock no alcanza', () {
+      final p = _predecir(
+        [_insumo('p1', 'Etanol', stock: 2)],
+        const [],
+        tps: [_tp('PCR', DateTime(2026, 11, 20), {'p1': 3})],
+      ).single;
+
+      expect(p.primerTpSinCobertura!.nombre, 'PCR');
+    });
+
+    test('se ignoran los TP inactivos, pasados o posteriores a la compra', () {
+      final resultado = _predecir(
+        [_insumo('p1', 'Etanol', stock: 1)],
+        const [],
+        tps: [
+          _tp('Inactivo', DateTime(2026, 11, 20), {'p1': 9}, activo: false),
+          _tp('Pasado', DateTime(2026, 11, 10), {'p1': 9}),
+          // La compra es el 1/12: ese día ya no cuenta como "antes".
+          _tp('Despues', DateTime(2026, 12, 1), {'p1': 9}),
+        ],
+      );
+
+      expect(resultado, isEmpty);
+    });
+
+    test('un TP de hoy cuenta aunque su hora ya haya pasado', () {
+      // Son las 12:00 del 18/11; el TP era a las 8:00 de hoy.
+      final p = _predecir(
+        [_insumo('p1', 'Etanol', stock: 1)],
+        const [],
+        tps: [_tp('Temprano', DateTime(2026, 11, 18, 8), {'p1': 9})],
+      ).single;
+
+      expect(p.primerTpSinCobertura!.nombre, 'Temprano');
+    });
+
+    test('un insumo que pide un TP pero no está en la lista se ignora', () {
+      final resultado = _predecir(
+        [_insumo('p1', 'Etanol')],
+        const [],
+        tps: [_tp('PCR', DateTime(2026, 11, 20), {'borrado': 5})],
+      );
+
+      expect(resultado, isEmpty);
+    });
+
+    test('el nombre de un TP no se repite aunque pida el insumo dos veces', () {
+      final p = _predecir(
+        [_insumo('p1', 'Etanol', stock: 20)],
+        const [],
+        tps: [
+          TrabajoPractico(
+            id: 'a',
+            nombre: 'PCR',
+            descripcion: '',
+            fecha: DateTime(2026, 11, 20),
+            insumos: const [
+              InsumoRequerido(insumoId: 'p1', cantidad: 2, unidad: 'u'),
+              InsumoRequerido(insumoId: 'p1', cantidad: 3, unidad: 'u'),
+            ],
+          ),
+        ],
+      ).single;
+
+      expect(p.trabajosPracticos, ['PCR']);
+      expect(p.demandaPlanificada, 5);
+    });
+
+    test('el ritmo y el plan son avisos separados y no se suman', () {
+      // Ritmo: 14 unidades en 7 días = 2 por día; stock 10 = 5 días, se agota
+      // antes del 1/12. Plan: PCR pide 3, alcanza.
+      final p = _predecir(
+        [_insumo('p1', 'Etanol', stock: 10)],
+        [_mov('p1', TipoMovimiento.salida, 14, diasAtras: 2)],
+        tps: [_tp('PCR', DateTime(2026, 11, 20), {'p1': 3})],
+      ).single;
+
+      expect(p.seAgotaAntesDeLaCompra, isTrue);
+      expect(p.faltaParaTps, isFalse);
+      expect(p.enRiesgo, isTrue);
+      expect(p.diasRestantes, 5);
+      expect(p.demandaPlanificada, 3);
+    });
+
+    test('sin trabajos prácticos todo sigue igual que antes', () {
+      final p = _predecir(
+        [_insumo('p1', 'Etanol', stock: 10)],
+        [_mov('p1', TipoMovimiento.salida, 14, diasAtras: 2)],
+      ).single;
+
+      expect(p.demandaPlanificada, 0);
+      expect(p.trabajosPracticos, isEmpty);
+      expect(p.primerTpSinCobertura, isNull);
+    });
+  });
+
+  group('orden con riesgo por trabajos prácticos', () {
+    test('primero los que están en riesgo, por la fecha del primer problema',
+        () {
+      final resultado = _predecir(
+        [
+          _insumo('a', 'Agar', stock: 100), // sin riesgo
+          _insumo('b', 'Barbijo', stock: 10), // se agota por ritmo en 5 días
+          _insumo('c', 'Cofias', stock: 1), // no alcanza para un TP del 20/11
+          _insumo('d', 'Dextrosa', stock: 1), // no alcanza para un TP del 30/11
+        ],
+        [
+          _mov('a', TipoMovimiento.salida, 7, diasAtras: 2),
+          _mov('b', TipoMovimiento.salida, 14, diasAtras: 2),
+        ],
+        tps: [
+          _tp('Temprano', DateTime(2026, 11, 20), {'c': 5}),
+          _tp('Tarde', DateTime(2026, 11, 30), {'d': 5}),
+        ],
+      );
+
+      // Cofias (TP 20/11), Barbijo (se agota 23/11), Dextrosa (TP 30/11), y al
+      // final Agar, que no tiene problema.
+      expect(
+        [for (final p in resultado) p.productoNombre],
+        ['Cofias', 'Barbijo', 'Dextrosa', 'Agar'],
+      );
+    });
+
+    test('si falla el plan, la fecha de agotamiento por ritmo no cuenta', () {
+      final resultado = _predecir(
+        [
+          // Ritmo: 20 días de stock, bien después de la compra. Falla el TP del
+          // 28/11, que es lo único que cuenta como problema.
+          _insumo('a', 'Alcohol', stock: 20),
+          // Se agota por ritmo el 23/11.
+          _insumo('b', 'Barbijo', stock: 10),
+        ],
+        [
+          _mov('a', TipoMovimiento.salida, 7, diasAtras: 2),
+          _mov('b', TipoMovimiento.salida, 14, diasAtras: 2),
+        ],
+        tps: [_tp('Tarde', DateTime(2026, 11, 28), {'a': 25})],
+      );
+
+      // Barbijo (23/11) va antes que Alcohol (TP del 28/11), aunque Alcohol
+      // se agote por ritmo recién en 20 días.
+      expect(
+        [for (final p in resultado) p.productoNombre],
+        ['Barbijo', 'Alcohol'],
       );
     });
   });
