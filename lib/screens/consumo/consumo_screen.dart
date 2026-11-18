@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/insumo_providers.dart';
+import '../../services/stock_service.dart';
 
 class ConsumoScreen extends ConsumerStatefulWidget {
   const ConsumoScreen({super.key});
@@ -157,7 +158,7 @@ Widget build(BuildContext context) {
               const SizedBox(height: 24),
 
               ElevatedButton(
-                onPressed: () {
+                onPressed: () async {
                   if (!_formKey.currentState!.validate()) return;
 
                   if (_insumoId == null) {
@@ -169,11 +170,31 @@ Widget build(BuildContext context) {
                     return;
                   }
 
+                  try {
+                    await StockService().registrarSalida(
+                      _insumoId!,
+                      int.parse(_cantidadController.text),
+                      _motivo == 'Otro' 
+                      ? _otroController.text 
+                      : _motivo,
+                    );
+
+                  if (!mounted) return;
+                  
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text('Consumo registrado'),
+                      content: Text('Consumo registrado correctamente'),
                     ),
                   );
+                } catch (e) {
+                  if (!mounted) return;
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Error al registrar consumo: $e'),
+                    ),
+                  );
+                  }  
                 },
                 child: const Text('Registrar consumo'),
               ),
