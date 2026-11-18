@@ -74,7 +74,7 @@ Firebase ya viene configurado en el repositorio (`android/app/google-services.js
 ```
 flutter test
 ```
-Las pruebas están en `test/` y cubren la lógica que no depende de Firebase (por ahora, la lista de compras, las alertas y el historial).
+Las pruebas están en `test/` y cubren la lógica que no depende de Firebase (por ahora, la lista de compras, las alertas, el historial y la predicción de stock).
 
 ### Problemas conocidos
 | Síntoma | Causa y solución |
@@ -113,8 +113,8 @@ Todo el código está en `lib/`.
 | `widgets/` | Componentes reutilizables: fondo decorativo, encabezado de pantalla, tarjeta con contorno, botón de acción, fila de Compartir y Descargar, selector de cantidad, tarjeta de insumo, y los botones y campos de las pantallas de acceso |
 | `screens/<área>/` | Pantallas de cada flujo: `auth`, `inventario`, `consumo`, `historial`, `alertas`, `compras`, `tp`, `usuarios`, `perfil` |
 | `providers/` | Estado de la app con Riverpod |
-| `models/` | Modelos de dominio: `Insumo`, `TrabajoPractico`, `ListaCompra` y `Alerta` |
-| `services/` | Acceso a Firestore: `InsumoService` (colección `insumos`), `TpService` (colección `listasTP`) `ListaCompraService` (colección `listaCompras`) y `HistorialService` (colección `movimientosStock`, solo lectura: los movimientos los escribe quien cambia el stock). `AlertaService` no usa Firestore: genera las alertas a partir de los insumos |
+| `models/` | Modelos de dominio: `Insumo`, `TrabajoPractico`, `ListaCompra`, `Alerta`, `MovimientoStock` y los de la predicción de stock (`PrediccionStock` y `VentanaPrediccion`) |
+| `services/` | Acceso a Firestore: `InsumoService` (colección `insumos`), `TpService` (colección `listasTP`), `ListaCompraService` (colección `listaCompras`) y `HistorialService` (colección `movimientosStock`, solo lectura: los movimientos los escribe quien cambia el stock). `AlertaService` y `StockPredictionService` no usan Firestore: generan las alertas y las predicciones de stock a partir de los insumos, los movimientos y los trabajos prácticos |
 
 Las pruebas unitarias están en `test/` (fuera de `lib/`).
 
@@ -166,6 +166,26 @@ Las pruebas unitarias están en `test/` (fuera de `lib/`).
 |---|---|---|
 | Usuarios | `/usuarios` | ⏳ Placeholder |
 | Perfil | `/perfil` | ⏳ Placeholder |
+
+## Predicción de stock
+Estima cuándo se agota cada insumo antes de la próxima compra institucional (requerimiento A02). Hoy es lógica
+sin pantalla: `StockPredictionService` y `prediccionStockProvider` ya están, falta mostrarlas (por ejemplo en Alertas
+o en las sugerencias de Lista de compras, que necesita una decisión de diseño).
+
+- **Promedio de consumo, no aprendizaje automático.** Se calcula cuántas unidades por día se vienen consumiendo (solo
+  cuentan las salidas) y con eso cuántos días alcanza el stock. Se recalcula con cada movimiento nuevo, así que mejora
+  a medida que hay historial, sin entrenar ningún modelo. Con tan pocos datos un modelo no le ganaría a un promedio.
+- **Cruce con los trabajos prácticos.** Suma lo que piden los TP activos entre hoy y la próxima compra y avisa cuál es el
+  primer TP para el que no alcanza el stock. Es un aviso aparte del ritmo de consumo y no se suman, porque el consumo
+  pasado ya incluye los TP anteriores.
+- **Autoajuste de la ventana.** Elige entre mirar 30 o 60 días de consumo: "predice el pasado" en las últimas semanas con
+  cada ventana, lo compara con lo que realmente se consumió y se queda con la que menos se equivocó. Si hay poca
+  historia usa 30.
+
+Supuestos pendientes de confirmar:
+- La compra institucional es el 1 de julio y el 1 de diciembre (el requerimiento dice solo "julio / diciembre").
+- La cantidad que pide un TP está en la misma unidad que el stock, igual que en `TpService.verificarDisponibilidad`.
+- Mientras Alta y Consumo no registren movimientos, la predicción da una lista vacía y el autoajuste usa 30 días.
 
 ## Flujo de trabajo
 - Ramas: `main` (entregable), `dev` (integración) y `feat/<nombre>` por cada funcionalidad.
