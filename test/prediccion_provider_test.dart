@@ -237,6 +237,89 @@ void main() {
     });
   });
 
+  group('ventana de la predicción', () {
+    // Dos insumos con 1 unidad por día durante 150 días y una salida única de
+    // 100 unidades hace 40 días: un pico aislado, con el que la ventana de 60
+    // días se equivoca menos que la de 30.
+    List<MovimientoStock> historialConPico() => [
+          for (final p in ['p1', 'p2']) ...[
+            for (var dias = 150; dias >= 0; dias--) _salida(p, 1, diasAtras: dias),
+            _salida(p, 100, diasAtras: 40),
+          ],
+        ];
+
+    test('sin historial usa 30 días y dice que no pudo elegir', () async {
+      final container = _contenedor(
+        movimientos: Stream.value(const []),
+        insumos: Stream.value([_insumo('p1', 'Etanol')]),
+      );
+      await container.read(movimientosStockProvider.future);
+
+      final ventana = container.read(ventanaPrediccionProvider).requireValue;
+
+      expect(ventana.ventanaDias, 30);
+      expect(ventana.elegidaPorHistorial, isFalse);
+    });
+
+    test('con historial elige la que menos se equivoca', () async {
+      final container = _contenedor(
+        movimientos: Stream.value(historialConPico()),
+        insumos: Stream.value([_insumo('p1', 'Etanol'), _insumo('p2', 'Pipetas')]),
+      );
+      await container.read(movimientosStockProvider.future);
+
+      final ventana = container.read(ventanaPrediccionProvider).requireValue;
+
+      expect(ventana.elegidaPorHistorial, isTrue);
+      expect(ventana.ventanaDias, 60);
+      expect(
+        ventana.errorRelativoPorVentana[60]!,
+        lessThan(ventana.errorRelativoPorVentana[30]!),
+      );
+    });
+
+    test('la predicción usa la ventana elegida', () async {
+      final container = _contenedor(
+        movimientos: Stream.value(historialConPico()),
+        insumos: Stream.value([
+          _insumo('p1', 'Etanol', stock: 100),
+          _insumo('p2', 'Pipetas', stock: 100),
+        ]),
+      );
+      await container.read(movimientosStockProvider.future);
+      await container.read(insumosProvider.future);
+      await container.read(tpsStreamProvider.future);
+
+      final p1 = container
+          .read(prediccionStockProvider)
+          .requireValue
+          .firstWhere((p) => p.productoId == 'p1');
+
+      // Con 60 días entran 60 salidas de 1 unidad y el pico de 100: 160 / 60.
+      // Con 30 días habría sido 1 por día, porque el pico queda afuera.
+      expect(p1.consumoDiario, closeTo(160 / 60, 0.01));
+    });
+
+    test('mientras llegan los movimientos está cargando', () {
+      final container = _contenedor(
+        movimientos: StreamController<List<MovimientoStock>>().stream,
+        insumos: Stream.value([_insumo('p1', 'Etanol')]),
+      );
+
+      expect(container.read(ventanaPrediccionProvider).isLoading, isTrue);
+    });
+
+    test('un error al leer los movimientos se propaga', () async {
+      final container = _contenedor(
+        movimientos: Stream.error(Exception('sin conexión')),
+        insumos: Stream.value([_insumo('p1', 'Etanol')]),
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      expect(container.read(ventanaPrediccionProvider).hasError, isTrue);
+    });
+  });
+
   test('un error al leer los movimientos se propaga como error', () async {
     final container = _contenedor(
       movimientos: Stream.error(Exception('sin conexión')),
