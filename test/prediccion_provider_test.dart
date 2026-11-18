@@ -4,9 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tpfinal_grupo2/models/insumo.dart';
 import 'package:tpfinal_grupo2/models/movimiento_stock.dart';
+import 'package:tpfinal_grupo2/models/trabajo_practico.dart';
 import 'package:tpfinal_grupo2/providers/historial_provider.dart';
 import 'package:tpfinal_grupo2/providers/insumo_providers.dart';
 import 'package:tpfinal_grupo2/providers/prediccion_provider.dart';
+import 'package:tpfinal_grupo2/providers/trabajopractico_provider.dart';
 
 Insumo _insumo(String id, String nombre, {int stock = 10}) => Insumo(
       id: id,
@@ -31,9 +33,24 @@ MovimientoStock _salida(String producto, int cantidad, {required int diasAtras})
   );
 }
 
+// Un trabajo práctico de hoy que pide [cantidad] del insumo [producto]. Como el
+// provider usa la hora actual, se arma respecto de hoy. Es de hoy y no de
+// mañana porque hoy siempre cae antes de la próxima compra, sin importar en
+// qué día se corran los tests.
+TrabajoPractico _tp(String producto, double cantidad) {
+  return TrabajoPractico(
+    id: 'tp-$producto',
+    nombre: 'PCR',
+    descripcion: '',
+    fecha: DateTime.now(),
+    insumos: [InsumoRequerido(insumoId: producto, cantidad: cantidad, unidad: 'u')],
+  );
+}
+
 ProviderContainer _contenedor({
   required Stream<List<MovimientoStock>> movimientos,
   required Stream<List<Insumo>> insumos,
+  Stream<List<TrabajoPractico>>? tps,
 }) {
   final container = ProviderContainer(
     // Sin reintentos: un error de prueba tiene que quedar como error.
@@ -41,6 +58,8 @@ ProviderContainer _contenedor({
     overrides: [
       movimientosStockProvider.overrideWith((ref) => movimientos),
       insumosProvider.overrideWith((ref) => insumos),
+      // Sin TP por defecto: así no se intenta abrir Firestore en los tests.
+      tpsStreamProvider.overrideWith((ref) => tps ?? Stream.value(const [])),
     ],
   );
   addTearDown(container.dispose);
@@ -58,6 +77,7 @@ void main() {
     );
     await container.read(movimientosStockProvider.future);
     await container.read(insumosProvider.future);
+    await container.read(tpsStreamProvider.future);
 
     final predicciones = container.read(prediccionStockProvider).requireValue;
 
@@ -74,6 +94,7 @@ void main() {
     );
     await container.read(movimientosStockProvider.future);
     await container.read(insumosProvider.future);
+    await container.read(tpsStreamProvider.future);
 
     final predicciones = container.read(prediccionStockProvider).requireValue;
 
@@ -87,6 +108,7 @@ void main() {
     );
     await container.read(movimientosStockProvider.future);
     await container.read(insumosProvider.future);
+    await container.read(tpsStreamProvider.future);
 
     final estado = container.read(prediccionStockProvider);
 
@@ -115,6 +137,7 @@ void main() {
     movimientos.add([_salida('p1', 7, diasAtras: 2)]);
     await container.read(movimientosStockProvider.future);
     await container.read(insumosProvider.future);
+    await container.read(tpsStreamProvider.future);
     // 7 unidades en 7 días = 1 por día: alcanza 10 días.
     expect(
       container.read(prediccionStockProvider).requireValue.single.diasRestantes,
@@ -132,6 +155,86 @@ void main() {
       container.read(prediccionStockProvider).requireValue.single.diasRestantes,
       5,
     );
+  });
+
+  group('trabajos prácticos', () {
+    test('un TP planificado se cruza con el stock del insumo', () async {
+      final container = _contenedor(
+        movimientos: Stream.value(const []),
+        insumos: Stream.value([_insumo('p1', 'Etanol', stock: 2)]),
+        tps: Stream.value([_tp('p1', 5)]),
+      );
+      await container.read(movimientosStockProvider.future);
+      await container.read(insumosProvider.future);
+      await container.read(tpsStreamProvider.future);
+
+      final p = container.read(prediccionStockProvider).requireValue.single;
+
+      expect(p.demandaPlanificada, 5);
+      expect(p.faltaParaTps, isTrue);
+      expect(p.primerTpSinCobertura!.nombre, 'PCR');
+    });
+
+    test('espera a que carguen los TP antes de dar la predicción', () async {
+      // Los movimientos y los insumos ya llegaron, los TP todavía no.
+      final tps = StreamController<List<TrabajoPractico>>();
+      addTearDown(tps.close);
+      final container = _contenedor(
+        movimientos: Stream.value([_salida('p1', 14, diasAtras: 2)]),
+        insumos: Stream.value([_insumo('p1', 'Etanol', stock: 10)]),
+        tps: tps.stream,
+      );
+      await container.read(movimientosStockProvider.future);
+      await container.read(insumosProvider.future);
+
+      expect(container.read(prediccionStockProvider).isLoading, isTrue);
+
+      tps.add(const []);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(container.read(prediccionStockProvider).hasValue, isTrue);
+    });
+
+    test('si los TP fallan, sigue con el ritmo de consumo', () async {
+      final container = _contenedor(
+        movimientos: Stream.value([_salida('p1', 14, diasAtras: 2)]),
+        insumos: Stream.value([_insumo('p1', 'Etanol', stock: 10)]),
+        tps: Stream.error(Exception('sin permisos')),
+      );
+      await container.read(movimientosStockProvider.future);
+      await container.read(insumosProvider.future);
+      await Future<void>.delayed(Duration.zero);
+
+      final estado = container.read(prediccionStockProvider);
+
+      expect(estado.hasError, isFalse);
+      expect(estado.requireValue.single.diasRestantes, 5);
+      expect(estado.requireValue.single.demandaPlanificada, 0);
+    });
+
+    test('un TP nuevo cambia la predicción en vivo', () async {
+      final tps = StreamController<List<TrabajoPractico>>();
+      addTearDown(tps.close);
+      final container = _contenedor(
+        movimientos: Stream.value(const []),
+        insumos: Stream.value([_insumo('p1', 'Etanol', stock: 2)]),
+        tps: tps.stream,
+      );
+      tps.add(const []);
+      await container.read(movimientosStockProvider.future);
+      await container.read(insumosProvider.future);
+      await container.read(tpsStreamProvider.future);
+
+      expect(container.read(prediccionStockProvider).requireValue, isEmpty);
+
+      tps.add([_tp('p1', 5)]);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(
+        container.read(prediccionStockProvider).requireValue.single.faltaParaTps,
+        isTrue,
+      );
+    });
   });
 
   test('un error al leer los movimientos se propaga como error', () async {
