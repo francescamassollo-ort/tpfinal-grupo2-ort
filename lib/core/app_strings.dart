@@ -41,6 +41,24 @@ class AppStrings {
 
   static const String historialTitulo = 'Historial de movimientos';
   static const String historialVacio = 'Todavía no hay movimientos registrados';
+  static const String historialError = 'No se pudo cargar el historial';
+  static const String historialSinCoincidencias =
+      'Ningún movimiento coincide con los filtros';
+  static const String historialLimpiarFiltros = 'Limpiar filtros';
+  static const String historialInsumoEliminado = 'Insumo eliminado';
+  static const String historialFiltroTipo = 'Tipo de movimiento';
+  static const String historialFiltroInsumo = 'Insumo';
+  static const String historialFiltroDesde = 'Desde';
+  static const String historialFiltroHasta = 'Hasta';
+  static const String historialFiltroTodos = 'Todos';
+  static const String historialFiltroCualquierFecha = 'Cualquier fecha';
+  static const String historialFiltroEntrada = 'Entrada';
+  static const String historialFiltroSalida = 'Salida';
+  static const String historialFiltroAjuste = 'Ajuste';
+  static const String filtrar = 'Filtrar';
+  static const String limpiar = 'Limpiar';
+  static const String historialHoy = 'Hoy';
+  static const String historialAyer = 'Ayer';
   static const String movimientoEntrada = 'Entrada de stock';
   static const String movimientoSalida = 'Salida de stock';
 
