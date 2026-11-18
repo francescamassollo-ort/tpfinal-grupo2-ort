@@ -10,6 +10,19 @@ class AppStrings {
   static const String disminuirCantidad = 'Disminuir cantidad';
   static const String aumentarCantidad = 'Aumentar cantidad';
 
+  // Selector de formato de Compartir y Descargar.
+  static const String compartirComo = 'Compartir como';
+  static const String descargarComo = 'Descargar como';
+  static const String formatoPdf = 'PDF';
+  static const String formatoPdfDetalle = 'Para imprimir o leer en el celular';
+  static const String formatoCsv = 'Excel (CSV)';
+  static const String formatoCsvDetalle = 'Para abrir y editar en Excel';
+  static const String archivoGuardado = 'Archivo guardado';
+  static const String archivoErrorGuardar = 'No se pudo guardar el archivo';
+  static const String archivoErrorCompartir = 'No se pudo compartir el archivo';
+  static const String comprasExportarVacia =
+      'La lista está vacía, no hay nada para exportar';
+
   static const String comprasTitulo = 'Lista de compras';
   static const String comprasVacia = 'La lista de compras está vacía';
   static const String comprasAgregarSugerencias =
