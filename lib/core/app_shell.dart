@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../providers/role_provider.dart';
+import '../models/usuario.dart';
+
 
 // Envuelve todas las pantallas "internas" (las que tienen barra + drawer).
 // go_router llama a este widget una sola vez y le va cambiando el [child]
