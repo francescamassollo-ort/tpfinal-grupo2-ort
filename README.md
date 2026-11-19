@@ -151,7 +151,7 @@ Las pruebas unitarias están en `test/` (fuera de `lib/`).
 | Pantalla | Ruta | Estado |
 |---|---|---|
 | Historial de movimientos | `/historial` | ✅ Funcional (lee la colección `movimientosStock` de Firestore en tiempo real, los últimos 500, y muestra el nombre del insumo; aparece vacío hasta que Alta y Consumo registren movimientos; filtros, Compartir y Descargar todavía sin acción) |
-| Alertas | `/alertas` | ✅ Funcional (alertas calculadas desde los insumos: sin stock, stock bajo, vencido y vencimiento cercano; tocar una alerta abre el detalle del insumo; el filtro y marcar como vista todavía sin acción) |
+| Alertas | `/alertas` | ✅ Funcional (alertas calculadas desde los insumos (sin stock, stock bajo, vencido y vencimiento cercano) y desde la predicción de stock (se agotaría antes de la próxima compra y no alcanza para un trabajo práctico, en naranja); tocar una alerta abre el detalle del insumo; el filtro y marcar como vista todavía sin acción) |
 | Lista de compras | `/compras` | ✅ Funcional (colección `listaCompras` de Firestore: cantidad editable con mínimo 1 y sugerencias del sistema para los insumos con stock bajo; buscar, papelera, agregar a mano, Compartir y Descargar todavía sin acción) |
 
 ### Trabajos prácticos
@@ -168,9 +168,15 @@ Las pruebas unitarias están en `test/` (fuera de `lib/`).
 | Perfil | `/perfil` | ⏳ Placeholder |
 
 ## Predicción de stock
-Estima cuándo se agota cada insumo antes de la próxima compra institucional (requerimiento A02). Hoy es lógica
-sin pantalla: `StockPredictionService` y `prediccionStockProvider` ya están, falta mostrarlas (por ejemplo en Alertas
-o en las sugerencias de Lista de compras, que necesita una decisión de diseño).
+Estima cuándo se agota cada insumo antes de la próxima compra institucional (requerimiento A02). Se ve en la
+pantalla de Alertas: `alertasProvider` suma los avisos de `prediccionStockProvider` a los de los insumos.
+Todavía no se usa en las sugerencias de Lista de compras.
+
+- **Dos avisos por insumo, cada uno con su motivo (en naranja, porque son pronósticos):** "Se agotaría el 03/12, antes de
+  la próxima compra" (por el ritmo de consumo) y "No alcanza para Química 3 (20/11)" (por un trabajo práctico
+  planificado). Si el insumo ya está sin stock no se repite el primero, porque "Sin stock" ya lo dice.
+- **La predicción no frena las alertas:** mientras carga, o si falla la lectura de los movimientos, Alertas muestra
+  igual las de los insumos.
 
 - **Promedio de consumo, no aprendizaje automático.** Se calcula cuántas unidades por día se vienen consumiendo (solo
   cuentan las salidas) y con eso cuántos días alcanza el stock. Se recalcula con cada movimiento nuevo, así que mejora
