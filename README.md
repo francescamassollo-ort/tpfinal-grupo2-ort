@@ -114,7 +114,7 @@ Todo el código está en `lib/`.
 | `screens/<área>/` | Pantallas de cada flujo: `auth`, `inventario`, `consumo`, `historial`, `alertas`, `compras`, `tp`, `usuarios`, `perfil` |
 | `providers/` | Estado de la app con Riverpod |
 | `models/` | Modelos de dominio: `Insumo`, `TrabajoPractico`, `ListaCompra`, `Alerta`, `MovimientoStock` y los de la predicción de stock (`PrediccionStock` y `VentanaPrediccion`) |
-| `services/` | Acceso a Firestore: `InsumoService` (colección `insumos`), `TpService` (colección `listasTP`), `ListaCompraService` (colección `listaCompras`) y `HistorialService` (colección `movimientosStock`, solo lectura: los movimientos los escribe quien cambia el stock). `AlertaService` y `StockPredictionService` no usan Firestore: generan las alertas y las predicciones de stock a partir de los insumos, los movimientos y los trabajos prácticos. `ListaCompraExportador` arma el PDF y el CSV de la lista de compras y `ArchivoService` los comparte o los guarda en el teléfono |
+| `services/` | Acceso a Firestore: `InsumoService` (colección `insumos`), `TpService` (colección `listasTP`), `ListaCompraService` (colección `listaCompras`) y `HistorialService` (colección `movimientosStock`, solo lectura: los movimientos los escribe quien cambia el stock). `AlertaService` y `StockPredictionService` no usan Firestore: generan las alertas y las predicciones de stock a partir de los insumos, los movimientos y los trabajos prácticos. `ListaCompraExportador` y `HistorialExportador` arman el PDF y el CSV de la lista de compras y del historial (con lo que comparten en `ExportacionComun`) y `ArchivoService` los comparte o los guarda en el teléfono |
 
 Las pruebas unitarias están en `test/` (fuera de `lib/`).
 
@@ -150,7 +150,7 @@ Las pruebas unitarias están en `test/` (fuera de `lib/`).
 ### Historial, alertas y compras
 | Pantalla | Ruta | Estado |
 |---|---|---|
-| Historial de movimientos | `/historial` | ✅ Funcional (lee la colección `movimientosStock` de Firestore en tiempo real, los últimos 500, y muestra el nombre del insumo; aparece vacío hasta que Alta y Consumo registren movimientos; filtros, Compartir y Descargar todavía sin acción) |
+| Historial de movimientos | `/historial` | ✅ Funcional (lee la colección `movimientosStock` de Firestore en tiempo real, los últimos 500, y muestra el nombre del insumo; aparece vacío hasta que Alta y Consumo registren movimientos; panel de filtros por tipo, insumo y fechas; Compartir y Descargar en PDF o CSV, con lo que se ve: si hay filtros puestos solo salen esos movimientos y el archivo lo aclara) |
 | Alertas | `/alertas` | ✅ Funcional (alertas calculadas desde los insumos (sin stock, stock bajo, vencido y vencimiento cercano) y desde la predicción de stock (se agotaría antes de la próxima compra y no alcanza para un trabajo práctico, en naranja); tocar una alerta abre el detalle del insumo; el filtro y marcar como vista todavía sin acción) |
 | Lista de compras | `/compras` | ✅ Funcional (colección `listaCompras` de Firestore: cantidad editable con mínimo 1; sugerencias del sistema para los insumos con stock bajo; agregar a mano un insumo desde un panel (solo se ofrecen los que no están en la lista); menú en cada ítem para marcarlo como comprado o descartarlo, con Deshacer (la lista muestra solo los pendientes, así que el ítem sale); Compartir y Descargar en PDF o CSV; buscar y papelera todavía sin acción) |
 
