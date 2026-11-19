@@ -65,6 +65,13 @@ class ComprasAcciones {
     await _ref.read(listaCompraServiceProvider).cambiarCantidad(id, nueva);
   }
 
+  /// Cambia el estado de un ítem. La pantalla muestra solo los pendientes, así
+  /// que pasarlo a comprado o descartado lo saca de la lista, y volverlo a
+  /// pendiente (Deshacer) lo trae de nuevo con la misma cantidad.
+  Future<void> cambiarEstado(String id, EstadoCompra estado) {
+    return _ref.read(listaCompraServiceProvider).actualizarEstado(id, estado);
+  }
+
   /// Agrega los insumos con stock bajo que todavía no están en la lista.
   /// Devuelve cuántos agregó.
   Future<int> agregarSugerencias() {

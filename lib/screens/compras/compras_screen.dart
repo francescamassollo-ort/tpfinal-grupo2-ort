@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/app_colors.dart';
 import '../../core/app_strings.dart';
 import '../../core/app_text_styles.dart';
+import '../../models/lista_compra.dart';
 import '../../providers/lista_compra_provider.dart';
 import '../../widgets/app_decorative_background.dart';
 import '../../widgets/app_screen_header.dart';
@@ -12,6 +13,7 @@ import '../../widgets/share_download_actions.dart';
 import 'compra_tile.dart';
 import 'compras_exportacion.dart';
 import 'compras_fab.dart';
+import 'item_compra.dart';
 
 /// Lista de compras. Según el diseño no lleva la barra inferior del shell y
 /// tiene su propio botón flotante, por eso su ruta está fuera del ShellRoute.
@@ -72,6 +74,8 @@ class ComprasScreen extends ConsumerWidget {
                               item: item,
                               onDecrement: () => acciones.decrementar(item.id),
                               onIncrement: () => acciones.incrementar(item.id),
+                              onCambiarEstado: (estado) =>
+                                  _cambiarEstado(context, ref, item, estado),
                             );
                           },
                         ),
@@ -120,6 +124,42 @@ class ComprasScreen extends ConsumerWidget {
     } catch (_) {
       messenger.showSnackBar(
         const SnackBar(content: Text(AppStrings.comprasErrorSugerencias)),
+      );
+    }
+  }
+
+  // Pasa el ítem a comprado o descartado. La lista muestra solo los pendientes,
+  // así que el ítem desaparece: el aviso trae Deshacer para que no sea una
+  // sorpresa ni un error sin vuelta atrás.
+  Future<void> _cambiarEstado(
+    BuildContext context,
+    WidgetRef ref,
+    ItemCompra item,
+    EstadoCompra estado,
+  ) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final acciones = ref.read(comprasAccionesProvider);
+    // Si se cambian varios seguidos, el aviso nuevo reemplaza al anterior.
+    messenger.hideCurrentSnackBar();
+    try {
+      await acciones.cambiarEstado(item.id, estado);
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            estado == EstadoCompra.comprado
+                ? AppStrings.comprasMarcadoComprado(item.nombre)
+                : AppStrings.comprasDescartado(item.nombre),
+          ),
+          action: SnackBarAction(
+            label: AppStrings.comprasDeshacer,
+            onPressed: () =>
+                acciones.cambiarEstado(item.id, EstadoCompra.pendiente),
+          ),
+        ),
+      );
+    } catch (_) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text(AppStrings.comprasErrorEstado)),
       );
     }
   }

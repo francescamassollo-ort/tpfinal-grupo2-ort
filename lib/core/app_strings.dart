@@ -31,6 +31,17 @@ class AppStrings {
   static const String comprasSinSugerencias = 'No hay sugerencias nuevas';
   static const String comprasErrorSugerencias =
       'No se pudieron agregar las sugerencias';
+  static const String comprasCambiarEstado = 'Cambiar estado';
+  static const String comprasMarcarComprado = 'Marcar como comprado';
+  static const String comprasDescartar = 'Descartar';
+  static const String comprasDeshacer = 'Deshacer';
+  static const String comprasErrorEstado = 'No se pudo cambiar el estado';
+
+  // Aviso al sacar un ítem de la lista: sale porque la pantalla muestra solo
+  // los pendientes, por eso trae el botón Deshacer.
+  static String comprasMarcadoComprado(String nombre) =>
+      '$nombre: marcado como comprado';
+  static String comprasDescartado(String nombre) => '$nombre: descartado';
 
   static String comprasSugerenciasAgregadas(int cantidad) => cantidad == 1
       ? 'Se agregó 1 sugerencia'
