@@ -193,6 +193,64 @@ Supuestos pendientes de confirmar:
 - La cantidad que pide un TP está en la misma unidad que el stock, igual que en `TpService.verificarDisponibilidad`.
 - Mientras Alta y Consumo no registren movimientos, la predicción da una lista vacía y el autoajuste usa 30 días.
 
+## Servicios externos
+
+La app puede usar servicios de terceros para funciones de IA y datos quimicos. Ninguno es obligatorio para compilar ni ejecutar: si falta la clave, la funcion simplemente no activa.
+
+### Groq (deteccion de sinonimos, rama `feat/duplicados-ia`)
+
+Groq es el modelo de lenguaje que usa la deteccion de sinonimos al dar de alta un insumo (requerimiento A10). El codigo esta en la rama `feat/duplicados-ia`, todavia sin Pull Request.
+
+**Configurar la clave:**
+1. Copiar `env.example.json` a `env.json` en la raiz del proyecto.
+2. Completar `GROQ_API_KEY` con la clave de la consola de Groq.
+3. `env.json` esta en `.gitignore` y **nunca** debe subirse al repositorio.
+
+**Ejecutar con la clave:**
+```
+flutter run --dart-define-from-file=env.json -d <id-del-emulador>
+```
+
+**Cambiar el modelo** (opcional): setear `GROQ_MODEL` en `env.json`. El valor por defecto es `openai/gpt-oss-20b`.
+
+**Limites del plan gratuito** (verificar en la consola de Groq; el limite es por organizacion, no por usuario):
+
+| Recurso | Limite aproximado |
+|---|---|
+| Pedidos | 30/min, 1.000/dia |
+| Tokens | 8.000/min, 200.000/dia |
+
+**Aviso de seguridad:** la clave queda embebida en el binario compilado. Para la demo alcanza. Una version publicada en la Play Store necesitaria un servidor intermedio para no exponer la clave.
+
+**Sin clave:** la app no falla; la deteccion de duplicados usa solo comparacion de texto.
+
+### PubChem (autocompletar formula y peso molecular)
+
+PubChem es una base de datos publica de compuestos quimicos. La app la usa para completar automaticamente la formula quimica y el peso molecular al dar de alta un insumo.
+
+- No necesita clave ni configuracion extra.
+- Se busca por nombre del compuesto o numero CAS. Ejemplo probado: `64-17-5` devuelve Ethanol.
+- Los nombres de los compuestos vienen en ingles.
+- **No permite buscar por codigo de barras directamente.**
+
+### Codigo de barras (pendiente de implementacion)
+
+La integracion de codigo de barras no esta implementada todavia. El flujo previsto cuando se desarrolle:
+
+1. Base propia (si el insumo ya figura en el inventario local).
+2. **UPCitemdb:** endpoint de prueba `https://api.upcitemdb.com/prod/trial/lookup?upc=...` sin clave, 100 consultas por dia. Para uso real puede requerir cuenta de pago (no verificado).
+3. **PubChem** (por nombre o numero CAS si UPCitemdb devuelve un nombre quimico).
+4. Carga manual si no se encuentra en ninguna fuente.
+
+### Seguridad
+
+- Las reglas de Firestore estan abiertas hoy (issue #46). Mientras no esten cerradas, no guardar claves ni tokens en Firestore.
+- Antes de cada `git push`, verificar que no queden claves en el repositorio:
+
+  ```
+  git grep gsk_
+  ```
+
 ## Flujo de trabajo
 - Ramas: `main` (entregable), `dev` (integración) y `feat/<nombre>` por cada funcionalidad.
 - Cada funcionalidad se desarrolla en su rama y entra a `dev` por Pull Request. De `dev` a `main` se pasa cuando el conjunto está estable.
