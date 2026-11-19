@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../models/usuario.dart';
 
-enum UserRole { administrador, ayudante, docente }
 
 // Guarda el rol del usuario actual. Por ahora queda fijo en "administrador"
 // (todavía no hay login) para poder probar las otras pantallas. Cuando
