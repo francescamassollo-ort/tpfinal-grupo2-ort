@@ -69,6 +69,16 @@ class AppStrings {
   static const String alertaStockBajo = 'Stock bajo';
   static const String alertaVencimientoCercano = 'Vencimiento cercano';
   static const String alertaVencido = 'Vencido';
+  // Alertas de predicción de stock. La versión sin fecha o sin nombre es por si
+  // falta el dato, para no mostrar un texto cortado.
+  static const String alertaAgotamientoProximo =
+      'Se agotaría antes de la próxima compra';
+  static String alertaAgotamientoConFecha(String fecha) =>
+      'Se agotaría el $fecha, antes de la próxima compra';
+  static const String alertaTpSinCobertura =
+      'No alcanza para un trabajo práctico';
+  static String alertaTpSinCoberturaConNombre(String tp, String fecha) =>
+      'No alcanza para $tp ($fecha)';
   static const String alertaCritica = 'Alerta crítica';
   static const String alertaAdvertencia = 'Advertencia';
 }
