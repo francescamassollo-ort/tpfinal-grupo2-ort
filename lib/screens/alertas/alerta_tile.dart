@@ -56,7 +56,7 @@ class AlertaTile extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
-                  _descripcion(alerta.tipo),
+                  descripcion(alerta),
                   style: AppTextStyles.listItemSubtitle,
                 ),
               ],
@@ -67,12 +67,27 @@ class AlertaTile extends StatelessWidget {
     );
   }
 
-  static String _descripcion(TipoAlerta tipo) {
-    return switch (tipo) {
+  /// El motivo de la alerta, tal como se muestra debajo del nombre.
+  static String descripcion(Alerta alerta) {
+    final fecha = alerta.fecha;
+    final tp = alerta.trabajoPractico;
+    return switch (alerta.tipo) {
       TipoAlerta.sinStock => AppStrings.alertaSinStock,
       TipoAlerta.stockBajo => AppStrings.alertaStockBajo,
       TipoAlerta.vencimientoCercano => AppStrings.alertaVencimientoCercano,
       TipoAlerta.vencido => AppStrings.alertaVencido,
+      TipoAlerta.agotamientoProximo => fecha == null
+          ? AppStrings.alertaAgotamientoProximo
+          : AppStrings.alertaAgotamientoConFecha(_diaYMes(fecha)),
+      TipoAlerta.tpSinCobertura => tp == null || fecha == null
+          ? AppStrings.alertaTpSinCobertura
+          : AppStrings.alertaTpSinCoberturaConNombre(tp, _diaYMes(fecha)),
     };
   }
+
+  // "12/12": día y mes con dos dígitos, sin año (son fechas de los próximos
+  // meses).
+  static String _diaYMes(DateTime fecha) =>
+      '${fecha.day.toString().padLeft(2, '0')}/'
+      '${fecha.month.toString().padLeft(2, '0')}';
 }
