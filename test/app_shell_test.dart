@@ -11,16 +11,23 @@ Alerta _alerta(String id, TipoAlerta tipo) =>
 
 Future<void> _mostrar(
   WidgetTester tester,
-  AsyncValue<List<Alerta>> alertas,
-) async {
+  AsyncValue<List<Alerta>> alertas, {
+  Set<String> vistas = const {},
+}) async {
   await tester.pumpWidget(
     ProviderScope(
-      overrides: [alertasProvider.overrideWithValue(alertas)],
+      overrides: [
+        alertasProvider.overrideWithValue(alertas),
+        // Las marcas de "vista" de la persona, sin ir a Firestore.
+        alertasVistasProvider.overrideWith((ref) => Stream.value(vistas)),
+      ],
       child: const MaterialApp(
         home: AppShell(location: '/inventario', child: SizedBox()),
       ),
     ),
   );
+  // Deja que llegue el stream de las marcas.
+  await tester.pump();
 }
 
 Badge _campana(WidgetTester tester) {
@@ -103,5 +110,43 @@ void main() {
 
     expect(_campana(tester).isLabelVisible, isFalse);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('las alertas que ya vio no cuentan', (tester) async {
+    await _mostrar(
+      tester,
+      AsyncData([
+        _alerta('a', TipoAlerta.stockBajo),
+        _alerta('b', TipoAlerta.agotamientoProximo),
+        _alerta('c', TipoAlerta.tpSinCobertura),
+      ]),
+      vistas: {'a-stockBajo'},
+    );
+
+    expect(find.text('2'), findsOneWidget);
+    expect(find.byTooltip('Alertas (2)'), findsOneWidget);
+  });
+
+  testWidgets('si vio todas, la campana va sin número', (tester) async {
+    await _mostrar(
+      tester,
+      AsyncData([_alerta('a', TipoAlerta.stockBajo)]),
+      vistas: {'a-stockBajo'},
+    );
+
+    expect(_campana(tester).isLabelVisible, isFalse);
+  });
+
+  testWidgets('el color mira solo las que no vio: una crítica vista no lo pone rojo', (tester) async {
+    await _mostrar(
+      tester,
+      AsyncData([
+        _alerta('a', TipoAlerta.sinStock),
+        _alerta('b', TipoAlerta.agotamientoProximo),
+      ]),
+      vistas: {'a-sinStock'},
+    );
+
+    expect(_campana(tester).backgroundColor, AppColors.stockWarning);
   });
 }
