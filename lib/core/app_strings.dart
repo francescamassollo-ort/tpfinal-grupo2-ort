@@ -63,6 +63,7 @@ class AppStrings {
   static const String movimientoSalida = 'Salida de stock';
 
   static const String alertasTitulo = 'Alertas';
+  static String alertasConCantidad(int cantidad) => 'Alertas ($cantidad)';
   static const String alertasVacia = 'No hay alertas por ahora';
   static const String alertasError = 'No se pudieron cargar las alertas';
   static const String alertaSinStock = 'Sin stock';
