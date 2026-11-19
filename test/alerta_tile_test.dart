@@ -130,4 +130,93 @@ void main() {
       expect(find.bySemanticsLabel('Alerta crítica'), findsNothing);
     });
   });
+
+  group('marcar como vista', () {
+    Future<void> mostrar(
+      WidgetTester tester, {
+      bool vista = false,
+      VoidCallback? onToggleVista,
+      VoidCallback? onTap,
+    }) {
+      return tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: AlertaTile(
+              alerta: _alerta(TipoAlerta.stockBajo),
+              vista: vista,
+              onToggleVista: onToggleVista,
+              onTap: onTap,
+            ),
+          ),
+        ),
+      );
+    }
+
+    double opacidad(WidgetTester tester) =>
+        tester.widget<Opacity>(find.byType(Opacity)).opacity;
+
+    testWidgets('sin callback no hay botón', (tester) async {
+      await mostrar(tester);
+
+      expect(find.byTooltip('Marcar como vista'), findsNothing);
+      expect(find.byTooltip('Marcar como no vista'), findsNothing);
+    });
+
+    testWidgets('una alerta nueva ofrece marcarla como vista', (tester) async {
+      await mostrar(tester, onToggleVista: () {});
+
+      expect(find.byTooltip('Marcar como vista'), findsOneWidget);
+      expect(find.byTooltip('Marcar como no vista'), findsNothing);
+    });
+
+    testWidgets('una alerta vista ofrece volver a marcarla como no vista', (tester) async {
+      await mostrar(tester, vista: true, onToggleVista: () {});
+
+      expect(find.byTooltip('Marcar como no vista'), findsOneWidget);
+      expect(find.byTooltip('Marcar como vista'), findsNothing);
+    });
+
+    testWidgets('al tocar el botón se llama al callback', (tester) async {
+      var toques = 0;
+      await mostrar(tester, onToggleVista: () => toques++);
+
+      await tester.tap(find.byTooltip('Marcar como vista'));
+
+      expect(toques, 1);
+    });
+
+    testWidgets('tocar el botón no abre el insumo', (tester) async {
+      var aperturas = 0;
+      await mostrar(tester, onToggleVista: () {}, onTap: () => aperturas++);
+
+      await tester.tap(find.byTooltip('Marcar como vista'));
+      await tester.pump();
+
+      expect(aperturas, 0);
+    });
+
+    testWidgets('tocar la fila sigue abriendo el insumo', (tester) async {
+      var aperturas = 0;
+      await mostrar(tester, onToggleVista: () {}, onTap: () => aperturas++);
+
+      await tester.tap(find.text('Etanol'));
+
+      expect(aperturas, 1);
+    });
+
+    testWidgets('una alerta vista se atenúa y una nueva no', (tester) async {
+      await mostrar(tester, onToggleVista: () {});
+      expect(opacidad(tester), 1);
+
+      await mostrar(tester, vista: true, onToggleVista: () {});
+      expect(opacidad(tester), 0.5);
+    });
+
+    testWidgets('atenuada sigue mostrando el texto de la alerta', (tester) async {
+      await mostrar(tester, vista: true, onToggleVista: () {});
+
+      expect(find.text('Etanol'), findsOneWidget);
+      expect(find.text('Stock bajo'), findsOneWidget);
+    });
+  });
 }

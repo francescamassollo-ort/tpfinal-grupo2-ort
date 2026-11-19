@@ -105,4 +105,7 @@ class AppStrings {
       'No alcanza para $tp ($fecha)';
   static const String alertaCritica = 'Alerta crítica';
   static const String alertaAdvertencia = 'Advertencia';
+  static const String alertaMarcarVista = 'Marcar como vista';
+  static const String alertaMarcarNoVista = 'Marcar como no vista';
+  static const String alertasErrorMarcar = 'No se pudo actualizar la alerta';
 }
