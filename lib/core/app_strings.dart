@@ -36,6 +36,16 @@ class AppStrings {
   static const String comprasDescartar = 'Descartar';
   static const String comprasDeshacer = 'Deshacer';
   static const String comprasErrorEstado = 'No se pudo cambiar el estado';
+  static const String cancelar = 'Cancelar';
+  static const String comprasAgregarTitulo = 'Agregar a la lista';
+  static const String comprasCampoInsumo = 'Insumo';
+  static const String comprasCampoCantidad = 'Cantidad a comprar';
+  static const String comprasTodosEnLista =
+      'Todos los insumos ya están en la lista';
+  static const String comprasErrorAgregar = 'No se pudo agregar a la lista';
+  static String comprasStockActual(int stock) => 'Stock actual: $stock u.';
+  static String comprasAgregado(String nombre) =>
+      '$nombre agregado a la lista';
 
   // Aviso al sacar un ítem de la lista: sale porque la pantalla muestra solo
   // los pendientes, por eso trae el botón Deshacer.

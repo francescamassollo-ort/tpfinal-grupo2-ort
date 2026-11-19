@@ -30,6 +30,9 @@ class _AccionesFalsas implements ComprasAcciones {
   Future<void> decrementar(String id) async {}
 
   @override
+  Future<void> agregar(String productoId, int cantidad) async {}
+
+  @override
   Future<int> agregarSugerencias() async => 0;
 }
 

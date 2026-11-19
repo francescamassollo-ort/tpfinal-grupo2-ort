@@ -72,6 +72,23 @@ class ComprasAcciones {
     return _ref.read(listaCompraServiceProvider).actualizarEstado(id, estado);
   }
 
+  /// Agrega un insumo a la lista con la [cantidad] que se eligió. Si el insumo
+  /// ya está pendiente no crea otro ítem: queda el que había.
+  ///
+  /// La cantidad "sugerida" sigue siendo la que propone el sistema, no la que
+  /// se tipeó: la elegida se guarda aparte como cantidad a comprar.
+  Future<void> agregar(String productoId, int cantidad) async {
+    final insumos = _ref.read(insumosProvider).value ?? const [];
+    final insumo = insumos.where((i) => i.id == productoId).firstOrNull;
+    final sugerida = insumo == null
+        ? cantidad
+        : ListaCompraService.cantidadSugeridaPara(insumo);
+
+    final servicio = _ref.read(listaCompraServiceProvider);
+    final id = await servicio.agregar(productoId, sugerida);
+    if (cantidad != sugerida) await servicio.cambiarCantidad(id, cantidad);
+  }
+
   /// Agrega los insumos con stock bajo que todavía no están en la lista.
   /// Devuelve cuántos agregó.
   Future<int> agregarSugerencias() {

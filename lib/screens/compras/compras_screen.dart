@@ -5,12 +5,15 @@ import 'package:go_router/go_router.dart';
 import '../../core/app_colors.dart';
 import '../../core/app_strings.dart';
 import '../../core/app_text_styles.dart';
+import '../../models/insumo.dart';
 import '../../models/lista_compra.dart';
+import '../../providers/insumo_providers.dart';
 import '../../providers/lista_compra_provider.dart';
 import '../../widgets/app_decorative_background.dart';
 import '../../widgets/app_screen_header.dart';
 import '../../widgets/share_download_actions.dart';
 import 'compra_tile.dart';
+import 'compras_agregar_dialog.dart';
 import 'compras_exportacion.dart';
 import 'compras_fab.dart';
 import 'item_compra.dart';
@@ -20,11 +23,10 @@ import 'item_compra.dart';
 class ComprasScreen extends ConsumerWidget {
   const ComprasScreen({super.key});
 
-  // Estas acciones todavía no existen: buscar, papelera y agregar quedan sin
-  // función hasta que se definan.
+  // Estas acciones todavía no existen: buscar y papelera quedan sin función
+  // hasta que se definan.
   static const VoidCallback? _onBuscar = null;
   static const VoidCallback? _onPapelera = null;
-  static const VoidCallback? _onAgregar = null;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -83,11 +85,11 @@ class ComprasScreen extends ConsumerWidget {
               ),
               // 28 del borde derecho y 47 hasta los botones (12 ya los pone
               // ShareDownloadActions), según Figma.
-              const Padding(
-                padding: EdgeInsets.only(right: 28, bottom: 35),
+              Padding(
+                padding: const EdgeInsets.only(right: 28, bottom: 35),
                 child: Align(
                   alignment: Alignment.centerRight,
-                  child: ComprasFab(onPressed: _onAgregar),
+                  child: ComprasFab(onPressed: () => _agregar(context, ref)),
                 ),
               ),
               // Mientras la lista carga o falla no hay nada que exportar.
@@ -124,6 +126,60 @@ class ComprasScreen extends ConsumerWidget {
     } catch (_) {
       messenger.showSnackBar(
         const SnackBar(content: Text(AppStrings.comprasErrorSugerencias)),
+      );
+    }
+  }
+
+  // Abre el panel para sumar un insumo a mano. Se ofrecen solo los que todavía
+  // no están en la lista, así no se puede pedir dos veces lo mismo.
+  Future<void> _agregar(BuildContext context, WidgetRef ref) async {
+    final messenger = ScaffoldMessenger.of(context);
+
+    // Si todavía están cargando, se espera; si no se pueden leer, se avisa.
+    final List<Insumo> disponibles;
+    try {
+      final insumos = await ref.read(insumosProvider.future);
+      final pendientes = await ref.read(listaCompraStreamProvider.future);
+      final enLista = {for (final item in pendientes) item.productoId};
+      disponibles = [
+        for (final insumo in insumos)
+          if (!enLista.contains(insumo.id)) insumo,
+      ];
+    } catch (_) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text(AppStrings.comprasErrorAgregar)),
+      );
+      return;
+    }
+    if (!context.mounted) return;
+
+    if (disponibles.isEmpty) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text(AppStrings.comprasTodosEnLista)),
+      );
+      return;
+    }
+
+    final elegido = await showDialog<NuevoItemCompra>(
+      context: context,
+      builder: (context) => ComprasAgregarDialog(insumos: disponibles),
+    );
+    // Null: se cerró sin elegir. También se sale si la pantalla ya no está,
+    // porque no se puede seguir usando ref.
+    if (elegido == null || !context.mounted) return;
+
+    try {
+      await ref
+          .read(comprasAccionesProvider)
+          .agregar(elegido.productoId, elegido.cantidad);
+      final nombre =
+          disponibles.firstWhere((i) => i.id == elegido.productoId).nombre;
+      messenger.showSnackBar(
+        SnackBar(content: Text(AppStrings.comprasAgregado(nombre))),
+      );
+    } catch (_) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text(AppStrings.comprasErrorAgregar)),
       );
     }
   }
