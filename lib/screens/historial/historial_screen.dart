@@ -11,6 +11,7 @@ import '../../providers/insumo_providers.dart';
 import '../../widgets/app_decorative_background.dart';
 import '../../widgets/app_screen_header.dart';
 import '../../widgets/share_download_actions.dart';
+import 'historial_exportacion.dart';
 import 'historial_filtro_dialog.dart';
 import 'movimiento_tile.dart';
 
@@ -18,11 +19,6 @@ import 'movimiento_tile.dart';
 /// ni botón flotante, por eso su ruta está fuera del ShellRoute.
 class HistorialScreen extends ConsumerWidget {
   const HistorialScreen({super.key});
-
-  // Estas acciones todavía no existen: compartir y descargar quedan sin
-  // función hasta que se definan y se implementen.
-  static const VoidCallback? _onCompartir = null;
-  static const VoidCallback? _onDescargar = null;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -87,9 +83,14 @@ class HistorialScreen extends ConsumerWidget {
                         ),
                 ),
               ),
-              const ShareDownloadActions(
-                onShare: _onCompartir,
-                onDownload: _onDescargar,
+              // Mientras el historial carga o falla no hay nada que exportar.
+              ShareDownloadActions(
+                onShare: movimientos.hasValue
+                    ? () => exportarHistorial(context, ref, descargar: false)
+                    : null,
+                onDownload: movimientos.hasValue
+                    ? () => exportarHistorial(context, ref, descargar: true)
+                    : null,
               ),
             ],
           ),

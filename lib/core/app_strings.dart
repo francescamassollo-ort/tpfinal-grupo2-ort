@@ -63,6 +63,8 @@ class AppStrings {
   static const String historialTitulo = 'Historial de movimientos';
   static const String historialVacio = 'Todavía no hay movimientos registrados';
   static const String historialError = 'No se pudo cargar el historial';
+  static const String historialExportarVacio =
+      'No hay movimientos para exportar';
   static const String historialSinCoincidencias =
       'Ningún movimiento coincide con los filtros';
   static const String historialLimpiarFiltros = 'Limpiar filtros';
