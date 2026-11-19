@@ -1,20 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../widgets/handy_elevated_button.dart';
+import '../../widgets/handy_input_decoration.dart';
+import '../../widgets/handy_button_style_one.dart';
 import '../../widgets/handy_text_button_black.dart';
-import '../../widgets/handy_text_field.dart';
 import '../../widgets/handy_text_button_blue.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
-
-  @override
-  State<LoginScreen> createState() => _LoginScreenState();
-}
-
-class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
+    final TextEditingController email = TextEditingController();
+    final TextEditingController password = TextEditingController();
     return Scaffold(
       body: SafeArea(
         child: Column(
@@ -40,13 +36,28 @@ class _LoginScreenState extends State<LoginScreen> {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 spacing: 25,
                 children: [
-                  HandyTextField(textForHint: 'Email Institucional'),
-                  HandyTextField(textForHint: 'Contraseña'),
-                  HandyTextButtonBlue(textPhrase: 'Olvidé mi contraseña',),
+                  TextField(
+                    controller: email,
+                    decoration: getInputDecoration('Email Institucional')
+                  ),
+                  TextField(
+                    controller: password,
+                    decoration: getInputDecoration('Contraseña')
+                  ),
+                  HandyTextButtonBlue(textPhrase: 'Olvidé mi contraseña',), //modificar
                   SizedBox(
                     width: double.infinity,
                     height: 52,
-                    child: HandyElevatedButton(textPhrase: 'Ingresar'),
+                    child: ElevatedButton(
+                      style: getButtonStyleOne(),
+                      onPressed: (){
+                        debugPrint('HandyElevatedButton working!!');
+                      }, 
+                      child: Text(
+                        'Ingresar',
+                      ),
+                    ) 
+                    //HandyElevatedButton(textPhrase: 'Ingresar'),
                   ),
                 ],
               ),
