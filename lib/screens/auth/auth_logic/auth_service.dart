@@ -1,7 +1,24 @@
+import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../welcome_screen.dart';
 import '../../inventario/inventario_screen.dart';
+
+class GoRouterRefreshStream extends ChangeNotifier { 
+  GoRouterRefreshStream(Stream<dynamic> stream) { 
+    notifyListeners(); 
+    _subscription = stream.asBroadcastStream().listen((_) => notifyListeners()); 
+  } 
+
+  late final StreamSubscription<dynamic> _subscription; 
+
+  @override 
+  void dispose() { 
+    _subscription.cancel(); 
+    super.dispose(); 
+  } 
+}
+
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -34,13 +51,14 @@ class AuthService {
           _ borrar contraseña
           _ retener usuario para no reescribirlo
         */
-        
+        debugPrint(e.code);
         return null;
       } else 
       
       if (e.code == 'email-already-in-use') {
         // Handle email already registered
         // deberia de enviar un alerta, pero dejar las data de textField como está
+        debugPrint(e.code);
       }
       return null;
     } catch (e) {
@@ -64,9 +82,11 @@ class AuthService {
       if (e.code == 'user-not-found') {
         // Handle no user found
         // enviar alerta, no borrar mail en textField
+        debugPrint(e.code);
       } else if (e.code == 'wrong-password') {
         // Handle incorrect password
         // borrar contraseña en el textField
+        debugPrint(e.code);
       }
       return null;
     } catch (e) {
@@ -106,7 +126,8 @@ class AuthWrapper extends StatelessWidget {
         } else if (snapshot.hasData) {
           // If there is user data, the user is signed in
           //ESTO MUESTRA EL INVENTARIO
-          return const InventarioScreen(); // Navigate to your main app screen
+          //return const InventarioScreen(); // Navigate to your main app screen
+          return const InventarioScreen();
         } else {
           // If there is no user data, the user is signed out
           //return const SignInScreen(); // Navigate to your sign-in screen

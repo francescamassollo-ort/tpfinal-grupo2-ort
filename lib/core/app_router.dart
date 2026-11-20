@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
 import '../screens/auth/auth_logic/auth_service.dart';
 import '../screens/alertas/alertas_screen.dart';
@@ -22,7 +23,16 @@ import 'app_shell.dart';
 // Login queda para el final (lo pidió el profe), por eso se arranca
 // directo en /inventario en vez de /welcome o /login.
 final GoRouter appRouter = GoRouter(
-  initialLocation: '/auth', //'inventario',
+  initialLocation: 'inventario',
+  refreshListenable: GoRouterRefreshStream(FirebaseAuth.instance.authStateChanges()), 
+  redirect: (context, state) {
+    final bool isLoggedIn = FirebaseAuth.instance.currentUser != null; 
+    final String location = state.uri.path; 
+    final bool isAuthRoute = location == '/welcome' || location == '/login' || location == '/register'; 
+    if (!isLoggedIn && !isAuthRoute) {return '/welcome';} 
+    if (isLoggedIn && isAuthRoute) { return '/inventario'; } 
+    return null; 
+  },
   routes: [
     // Pantallas sin barra ni drawer (todavía no hay sesión iniciada).
     GoRoute(path: '/auth', builder: (context, state) => const AuthWrapper()),

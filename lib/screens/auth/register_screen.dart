@@ -53,7 +53,6 @@ class RegisterScreen extends StatelessWidget {
                 child: ElevatedButton(
                   style: getButtonStyleOne(),
                   onPressed: (){
-                    //debugPrint('HandyElevatedButton working!!');
                     registrationCheck(context, email: email.text, password:  password.text, confirmPassword:  confirmPassword.text);
                   }, 
                   child: Text(
