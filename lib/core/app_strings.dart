@@ -77,6 +77,12 @@ class AppStrings {
   static const String duplicadosCerrar = 'Cerrar';
   static const String duplicadosUnidades = 'unidades';
   static const String duplicadosError = 'No se pudo buscar duplicados';
+  static const String duplicadosBuscandoIa = 'Buscando sinónimos con IA…';
+  static const String duplicadosSugeridoIa = 'Sugerido por la IA';
+  static const String duplicadosIaFallo =
+      'No se pudo consultar la IA: se muestra solo la comparación de texto';
+  static const String duplicadosIaNoDisponible =
+      'La búsqueda con IA no está configurada';
   static const String duplicadosCargando =
       'Los insumos todavía se están cargando, probá de nuevo en un momento';
   static String duplicadosStockActual(int stock, String unidad) =>

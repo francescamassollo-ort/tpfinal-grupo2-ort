@@ -9,7 +9,7 @@ import '../services/synonym_detection_service.dart';
 import 'hallazgos_provider.dart';
 import 'insumo_providers.dart';
 
-// El modelo de lenguaje a usar. Es null si no hay una clave de Groq cargada:
+// El modelo de lenguaje a usar. Es null si no hay una clave cargada:
 // en ese caso la app sigue andando con la comparación de texto. En las pruebas
 // se reemplaza por uno falso.
 final modeloDeLenguajeProvider = Provider<ModeloDeLenguaje?>(
@@ -17,7 +17,7 @@ final modeloDeLenguajeProvider = Provider<ModeloDeLenguaje?>(
 );
 
 /// Sinónimos que sugiere el modelo de lenguaje. NO se calculan solos: cada
-/// consulta gasta cuota de Groq, así que solo se hacen al llamar a [analizar].
+/// consulta gasta cuota del modelo, así que solo se hacen al llamar a [analizar].
 ///
 /// El estado es un AsyncValue: arranca con la lista vacía (nada analizado),
 /// pasa a "cargando" mientras espera y termina con el resultado o con el error.
@@ -29,7 +29,7 @@ class SinonimosNotifier extends Notifier<AsyncValue<List<Hallazgo>>> {
   Future<void> analizar() async {
     final modelo = ref.read(modeloDeLenguajeProvider);
     if (modelo == null) {
-      _fallar('No hay una clave de Groq cargada');
+      _fallar('No hay una clave del modelo de lenguaje cargada');
       return;
     }
 

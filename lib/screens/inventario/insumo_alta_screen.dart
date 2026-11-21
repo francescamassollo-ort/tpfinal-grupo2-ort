@@ -5,8 +5,10 @@ import 'package:go_router/go_router.dart';
 import '../../core/app_strings.dart';
 import '../../models/insumo.dart';
 import '../../providers/insumo_providers.dart';
+import '../../providers/sinonimos_provider.dart';
 import '../../services/duplicate_detection_service.dart';
 import '../../services/insumo_service.dart';
+import '../../services/synonym_detection_service.dart';
 import 'duplicados_dialog.dart';
 
 class InsumoAltaScreen extends ConsumerStatefulWidget {
@@ -351,10 +353,67 @@ ElevatedButton(
         ),
     ];
 
-    final elegido = await DuplicadosDialog.mostrar(context, parecidos);
+    final elegido = await DuplicadosDialog.mostrar(
+      context,
+      parecidos,
+      sugerenciasIa: _sugerenciasDeIa(
+        nombre,
+        existentes,
+        yaMostrados: similares,
+        marca: marca,
+      ),
+    );
     if (elegido == null || !mounted) return;
 
     context.pushReplacement('/consumo?insumo=${elegido.id}');
+  }
+
+  // Le pregunta a la IA si el nombre que se está cargando es un sinónimo de
+  // alguno de los que ya existen ("etanol" y "alcohol etílico"). Devuelve null
+  // si no hay IA configurada. Solo se le mandan nombres de insumos. Los que la
+  // comparación de texto ya mostró se saltean, para no repetirlos.
+  Future<List<Insumo>>? _sugerenciasDeIa(
+    String nombre,
+    List<Insumo> existentes, {
+    required List<Insumo> yaMostrados,
+    String? marca,
+  }) {
+    final modelo = ref.read(modeloDeLenguajeProvider);
+    if (modelo == null) return null;
+
+    // El insumo todavía no existe: se lo suma a la lista con un id propio para
+    // que la IA lo compare con los demás.
+    const idNuevo = '__nuevo__';
+    final nuevo = Insumo(
+      id: idNuevo,
+      nombre: nombre,
+      tipo: _tipo,
+      stock: 0,
+      ubicacion: '',
+      umbralMinimo: 0,
+      marca: marca == null || marca.isEmpty ? null : marca,
+    );
+    final porId = {for (final i in existentes) i.id: i};
+    final conocidos = {for (final i in yaMostrados) i.id};
+
+    final sugerencias = SynonymDetectionService(modelo)
+        .buscar([...existentes, nuevo]).then((hallazgos) {
+      final ids = <String>{};
+      for (final h in hallazgos) {
+        if (!h.insumoIds.contains(idNuevo)) continue;
+        final otro = h.insumoIds.firstWhere((id) => id != idNuevo);
+        if (!conocidos.contains(otro)) ids.add(otro);
+      }
+      return [
+        for (final id in ids)
+          if (porId[id] != null) porId[id]!,
+      ];
+    });
+    // Si la IA falla antes de que la ventana empiece a esperar el resultado,
+    // el error no tiene que perderse como "error sin manejar": la ventana lo
+    // recibe igual cuando se suscribe y lo muestra como aviso.
+    sugerencias.ignore();
+    return sugerencias;
   }
 
   Future<void> _guardar() async {
