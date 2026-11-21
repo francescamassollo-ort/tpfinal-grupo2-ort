@@ -143,9 +143,9 @@ Las pruebas unitarias están en `test/` (fuera de `lib/`).
 | Inventario | `/inventario` | ✅ Funcional (lee los insumos de Firestore, con buscador, filtros y tarjetas) |
 | Buscar y filtrar | `/inventario/filtro` | ⏳ Placeholder (hoy el filtro es un diálogo dentro de Inventario) |
 | Detalle de insumo | `/insumo/:id` | ✅ Funcional (lee el insumo de Firestore en tiempo real; Editar y Baja avisan "Próximamente"; Historial y Registrar consumo navegan a sus pantallas) |
-| Alta de insumo | `/insumo/alta` | ⏳ Placeholder |
+| Alta de insumo | `/insumo/alta` | ✅ Funcional (formulario de alta que guarda en Firestore; el botón "Buscar duplicados" avisa si ya existe algo parecido, ver "Duplicados al dar de alta") |
 | Escáner | `/scanner` | ⏳ Placeholder |
-| Consumo | `/consumo` | ⏳ Placeholder |
+| Consumo | `/consumo` | ✅ Funcional (registra una salida de stock; con `/consumo?insumo=ID` abre con ese insumo ya elegido) |
 
 ### Historial, alertas y compras
 | Pantalla | Ruta | Estado |
@@ -193,13 +193,27 @@ Supuestos pendientes de confirmar:
 - La cantidad que pide un TP está en la misma unidad que el stock, igual que en `TpService.verificarDisponibilidad`.
 - Mientras Alta y Consumo no registren movimientos, la predicción da una lista vacía y el autoajuste usa 30 días.
 
+## Duplicados al dar de alta
+
+Antes de guardar un insumo nuevo, el formulario de Alta tiene un botón **"Buscar duplicados"** (requerimiento A10). Usa lo que ya se escribió (nombre, tipo, marca y código de barras) y abre una ventana:
+
+- **Comparación de texto** (siempre, instantánea y sin internet): encuentra insumos con el mismo código de barras o con un nombre muy parecido. Para eso usa `DuplicateDetectionService.buscarSimilares`.
+- **Sinónimos con IA** (solo si hay clave, ver "Servicios externos"): mientras tanto muestra "Buscando sinónimos con IA…" y, cuando termina, suma los insumos que la IA cree que son el mismo producto con otro nombre ("etanol" y "alcohol etílico"), marcados como "Sugerido por la IA". Si la IA falla o no está configurada, la ventana lo dice y deja el resultado de la comparación de texto.
+- Cada coincidencia trae **"Cargarle un consumo"**, que deja el alta y abre Consumo con ese insumo ya elegido (`/consumo?insumo=ID`). El botón **"Es distinto, seguir cargando"** vuelve al formulario sin perder lo escrito.
+
+**Qué se le manda a la IA:** solo los nombres de los insumos (el existente y el que se está cargando), nunca stock, ubicaciones ni códigos de barras. El modelo propone y las reglas deciden: cada sugerencia se valida con las mismas reglas que la comparación de texto.
+
+**Cuota:** cada vez que se toca el botón y hay clave se hace hasta una consulta por cada tipo de insumo (comprado y solución), y más si hay más de 250 de un tipo. No hay límite ni memoria de lo ya consultado.
+
+**Cambiar de proveedor de IA:** la app habla con la IA a través de la interfaz `ModeloDeLenguaje`. Para usar otro proveedor (por ejemplo Gemini) hay que escribir un cliente nuevo que la implemente y cambiar `modeloDeLenguajeProvider` en `sinonimos_provider.dart`. Los textos que ve la persona no nombran al proveedor.
+
 ## Servicios externos
 
 La app puede usar servicios de terceros para funciones de IA y datos quimicos. Ninguno es obligatorio para compilar ni ejecutar: si falta la clave, la funcion simplemente no activa.
 
-### Groq (deteccion de sinonimos, rama `feat/duplicados-ia`)
+### Groq (deteccion de sinonimos)
 
-Groq es el modelo de lenguaje que usa la deteccion de sinonimos al dar de alta un insumo (requerimiento A10). El codigo esta en la rama `feat/duplicados-ia`, todavia sin Pull Request.
+Groq es el modelo de lenguaje que usa hoy la deteccion de sinonimos al dar de alta un insumo (requerimiento A10): se dispara desde el boton "Buscar duplicados" del formulario de Alta. Esta detras de la interfaz `ModeloDeLenguaje`, asi que se puede cambiar por otro proveedor sin tocar las pantallas.
 
 **Configurar la clave:**
 1. Copiar `env.example.json` a `env.json` en la raiz del proyecto.
