@@ -53,7 +53,12 @@ final GoRouter appRouter = GoRouter(
               InsumoDetalleScreen(insumoId: state.pathParameters['id']!),
         ),
         GoRoute(path: '/scanner', builder: (context, state) => const ScannerScreen()),
-        GoRoute(path: '/consumo', builder: (context, state) => const ConsumoScreen()),
+        // /consumo?insumo=ID abre la pantalla con ese insumo ya elegido.
+        GoRoute(
+          path: '/consumo',
+          builder: (context, state) =>
+              ConsumoScreen(insumoId: state.uri.queryParameters['insumo']),
+        ),
         GoRoute(path: '/alertas', builder: (context, state) => const AlertasScreen()),
         GoRoute(path: '/tp', builder: (context, state) => const TpListaScreen()),
         GoRoute(path: '/tp/detalle', builder: (context, state) => const TpDetalleScreen()),

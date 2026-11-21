@@ -6,6 +6,8 @@ import '../../core/app_colors.dart';
 import '../../models/insumo.dart';
 import '../../providers/insumo_providers.dart';
 import '../../providers/role_provider.dart';
+import '../../models/usuario.dart';
+
 
 // Detalle de un insumo. Recibe solo el id (viene en la ruta /insumo/:id)
 // y busca el insumo actualizado con insumoPorIdProvider: si alguien registra

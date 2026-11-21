@@ -4,7 +4,11 @@ import '../../providers/insumo_providers.dart';
 import '../../services/stock_service.dart';
 
 class ConsumoScreen extends ConsumerStatefulWidget {
-  const ConsumoScreen({super.key});
+  const ConsumoScreen({this.insumoId, super.key});
+
+  /// Insumo que ya aparece elegido al abrir la pantalla, por ejemplo cuando se
+  /// llega desde el aviso de duplicados de Alta. Si no existe, se ignora.
+  final String? insumoId;
 
   @override
   ConsumerState<ConsumoScreen> createState() => _ConsumoScreenState();
@@ -13,7 +17,7 @@ class ConsumoScreen extends ConsumerStatefulWidget {
 class _ConsumoScreenState extends ConsumerState<ConsumoScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  String? _insumoId;
+  late String? _insumoId = widget.insumoId;
 
   final _cantidadController = TextEditingController();
 
@@ -27,6 +31,11 @@ Widget build(BuildContext context) {
   return SafeArea(
     child: insumosAsync.when(
       data: (insumos) {
+        // Un insumo que ya no existe (o un id que llegó de afuera y no
+        // corresponde a ninguno) se trata como si no hubiera nada elegido.
+        if (_insumoId != null && !insumos.any((i) => i.id == _insumoId)) {
+          _insumoId = null;
+        }
         final insumoSeleccionado = _insumoId == null
     ? null
     : insumos.firstWhere((i) => i.id == _insumoId);

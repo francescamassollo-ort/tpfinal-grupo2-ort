@@ -143,9 +143,9 @@ Las pruebas unitarias están en `test/` (fuera de `lib/`).
 | Inventario | `/inventario` | ✅ Funcional (lee los insumos de Firestore, con buscador, filtros y tarjetas) |
 | Buscar y filtrar | `/inventario/filtro` | ⏳ Placeholder (hoy el filtro es un diálogo dentro de Inventario) |
 | Detalle de insumo | `/insumo/:id` | ✅ Funcional (lee el insumo de Firestore en tiempo real; Editar y Baja avisan "Próximamente"; Historial y Registrar consumo navegan a sus pantallas) |
-| Alta de insumo | `/insumo/alta` | ⏳ Placeholder |
+| Alta de insumo | `/insumo/alta` | ✅ Funcional (formulario de alta que guarda en Firestore; el botón "Buscar duplicados" avisa si ya existe algo parecido, ver "Duplicados al dar de alta") |
 | Escáner | `/scanner` | ⏳ Placeholder |
-| Consumo | `/consumo` | ⏳ Placeholder |
+| Consumo | `/consumo` | ✅ Funcional (registra una salida de stock; con `/consumo?insumo=ID` abre con ese insumo ya elegido) |
 
 ### Historial, alertas y compras
 | Pantalla | Ruta | Estado |
@@ -210,14 +210,49 @@ barra inferior deja de contarla (el color de la campana también mira solo las q
 
 Pendiente de acordar: el nombre de la colección `alertasVistas` tiene que coincidir con las reglas de Firestore (#46), y
 no está definido si algunas alertas deberían verlas solo ciertos roles (los requisitos no lo dicen).
+## Duplicados al dar de alta
+
+Antes de guardar un insumo nuevo, el formulario de Alta tiene un botón **"Buscar duplicados"** (requerimiento A10). Usa lo que ya se escribió (nombre, tipo, marca y código de barras) y abre una ventana:
+
+- **Comparación de texto** (siempre, instantánea y sin internet): encuentra insumos con el mismo código de barras o con un nombre muy parecido. Para eso usa `DuplicateDetectionService.buscarSimilares`.
+- **Sinónimos con IA** (solo si hay clave, ver "Servicios externos"): mientras tanto muestra "Buscando sinónimos con IA…" y, cuando termina, suma los insumos que la IA cree que son el mismo producto con otro nombre ("etanol" y "alcohol etílico"), marcados como "Sugerido por la IA". Si la IA falla o no está configurada, la ventana lo dice y deja el resultado de la comparación de texto.
+- Cada coincidencia trae **"Cargarle un consumo"**, que deja el alta y abre Consumo con ese insumo ya elegido (`/consumo?insumo=ID`). El botón **"Es distinto, seguir cargando"** vuelve al formulario sin perder lo escrito.
+
+**Qué se le manda a la IA:** solo los nombres de los insumos (el existente y el que se está cargando), nunca stock, ubicaciones ni códigos de barras. El modelo propone y las reglas deciden: cada sugerencia se valida con las mismas reglas que la comparación de texto.
+
+**Cuota:** cada vez que se toca el botón y hay clave se hace hasta una consulta por cada tipo de insumo (comprado y solución), y más si hay más de 250 de un tipo. No hay límite ni memoria de lo ya consultado.
+
+**Proveedor de IA:** la app habla con la IA a través de la interfaz `ModeloDeLenguaje`. Se usa **Gemini** si hay clave (`GEMINI_API_KEY`); si además hay clave de Groq, Groq queda de **respaldo** y se usa solo cuando Gemini falla (por ejemplo, límite diario agotado). Con una sola clave se usa esa. Para sumar otro proveedor hay que escribir un cliente nuevo que implemente la interfaz y sumarlo en `elegirModeloDeLenguaje` (`sinonimos_provider.dart`). Los textos que ve la persona no nombran al proveedor.
 
 ## Servicios externos
 
 La app puede usar servicios de terceros para funciones de IA y datos quimicos. Ninguno es obligatorio para compilar ni ejecutar: si falta la clave, la funcion simplemente no activa.
 
-### Groq (deteccion de sinonimos, rama `feat/duplicados-ia`)
+### Gemini (deteccion de sinonimos, proveedor principal)
 
-Groq es el modelo de lenguaje que usa la deteccion de sinonimos al dar de alta un insumo (requerimiento A10). El codigo esta en la rama `feat/duplicados-ia`, todavia sin Pull Request.
+Gemini es el modelo de lenguaje que usa la deteccion de sinonimos al dar de alta un insumo (requerimiento A10): se dispara desde el boton "Buscar duplicados" del formulario de Alta.
+
+**Configurar la clave:**
+1. Crear una clave en [Google AI Studio](https://aistudio.google.com/apikey) (plan gratuito, sin tarjeta).
+2. Copiar `env.example.json` a `env.json` (si todavia no existe) y completar `GEMINI_API_KEY`.
+3. `env.json` esta en `.gitignore` y **nunca** debe subirse al repositorio.
+
+**Ejecutar con la clave:**
+```
+flutter run --dart-define-from-file=env.json -d <id-del-emulador>
+```
+
+**Cambiar el modelo** (opcional): setear `GEMINI_MODEL` en `env.json`. El valor por defecto es `gemini-3.5-flash-lite`. Los nombres disponibles para una clave se ven en Google AI Studio, o listandolos con la API (`GET /v1beta/models`). Si el limite diario no alcanza, probar con otro "flash-lite".
+
+**Limites del plan gratuito:** los define Google por proyecto y por modelo, y cambian con el tiempo. Ver la tabla real de la clave en Google AI Studio (icono de uso y limites). Si se agota, la app usa Groq de respaldo, si hay clave.
+
+**Privacidad:** en el plan gratuito Google puede usar lo que se le envia para mejorar sus productos. La app solo envia nombres de insumos.
+
+**Aviso de seguridad:** igual que con Groq, la clave queda embebida en el binario compilado. Para la demo alcanza.
+
+### Groq (deteccion de sinonimos, respaldo)
+
+Groq es el modelo de lenguaje de respaldo: se usa si no hay clave de Gemini, o cuando Gemini falla y hay clave de Groq. Esta detras de la interfaz `ModeloDeLenguaje`, asi que se puede cambiar por otro proveedor sin tocar las pantallas.
 
 **Configurar la clave:**
 1. Copiar `env.example.json` a `env.json` en la raiz del proyecto.

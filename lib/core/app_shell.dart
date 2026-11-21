@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../models/alerta.dart';
 import '../providers/alerta_provider.dart';
 import '../providers/role_provider.dart';
+import '../models/usuario.dart';
+
 import 'app_colors.dart';
 import 'app_strings.dart';
 
