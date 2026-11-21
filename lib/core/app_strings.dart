@@ -64,6 +64,23 @@ class AppStrings {
 
   static const String alertasTitulo = 'Alertas';
   static String alertasConCantidad(int cantidad) => 'Alertas ($cantidad)';
+
+  // Aviso de duplicados al dar de alta un insumo.
+  static const String duplicadosBuscar = 'Buscar duplicados';
+  static const String duplicadosEscribirNombre = 'Escribí un nombre primero';
+  static const String duplicadosNinguno = 'No se encontraron duplicados';
+  static const String duplicadosEncontrados = 'Ya hay insumos parecidos';
+  static const String duplicadosMismoCodigo = 'Mismo código de barras';
+  static const String duplicadosNombreParecido = 'Nombre muy parecido';
+  static const String duplicadosCargarConsumo = 'Cargarle un consumo';
+  static const String duplicadosSeguir = 'Es distinto, seguir cargando';
+  static const String duplicadosCerrar = 'Cerrar';
+  static const String duplicadosUnidades = 'unidades';
+  static const String duplicadosError = 'No se pudo buscar duplicados';
+  static const String duplicadosCargando =
+      'Los insumos todavía se están cargando, probá de nuevo en un momento';
+  static String duplicadosStockActual(int stock, String unidad) =>
+      'Stock actual: $stock $unidad';
   static const String alertasVacia = 'No hay alertas por ahora';
   static const String alertasError = 'No se pudieron cargar las alertas';
   static const String alertaSinStock = 'Sin stock';

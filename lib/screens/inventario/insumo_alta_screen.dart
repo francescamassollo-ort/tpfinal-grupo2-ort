@@ -1,17 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/app_strings.dart';
 import '../../models/insumo.dart';
+import '../../providers/insumo_providers.dart';
+import '../../services/duplicate_detection_service.dart';
 import '../../services/insumo_service.dart';
+import 'duplicados_dialog.dart';
 
-class InsumoAltaScreen extends StatefulWidget {
+class InsumoAltaScreen extends ConsumerStatefulWidget {
   const InsumoAltaScreen({super.key});
 
   @override
-  State<InsumoAltaScreen> createState() => _InsumoAltaScreenState();
+  ConsumerState<InsumoAltaScreen> createState() => _InsumoAltaScreenState();
 }
 
-class _InsumoAltaScreenState extends State<InsumoAltaScreen> {
+class _InsumoAltaScreenState extends ConsumerState<InsumoAltaScreen> {
   final _formKey = GlobalKey<FormState>();
 
   InsumoTipo _tipo = InsumoTipo.comprado;
@@ -35,6 +40,15 @@ class _InsumoAltaScreenState extends State<InsumoAltaScreen> {
   DateTime? _fechaVencimiento;
 
   final bool _guardando = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Mantiene escuchada la lista de insumos mientras la pantalla está
+    // abierta, para tenerla cargada cuando se toca "Buscar duplicados". No
+    // redibuja nada: solo evita que el stream se pause.
+    ref.listenManual(insumosProvider, (previous, next) {});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -264,6 +278,16 @@ ElevatedButton(
 
 const SizedBox(height: 24),
 
+// Antes de guardar: revisa si ya existe algo parecido con lo que se
+// escribió (nombre, tipo, marca y código de barras).
+OutlinedButton.icon(
+  onPressed: _buscarDuplicados,
+  icon: const Icon(Icons.search),
+  label: const Text(AppStrings.duplicadosBuscar),
+),
+
+const SizedBox(height: 12),
+
 ElevatedButton(
   onPressed: _guardando ? null : _guardar,
   child: const Text('Guardar'),
@@ -273,6 +297,64 @@ ElevatedButton(
         ),
       ),
     );
+  }
+
+  // Busca insumos parecidos al que se está cargando y muestra el resultado en
+  // una ventana. Si la persona elige cargarle un consumo a uno de ellos, se
+  // deja el alta (era un duplicado) y se abre Consumo con ese insumo elegido.
+  Future<void> _buscarDuplicados() async {
+    final nombre = _nombreController.text.trim();
+    final messenger = ScaffoldMessenger.of(context);
+    if (nombre.isEmpty) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text(AppStrings.duplicadosEscribirNombre)),
+      );
+      return;
+    }
+
+    // Sin la lista de insumos no hay con qué comparar: se avisa en vez de
+    // decir "no hay duplicados", que sería engañoso.
+    final insumos = ref.read(insumosProvider);
+    final existentes = insumos.value;
+    if (existentes == null) {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            insumos.hasError
+                ? AppStrings.duplicadosError
+                : AppStrings.duplicadosCargando,
+          ),
+        ),
+      );
+      return;
+    }
+
+    final codigo = _codigoBarrasController.text.trim();
+    final marca = _tipo == InsumoTipo.comprado
+        ? _marcaController.text.trim()
+        : null;
+
+    final similares = DuplicateDetectionService.buscarSimilares(
+      nombre,
+      existentes,
+      marca: marca,
+      tipo: _tipo,
+      codigoBarras: codigo,
+    );
+    final parecidos = [
+      for (final insumo in similares)
+        (
+          insumo: insumo,
+          mismoCodigoDeBarras: codigo.isNotEmpty &&
+              (insumo.codigoBarras ?? '').trim().toLowerCase() ==
+                  codigo.toLowerCase(),
+        ),
+    ];
+
+    final elegido = await DuplicadosDialog.mostrar(context, parecidos);
+    if (elegido == null || !mounted) return;
+
+    context.pushReplacement('/consumo?insumo=${elegido.id}');
   }
 
   Future<void> _guardar() async {
