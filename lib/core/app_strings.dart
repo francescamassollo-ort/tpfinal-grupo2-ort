@@ -112,6 +112,12 @@ class AppStrings {
       'Stock actual: $stock $unidad';
   static const String alertasVacia = 'No hay alertas por ahora';
   static const String alertasError = 'No se pudieron cargar las alertas';
+  static const String alertasFiltroTipo = 'Tipo de alerta';
+  static const String alertasFiltroEstado = 'Estado';
+  static const String alertasFiltroTodos = 'Todos';
+  static const String alertasFiltroTodas = 'Todas';
+  static const String alertasFiltroSinVer = 'Sin ver';
+  static const String alertasFiltroVistas = 'Vistas';
   static const String alertaSinStock = 'Sin stock';
   static const String alertaStockBajo = 'Stock bajo';
   static const String alertaVencimientoCercano = 'Vencimiento cercano';
