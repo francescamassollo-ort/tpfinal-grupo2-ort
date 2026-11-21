@@ -118,6 +118,9 @@ class AppStrings {
   static const String alertasFiltroTodas = 'Todas';
   static const String alertasFiltroSinVer = 'Sin ver';
   static const String alertasFiltroVistas = 'Vistas';
+  static const String alertasSinCoincidencias =
+      'Ninguna alerta coincide con los filtros';
+  static const String alertasLimpiarFiltros = 'Limpiar filtros';
   static const String alertaSinStock = 'Sin stock';
   static const String alertaStockBajo = 'Stock bajo';
   static const String alertaVencimientoCercano = 'Vencimiento cercano';

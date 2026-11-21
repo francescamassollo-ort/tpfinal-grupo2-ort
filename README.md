@@ -151,7 +151,7 @@ Las pruebas unitarias están en `test/` (fuera de `lib/`).
 | Pantalla | Ruta | Estado |
 |---|---|---|
 | Historial de movimientos | `/historial` | ✅ Funcional (lee la colección `movimientosStock` de Firestore en tiempo real, los últimos 500, y muestra el nombre del insumo; aparece vacío hasta que Alta y Consumo registren movimientos; panel de filtros por tipo, insumo y fechas; Compartir y Descargar en PDF o CSV, con lo que se ve: si hay filtros puestos solo salen esos movimientos y el archivo lo aclara) |
-| Alertas | `/alertas` | ✅ Funcional (alertas calculadas desde los insumos (sin stock, stock bajo, vencido y vencimiento cercano) y desde la predicción de stock (se agotaría antes de la próxima compra y no alcanza para un trabajo práctico, en naranja); tocar una alerta abre el detalle del insumo; cada alerta se puede marcar como vista, y queda en la lista pero atenuada; el filtro todavía sin acción) |
+| Alertas | `/alertas` | ✅ Funcional (alertas calculadas desde los insumos (sin stock, stock bajo, vencido y vencimiento cercano) y desde la predicción de stock (se agotaría antes de la próxima compra y no alcanza para un trabajo práctico, en naranja); tocar una alerta abre el detalle del insumo; cada alerta se puede marcar como vista, y queda en la lista pero atenuada; se pueden filtrar por tipo y por estado, ver "Filtro de alertas") |
 | Lista de compras | `/compras` | ✅ Funcional (colección `listaCompras` de Firestore: cantidad editable con mínimo 1; sugerencias del sistema para los insumos con stock bajo; agregar a mano un insumo desde un panel (solo se ofrecen los que no están en la lista); menú en cada ítem para marcarlo como comprado o descartarlo, con Deshacer (la lista muestra solo los pendientes, así que el ítem sale); Compartir y Descargar en PDF o CSV; buscar y papelera todavía sin acción) |
 
 ### Trabajos prácticos
@@ -210,6 +210,21 @@ barra inferior deja de contarla (el color de la campana también mira solo las q
 
 Pendiente de acordar: el nombre de la colección `alertasVistas` tiene que coincidir con las reglas de Firestore (#46), y
 no está definido si algunas alertas deberían verlas solo ciertos roles (los requisitos no lo dicen).
+
+## Filtro de alertas
+El ícono de filtros de la pantalla de Alertas abre un panel con dos opciones (el diseño dibuja el ícono pero no define
+qué opciones tiene, así que se eligieron estas):
+
+- **Tipo de alerta:** todos o uno de los seis (sin stock, stock bajo, vencido, vencimiento cercano, se agotaría antes de la
+  próxima compra, no alcanza para un trabajo práctico).
+- **Estado:** todas, sin ver o vistas (usa las marcas de "Alertas vistas").
+
+- **Solo cambia la lista, no la campana:** el número y el color de la campana siguen contando todas las alertas sin ver,
+  estén filtradas o no.
+- Un punto sobre el ícono avisa que hay un filtro puesto. Si ninguna alerta coincide, la pantalla lo dice y ofrece "Limpiar
+  filtros" (si no hay ninguna alerta, dice que no hay y no ofrece limpiar).
+- Se filtra en memoria, sobre las alertas ya calculadas, igual que el filtro del Historial.
+- **El filtro se guarda mientras la app está abierta** (`filtroAlertasProvider`) y se pierde al cerrarla.
 ## Duplicados al dar de alta
 
 Antes de guardar un insumo nuevo, el formulario de Alta tiene un botón **"Buscar duplicados"** (requerimiento A10). Usa lo que ya se escribió (nombre, tipo, marca y código de barras) y abre una ventana:
