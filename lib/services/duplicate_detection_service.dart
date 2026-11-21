@@ -44,7 +44,7 @@ class DuplicateDetectionService {
           continue;
         }
 
-        if (!_sePuedenComparar(a, b)) continue;
+        if (!sePuedenComparar(a, b)) continue;
 
         final parecido = SimilitudTexto.entreNombres(a.nombre, b.nombre);
         if (parecido == 1) {
@@ -152,10 +152,10 @@ class DuplicateDetectionService {
         _normalizadoOVacio(b.codigoBarras);
   }
 
-  // Dos insumos se comparan por nombre solo si son del mismo tipo y, cuando
-  // los dos tienen marca, es la misma: el mismo reactivo de dos marcas se
-  // maneja como productos distintos.
-  static bool _sePuedenComparar(Insumo a, Insumo b) {
+  /// Dos insumos se comparan por nombre solo si son del mismo tipo y, cuando
+  /// los dos tienen marca, es la misma: el mismo reactivo de dos marcas se
+  /// maneja como productos distintos.
+  static bool sePuedenComparar(Insumo a, Insumo b) {
     if (a.tipo != b.tipo) return false;
     if (_vacio(a.marca) || _vacio(b.marca)) return true;
     return SimilitudTexto.normalizar(a.marca!) ==
