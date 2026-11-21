@@ -10,6 +10,7 @@ import '../../widgets/app_decorative_background.dart';
 import '../../widgets/app_screen_header.dart';
 import '../../widgets/share_download_actions.dart';
 import 'compra_tile.dart';
+import 'compras_exportacion.dart';
 import 'compras_fab.dart';
 
 /// Lista de compras. Según el diseño no lleva la barra inferior del shell y
@@ -17,13 +18,11 @@ import 'compras_fab.dart';
 class ComprasScreen extends ConsumerWidget {
   const ComprasScreen({super.key});
 
-  // Estas acciones todavía no existen: buscar, papelera, agregar, compartir y
-  // descargar quedan sin función hasta que se definan.
+  // Estas acciones todavía no existen: buscar, papelera y agregar quedan sin
+  // función hasta que se definan.
   static const VoidCallback? _onBuscar = null;
   static const VoidCallback? _onPapelera = null;
   static const VoidCallback? _onAgregar = null;
-  static const VoidCallback? _onCompartir = null;
-  static const VoidCallback? _onDescargar = null;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -87,9 +86,14 @@ class ComprasScreen extends ConsumerWidget {
                   child: ComprasFab(onPressed: _onAgregar),
                 ),
               ),
-              const ShareDownloadActions(
-                onShare: _onCompartir,
-                onDownload: _onDescargar,
+              // Mientras la lista carga o falla no hay nada que exportar.
+              ShareDownloadActions(
+                onShare: items.hasValue
+                    ? () => exportarListaCompras(context, ref, descargar: false)
+                    : null,
+                onDownload: items.hasValue
+                    ? () => exportarListaCompras(context, ref, descargar: true)
+                    : null,
               ),
             ],
           ),

@@ -2,9 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../models/alerta.dart';
+import '../providers/alerta_provider.dart';
 import '../providers/role_provider.dart';
 import '../models/usuario.dart';
 
+import 'app_colors.dart';
+import 'app_strings.dart';
 
 // Envuelve todas las pantallas "internas" (las que tienen barra + drawer).
 // go_router llama a este widget una sola vez y le va cambiando el [child]
@@ -20,6 +24,9 @@ class AppShell extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final role = ref.watch(roleProvider);
+    // Mientras las alertas cargan, o si fallan, la campana va sin número: no
+    // hace falta avisar de nada que todavía no se sabe.
+    final alertas = ref.watch(alertasProvider).value ?? const <Alerta>[];
     // El diseño de Alertas no lleva el botón flotante.
     final mostrarBotonAgregar = location != '/alertas';
 
@@ -52,7 +59,21 @@ class AppShell extends ConsumerWidget {
               onPressed: () => context.go('/perfil'),
             ),
             IconButton(
-              icon: const Icon(Icons.notifications_outlined),
+              tooltip: alertas.isEmpty
+                  ? AppStrings.alertasTitulo
+                  : AppStrings.alertasConCantidad(alertas.length),
+              // El número avisa cuántas alertas hay sin tener que entrar. Va en
+              // rojo si alguna es crítica y en naranja si son solo avisos.
+              icon: Badge(
+                isLabelVisible: alertas.isNotEmpty,
+                label: Text(alertas.length > 99 ? '99+' : '${alertas.length}'),
+                textColor: Colors.white,
+                backgroundColor:
+                    alertas.any((a) => a.severidad == SeveridadAlerta.critica)
+                        ? AppColors.stockDanger
+                        : AppColors.stockWarning,
+                child: const Icon(Icons.notifications_outlined),
+              ),
               onPressed: () => context.go('/alertas'),
             ),
           ],
