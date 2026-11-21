@@ -9,11 +9,31 @@ import '../../widgets/outlined_list_card.dart';
 /// Una fila de Alertas: círculo con signo de exclamación del color de la
 /// severidad, nombre del insumo y el motivo de la alerta debajo. Si se pasa
 /// [onTap], la fila se puede tocar (por ejemplo para abrir el insumo).
+///
+/// Si se pasa [onToggleVista], suma a la derecha un botón para marcar la alerta
+/// como vista o volver a marcarla como no vista. Una alerta [vista] se ve
+/// atenuada, pero sigue en la lista.
 class AlertaTile extends StatelessWidget {
-  const AlertaTile({required this.alerta, this.onTap, super.key});
+  const AlertaTile({
+    required this.alerta,
+    this.onTap,
+    this.vista = false,
+    this.onToggleVista,
+    super.key,
+  });
 
   final Alerta alerta;
   final VoidCallback? onTap;
+
+  /// Si la persona ya marcó esta alerta como vista.
+  final bool vista;
+
+  /// Se llama al tocar el botón de vista. Si es null, no hay botón.
+  final VoidCallback? onToggleVista;
+
+  // Cuánto se atenúa una alerta ya vista. Se sigue leyendo bien: solo deja de
+  // llamar la atención.
+  static const double _opacidadVista = 0.5;
 
   // Tamaño del círculo y espacio hasta el texto, según Figma.
   static const double _circleSize = 37;
@@ -25,45 +45,72 @@ class AlertaTile extends StatelessWidget {
 
     return OutlinedListCard(
       onTap: onTap,
-      padding: const EdgeInsets.fromLTRB(17, 12, 20, 12),
+      padding: EdgeInsets.fromLTRB(17, 12, onToggleVista == null ? 20 : 6, 12),
       child: Row(
         children: [
-          Container(
-            width: _circleSize,
-            height: _circleSize,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: critica ? AppColors.stockDanger : AppColors.stockWarning,
-            ),
-            child: Icon(
-              Icons.priority_high_rounded,
-              size: 22,
-              color: Colors.white,
-              semanticLabel: critica
-                  ? AppStrings.alertaCritica
-                  : AppStrings.alertaAdvertencia,
-            ),
-          ),
-          const SizedBox(width: _iconGap),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  alerta.productoNombre,
-                  style: AppTextStyles.itemName,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  descripcion(alerta),
-                  style: AppTextStyles.listItemSubtitle,
-                ),
-              ],
+            // Se atenúa la alerta, no el botón: el botón tiene que seguir
+            // viéndose igual para poder deshacer la marca.
+            child: Opacity(
+              opacity: vista ? _opacidadVista : 1,
+              child: _contenido(critica),
             ),
           ),
+          if (onToggleVista != null)
+            IconButton(
+              onPressed: onToggleVista,
+              tooltip: vista
+                  ? AppStrings.alertaMarcarNoVista
+                  : AppStrings.alertaMarcarVista,
+              icon: Icon(
+                vista ? Icons.visibility_off_outlined : Icons.check_circle_outline,
+                size: 24,
+                color: AppColors.titleColor,
+              ),
+            ),
         ],
       ),
+    );
+  }
+
+  Widget _contenido(bool critica) {
+    return Row(
+      children: [
+        Container(
+          width: _circleSize,
+          height: _circleSize,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: critica ? AppColors.stockDanger : AppColors.stockWarning,
+          ),
+          child: Icon(
+            Icons.priority_high_rounded,
+            size: 22,
+            color: Colors.white,
+            semanticLabel: critica
+                ? AppStrings.alertaCritica
+                : AppStrings.alertaAdvertencia,
+          ),
+        ),
+        const SizedBox(width: _iconGap),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                alerta.productoNombre,
+                style: AppTextStyles.itemName,
+                overflow: TextOverflow.ellipsis,
+              ),
+              Text(
+                descripcion(alerta),
+                style: AppTextStyles.listItemSubtitle,
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 

@@ -24,9 +24,10 @@ class AppShell extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final role = ref.watch(roleProvider);
-    // Mientras las alertas cargan, o si fallan, la campana va sin número: no
-    // hace falta avisar de nada que todavía no se sabe.
-    final alertas = ref.watch(alertasProvider).value ?? const <Alerta>[];
+    // La campana cuenta solo las alertas que la persona todavía no vio.
+    // Mientras las alertas cargan, o si fallan, va sin número: no hace falta
+    // avisar de nada que todavía no se sabe.
+    final alertas = ref.watch(alertasSinVerProvider);
     // El diseño de Alertas no lleva el botón flotante.
     final mostrarBotonAgregar = location != '/alertas';
 
