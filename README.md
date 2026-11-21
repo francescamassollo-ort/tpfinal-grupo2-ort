@@ -74,7 +74,7 @@ Firebase ya viene configurado en el repositorio (`android/app/google-services.js
 ```
 flutter test
 ```
-Las pruebas están en `test/` y cubren la lógica que no depende de Firebase (por ahora, la lista de compras y las alertas).
+Las pruebas están en `test/` y cubren la lógica que no depende de Firebase (por ahora, la lista de compras, las alertas, el historial y la predicción de stock).
 
 ### Problemas conocidos
 | Síntoma | Causa y solución |
@@ -110,11 +110,11 @@ Todo el código está en `lib/`.
 | Carpeta | Contenido |
 |---|---|
 | `core/` | Tema, colores, textos (`AppStrings`), estilos de texto, rutas (`app_router.dart`) y el `AppShell` con la barra inferior y el menú lateral |
-| `widgets/` | Componentes reutilizables: fondo decorativo, encabezado de pantalla, tarjeta con contorno, botón de acción, fila de Compartir y Descargar, selector de cantidad, tarjeta de insumo, y los botones y campos de las pantallas de acceso |
+| `widgets/` | Componentes reutilizables: fondo decorativo, encabezado de pantalla, tarjeta con contorno, botón de acción, fila de Compartir y Descargar, selector de formato (PDF o Excel), selector de cantidad, tarjeta de insumo, y los botones y campos de las pantallas de acceso |
 | `screens/<área>/` | Pantallas de cada flujo: `auth`, `inventario`, `consumo`, `historial`, `alertas`, `compras`, `tp`, `usuarios`, `perfil` |
 | `providers/` | Estado de la app con Riverpod |
-| `models/` | Modelos de dominio: `Insumo`, `TrabajoPractico`, `ListaCompra` y `Alerta` |
-| `services/` | Acceso a Firestore: `InsumoService` (colección `insumos`), `TpService` (colección `listasTP`) y `ListaCompraService` (colección `listaCompras`). `AlertaService` no usa Firestore: genera las alertas a partir de los insumos |
+| `models/` | Modelos de dominio: `Insumo`, `TrabajoPractico`, `ListaCompra`, `Alerta`, `AlertaVista`, `MovimientoStock` y los de la predicción de stock (`PrediccionStock` y `VentanaPrediccion`) |
+| `services/` | Acceso a Firestore: `InsumoService` (colección `insumos`), `TpService` (colección `listasTP`), `ListaCompraService` (colección `listaCompras`) `HistorialService` (colección `movimientosStock`, solo lectura: los movimientos los escribe quien cambia el stock) y `AlertasVistasService` (colección `alertasVistas`: qué alertas ya vio cada persona). `AlertaService` y `StockPredictionService` no usan Firestore: generan las alertas y las predicciones de stock a partir de los insumos, los movimientos y los trabajos prácticos. `ListaCompraExportador` y `HistorialExportador` arman el PDF y el CSV de la lista de compras y del historial (con lo que comparten en `ExportacionComun`) y `ArchivoService` los comparte o los guarda en el teléfono |
 
 Las pruebas unitarias están en `test/` (fuera de `lib/`).
 
@@ -143,16 +143,16 @@ Las pruebas unitarias están en `test/` (fuera de `lib/`).
 | Inventario | `/inventario` | ✅ Funcional (lee los insumos de Firestore, con buscador, filtros y tarjetas) |
 | Buscar y filtrar | `/inventario/filtro` | ⏳ Placeholder (hoy el filtro es un diálogo dentro de Inventario) |
 | Detalle de insumo | `/insumo/:id` | ✅ Funcional (lee el insumo de Firestore en tiempo real; Editar y Baja avisan "Próximamente"; Historial y Registrar consumo navegan a sus pantallas) |
-| Alta de insumo | `/insumo/alta` | ⏳ Placeholder |
+| Alta de insumo | `/insumo/alta` | ✅ Funcional (formulario de alta que guarda en Firestore; el botón "Buscar duplicados" avisa si ya existe algo parecido, ver "Duplicados al dar de alta") |
 | Escáner | `/scanner` | ⏳ Placeholder |
-| Consumo | `/consumo` | ⏳ Placeholder |
+| Consumo | `/consumo` | ✅ Funcional (registra una salida de stock; con `/consumo?insumo=ID` abre con ese insumo ya elegido) |
 
 ### Historial, alertas y compras
 | Pantalla | Ruta | Estado |
 |---|---|---|
-| Historial de movimientos | `/historial` | 🎭 Demostración (6 movimientos de ejemplo; filtros, Compartir y Descargar todavía sin acción) |
-| Alertas | `/alertas` | ✅ Funcional (alertas calculadas desde los insumos: sin stock, stock bajo, vencido y vencimiento cercano; tocar una alerta abre el detalle del insumo; el filtro y marcar como vista todavía sin acción) |
-| Lista de compras | `/compras` | ✅ Funcional (colección `listaCompras` de Firestore: cantidad editable con mínimo 1 y sugerencias del sistema para los insumos con stock bajo; buscar, papelera, agregar a mano, Compartir y Descargar todavía sin acción) |
+| Historial de movimientos | `/historial` | ✅ Funcional (lee la colección `movimientosStock` de Firestore en tiempo real, los últimos 500, y muestra el nombre del insumo; aparece vacío hasta que Alta y Consumo registren movimientos; panel de filtros por tipo, insumo y fechas; Compartir y Descargar en PDF o CSV, con lo que se ve: si hay filtros puestos solo salen esos movimientos y el archivo lo aclara) |
+| Alertas | `/alertas` | ✅ Funcional (alertas calculadas desde los insumos (sin stock, stock bajo, vencido y vencimiento cercano) y desde la predicción de stock (se agotaría antes de la próxima compra y no alcanza para un trabajo práctico, en naranja); tocar una alerta abre el detalle del insumo; cada alerta se puede marcar como vista, y queda en la lista pero atenuada; el filtro todavía sin acción) |
+| Lista de compras | `/compras` | ✅ Funcional (colección `listaCompras` de Firestore: cantidad editable con mínimo 1; sugerencias del sistema para los insumos con stock bajo; agregar a mano un insumo desde un panel (solo se ofrecen los que no están en la lista); menú en cada ítem para marcarlo como comprado o descartarlo, con Deshacer (la lista muestra solo los pendientes, así que el ítem sale); Compartir y Descargar en PDF o CSV; buscar y papelera todavía sin acción) |
 
 ### Trabajos prácticos
 | Pantalla | Ruta | Estado |
@@ -166,6 +166,143 @@ Las pruebas unitarias están en `test/` (fuera de `lib/`).
 |---|---|---|
 | Usuarios | `/usuarios` | ⏳ Placeholder |
 | Perfil | `/perfil` | ⏳ Placeholder |
+
+## Predicción de stock
+Estima cuándo se agota cada insumo antes de la próxima compra institucional (requerimiento A02). Se ve en la
+pantalla de Alertas: `alertasProvider` suma los avisos de `prediccionStockProvider` a los de los insumos.
+Todavía no se usa en las sugerencias de Lista de compras.
+
+- **Dos avisos por insumo, cada uno con su motivo (en naranja, porque son pronósticos):** "Se agotaría el 03/12, antes de
+  la próxima compra" (por el ritmo de consumo) y "No alcanza para Química 3 (20/11)" (por un trabajo práctico
+  planificado). Si el insumo ya está sin stock no se repite el primero, porque "Sin stock" ya lo dice.
+- **La predicción no frena las alertas:** mientras carga, o si falla la lectura de los movimientos, Alertas muestra
+  igual las de los insumos.
+
+- **Promedio de consumo, no aprendizaje automático.** Se calcula cuántas unidades por día se vienen consumiendo (solo
+  cuentan las salidas) y con eso cuántos días alcanza el stock. Se recalcula con cada movimiento nuevo, así que mejora
+  a medida que hay historial, sin entrenar ningún modelo. Con tan pocos datos un modelo no le ganaría a un promedio.
+- **Cruce con los trabajos prácticos.** Suma lo que piden los TP activos entre hoy y la próxima compra y avisa cuál es el
+  primer TP para el que no alcanza el stock. Es un aviso aparte del ritmo de consumo y no se suman, porque el consumo
+  pasado ya incluye los TP anteriores.
+- **Autoajuste de la ventana.** Elige entre mirar 30 o 60 días de consumo: "predice el pasado" en las últimas semanas con
+  cada ventana, lo compara con lo que realmente se consumió y se queda con la que menos se equivocó. Si hay poca
+  historia usa 30.
+
+Supuestos pendientes de confirmar:
+- La compra institucional es el 1 de julio y el 1 de diciembre (el requerimiento dice solo "julio / diciembre").
+- La cantidad que pide un TP está en la misma unidad que el stock, igual que en `TpService.verificarDisponibilidad`.
+- Mientras Alta y Consumo no registren movimientos, la predicción da una lista vacía y el autoajuste usa 30 días.
+
+## Alertas vistas
+Cada alerta se puede marcar como vista desde la pantalla de Alertas. Queda en la lista, atenuada, y la campana de la
+barra inferior deja de contarla (el color de la campana también mira solo las que no se vieron).
+
+- **Es por persona.** Se guarda en la colección `alertasVistas`, un documento por persona y alerta (id
+  `{usuarioId}_{alertaId}`). Lo que marca una persona no cambia lo que ven las demás.
+- **El login todavía no está conectado**, así que hoy todos comparten el id `sin-sesion` y en la práctica se comparte. Cuando
+  se conecte, el id sale de la sesión de Firebase (`usuarioActualIdProvider`) y pasa a ser por persona sin tocar nada más.
+- **Las alertas se calculan, no se guardan:** lo único que se guarda es la marca. Cuando una alerta deja de existir (por
+  ejemplo, se repone el stock) su marca se borra sola, así que si vuelve a aparecer lo hace como nueva.
+- **La limpieza es conservadora:** solo borra cuando los insumos, los movimientos, los trabajos prácticos y las marcas
+  terminaron de cargar y sin errores. Si no, una alerta que todavía no llegó parecería "inexistente" y se perdería una
+  marca válida.
+- **Si no se pueden leer las marcas, no se esconde ninguna alerta:** todas se ven como nuevas.
+
+Pendiente de acordar: el nombre de la colección `alertasVistas` tiene que coincidir con las reglas de Firestore (#46), y
+no está definido si algunas alertas deberían verlas solo ciertos roles (los requisitos no lo dicen).
+## Duplicados al dar de alta
+
+Antes de guardar un insumo nuevo, el formulario de Alta tiene un botón **"Buscar duplicados"** (requerimiento A10). Usa lo que ya se escribió (nombre, tipo, marca y código de barras) y abre una ventana:
+
+- **Comparación de texto** (siempre, instantánea y sin internet): encuentra insumos con el mismo código de barras o con un nombre muy parecido. Para eso usa `DuplicateDetectionService.buscarSimilares`.
+- **Sinónimos con IA** (solo si hay clave, ver "Servicios externos"): mientras tanto muestra "Buscando sinónimos con IA…" y, cuando termina, suma los insumos que la IA cree que son el mismo producto con otro nombre ("etanol" y "alcohol etílico"), marcados como "Sugerido por la IA". Si la IA falla o no está configurada, la ventana lo dice y deja el resultado de la comparación de texto.
+- Cada coincidencia trae **"Cargarle un consumo"**, que deja el alta y abre Consumo con ese insumo ya elegido (`/consumo?insumo=ID`). El botón **"Es distinto, seguir cargando"** vuelve al formulario sin perder lo escrito.
+
+**Qué se le manda a la IA:** solo los nombres de los insumos (el existente y el que se está cargando), nunca stock, ubicaciones ni códigos de barras. El modelo propone y las reglas deciden: cada sugerencia se valida con las mismas reglas que la comparación de texto.
+
+**Cuota:** cada vez que se toca el botón y hay clave se hace hasta una consulta por cada tipo de insumo (comprado y solución), y más si hay más de 250 de un tipo. No hay límite ni memoria de lo ya consultado.
+
+**Proveedor de IA:** la app habla con la IA a través de la interfaz `ModeloDeLenguaje`. Se usa **Gemini** si hay clave (`GEMINI_API_KEY`); si además hay clave de Groq, Groq queda de **respaldo** y se usa solo cuando Gemini falla (por ejemplo, límite diario agotado). Con una sola clave se usa esa. Para sumar otro proveedor hay que escribir un cliente nuevo que implemente la interfaz y sumarlo en `elegirModeloDeLenguaje` (`sinonimos_provider.dart`). Los textos que ve la persona no nombran al proveedor.
+
+## Servicios externos
+
+La app puede usar servicios de terceros para funciones de IA y datos quimicos. Ninguno es obligatorio para compilar ni ejecutar: si falta la clave, la funcion simplemente no activa.
+
+### Gemini (deteccion de sinonimos, proveedor principal)
+
+Gemini es el modelo de lenguaje que usa la deteccion de sinonimos al dar de alta un insumo (requerimiento A10): se dispara desde el boton "Buscar duplicados" del formulario de Alta.
+
+**Configurar la clave:**
+1. Crear una clave en [Google AI Studio](https://aistudio.google.com/apikey) (plan gratuito, sin tarjeta).
+2. Copiar `env.example.json` a `env.json` (si todavia no existe) y completar `GEMINI_API_KEY`.
+3. `env.json` esta en `.gitignore` y **nunca** debe subirse al repositorio.
+
+**Ejecutar con la clave:**
+```
+flutter run --dart-define-from-file=env.json -d <id-del-emulador>
+```
+
+**Cambiar el modelo** (opcional): setear `GEMINI_MODEL` en `env.json`. El valor por defecto es `gemini-3.5-flash-lite`. Los nombres disponibles para una clave se ven en Google AI Studio, o listandolos con la API (`GET /v1beta/models`). Si el limite diario no alcanza, probar con otro "flash-lite".
+
+**Limites del plan gratuito:** los define Google por proyecto y por modelo, y cambian con el tiempo. Ver la tabla real de la clave en Google AI Studio (icono de uso y limites). Si se agota, la app usa Groq de respaldo, si hay clave.
+
+**Privacidad:** en el plan gratuito Google puede usar lo que se le envia para mejorar sus productos. La app solo envia nombres de insumos.
+
+**Aviso de seguridad:** igual que con Groq, la clave queda embebida en el binario compilado. Para la demo alcanza.
+
+### Groq (deteccion de sinonimos, respaldo)
+
+Groq es el modelo de lenguaje de respaldo: se usa si no hay clave de Gemini, o cuando Gemini falla y hay clave de Groq. Esta detras de la interfaz `ModeloDeLenguaje`, asi que se puede cambiar por otro proveedor sin tocar las pantallas.
+
+**Configurar la clave:**
+1. Copiar `env.example.json` a `env.json` en la raiz del proyecto.
+2. Completar `GROQ_API_KEY` con la clave de la consola de Groq.
+3. `env.json` esta en `.gitignore` y **nunca** debe subirse al repositorio.
+
+**Ejecutar con la clave:**
+```
+flutter run --dart-define-from-file=env.json -d <id-del-emulador>
+```
+
+**Cambiar el modelo** (opcional): setear `GROQ_MODEL` en `env.json`. El valor por defecto es `openai/gpt-oss-20b`.
+
+**Limites del plan gratuito** (verificar en la consola de Groq; el limite es por organizacion, no por usuario):
+
+| Recurso | Limite aproximado |
+|---|---|
+| Pedidos | 30/min, 1.000/dia |
+| Tokens | 8.000/min, 200.000/dia |
+
+**Aviso de seguridad:** la clave queda embebida en el binario compilado. Para la demo alcanza. Una version publicada en la Play Store necesitaria un servidor intermedio para no exponer la clave.
+
+**Sin clave:** la app no falla; la deteccion de duplicados usa solo comparacion de texto.
+
+### PubChem (autocompletar formula y peso molecular)
+
+PubChem es una base de datos publica de compuestos quimicos. La app la usa para completar automaticamente la formula quimica y el peso molecular al dar de alta un insumo.
+
+- No necesita clave ni configuracion extra.
+- Se busca por nombre del compuesto o numero CAS. Ejemplo probado: `64-17-5` devuelve Ethanol.
+- Los nombres de los compuestos vienen en ingles.
+- **No permite buscar por codigo de barras directamente.**
+
+### Codigo de barras (pendiente de implementacion)
+
+La integracion de codigo de barras no esta implementada todavia. El flujo previsto cuando se desarrolle:
+
+1. Base propia (si el insumo ya figura en el inventario local).
+2. **UPCitemdb:** endpoint de prueba `https://api.upcitemdb.com/prod/trial/lookup?upc=...` sin clave, 100 consultas por dia. Para uso real puede requerir cuenta de pago (no verificado).
+3. **PubChem** (por nombre o numero CAS si UPCitemdb devuelve un nombre quimico).
+4. Carga manual si no se encuentra en ninguna fuente.
+
+### Seguridad
+
+- Las reglas de Firestore estan abiertas hoy (issue #46). Mientras no esten cerradas, no guardar claves ni tokens en Firestore.
+- Antes de cada `git push`, verificar que no queden claves en el repositorio:
+
+  ```
+  git grep gsk_
+  ```
 
 ## Flujo de trabajo
 - Ramas: `main` (entregable), `dev` (integración) y `feat/<nombre>` por cada funcionalidad.

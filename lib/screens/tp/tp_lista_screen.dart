@@ -67,7 +67,7 @@ class _TpListaScreenState extends ConsumerState<TpListaScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text(AppStrings.cancelar),
+            child: const Text(AppStrings.cancelarTp),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
