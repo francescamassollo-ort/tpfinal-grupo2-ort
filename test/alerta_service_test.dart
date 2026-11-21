@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tpfinal_grupo2/models/alerta.dart';
 import 'package:tpfinal_grupo2/models/insumo.dart';
+import 'package:tpfinal_grupo2/models/prediccion_stock.dart';
 import 'package:tpfinal_grupo2/services/alerta_service.dart';
 
 Insumo _insumo(
@@ -130,6 +131,153 @@ void main() {
 
     test('sin insumos no hay alertas', () {
       expect(AlertaService.generar(const []), isEmpty);
+    });
+  });
+
+  group('predicción de stock', () {
+    final agotamiento = DateTime(2026, 12, 3);
+    final fechaTp = DateTime(2026, 11, 25);
+
+    PrediccionStock prediccion(
+      String id, {
+      String? nombre,
+      int stock = 10,
+      bool seAgota = false,
+      TpSinCobertura? tp,
+    }) {
+      return PrediccionStock(
+        productoId: id,
+        productoNombre: nombre ?? 'Insumo $id',
+        stock: stock,
+        consumoDiario: 1,
+        diasRestantes: stock,
+        fechaAgotamiento: agotamiento,
+        seAgotaAntesDeLaCompra: seAgota,
+        primerTpSinCobertura: tp,
+      );
+    }
+
+    test('sin predicciones todo sigue igual', () {
+      expect(AlertaService.generar(const [], predicciones: const []), isEmpty);
+    });
+
+    test('una predicción sin riesgo no genera alertas', () {
+      final alertas = AlertaService.generar(
+        const [],
+        predicciones: [prediccion('a')],
+      );
+
+      expect(alertas, isEmpty);
+    });
+
+    test('se agota antes de la compra: alerta con el día en que se agota', () {
+      final alertas = AlertaService.generar(
+        const [],
+        predicciones: [prediccion('a', seAgota: true)],
+      );
+
+      expect(alertas, hasLength(1));
+      expect(alertas.single.tipo, TipoAlerta.agotamientoProximo);
+      expect(alertas.single.fecha, agotamiento);
+      expect(alertas.single.productoId, 'a');
+    });
+
+    test('no alcanza para un TP: alerta con el nombre y la fecha del TP', () {
+      final alertas = AlertaService.generar(
+        const [],
+        predicciones: [
+          prediccion(
+            'a',
+            tp: TpSinCobertura(nombre: 'Química 3', fecha: fechaTp),
+          ),
+        ],
+      );
+
+      expect(alertas, hasLength(1));
+      expect(alertas.single.tipo, TipoAlerta.tpSinCobertura);
+      expect(alertas.single.trabajoPractico, 'Química 3');
+      expect(alertas.single.fecha, fechaTp);
+    });
+
+    test('un insumo con los dos motivos genera dos alertas', () {
+      final alertas = AlertaService.generar(
+        const [],
+        predicciones: [
+          prediccion(
+            'a',
+            seAgota: true,
+            tp: TpSinCobertura(nombre: 'Química 3', fecha: fechaTp),
+          ),
+        ],
+      );
+
+      expect(_tipos(alertas), [
+        TipoAlerta.agotamientoProximo,
+        TipoAlerta.tpSinCobertura,
+      ]);
+      expect(alertas.map((a) => a.id).toSet(), hasLength(2));
+    });
+
+    test('sin stock no repite "se agotaría": ya dice "sin stock"', () {
+      final alertas = AlertaService.generar(
+        [_insumo('a', stock: 0)],
+        predicciones: [prediccion('a', stock: 0, seAgota: true)],
+      );
+
+      expect(_tipos(alertas), [TipoAlerta.sinStock]);
+    });
+
+    test('sin stock el aviso del TP se mantiene', () {
+      final alertas = AlertaService.generar(
+        [_insumo('a', stock: 0)],
+        predicciones: [
+          prediccion(
+            'a',
+            stock: 0,
+            seAgota: true,
+            tp: TpSinCobertura(nombre: 'Química 3', fecha: fechaTp),
+          ),
+        ],
+      );
+
+      expect(_tipos(alertas), [
+        TipoAlerta.sinStock,
+        TipoAlerta.tpSinCobertura,
+      ]);
+    });
+
+    test('con stock bajo se avisa también que se agota', () {
+      final alertas = AlertaService.generar(
+        [_insumo('a', stock: 3, umbral: 5)],
+        predicciones: [prediccion('a', stock: 3, seAgota: true)],
+      );
+
+      expect(_tipos(alertas), [
+        TipoAlerta.stockBajo,
+        TipoAlerta.agotamientoProximo,
+      ]);
+    });
+
+    test('las de predicción van después de las críticas, por nombre', () {
+      final alertas = AlertaService.generar(
+        [
+          _insumo('v', nombre: 'Vencido', vencimiento: hoy.subtract(const Duration(days: 1))),
+          _insumo('s', nombre: 'Sin stock', stock: 0),
+        ],
+        predicciones: [
+          prediccion('z', nombre: 'Zinc', seAgota: true),
+          prediccion('b', nombre: 'Benceno', seAgota: true),
+        ],
+      );
+
+      expect(alertas.map((a) => a.productoNombre).toList(), [
+        'Sin stock',
+        'Vencido',
+        'Benceno',
+        'Zinc',
+      ]);
+      expect(alertas.first.severidad, SeveridadAlerta.critica);
+      expect(alertas.last.severidad, SeveridadAlerta.advertencia);
     });
   });
 
