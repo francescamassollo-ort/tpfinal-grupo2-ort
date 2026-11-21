@@ -1,19 +1,42 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/gemini_config.dart';
 import '../core/groq_config.dart';
 import '../models/hallazgo.dart';
 import '../services/duplicate_detection_service.dart';
+import '../services/gemini_client.dart';
 import '../services/groq_client.dart';
+import '../services/modelo_con_respaldo.dart';
 import '../services/modelo_de_lenguaje.dart';
 import '../services/synonym_detection_service.dart';
 import 'hallazgos_provider.dart';
 import 'insumo_providers.dart';
 
-// El modelo de lenguaje a usar. Es null si no hay una clave cargada:
-// en ese caso la app sigue andando con la comparación de texto. En las pruebas
-// se reemplaza por uno falso.
+/// Elige con qué modelo de lenguaje hablar según las claves que haya:
+///
+/// - Con la de Gemini: usa Gemini. Si además hay una de Groq, queda de
+///   respaldo y se usa solo cuando Gemini falla (por ejemplo, límite diario).
+/// - Solo con la de Groq: usa Groq.
+/// - Sin ninguna: null, y la app sigue con la comparación de texto.
+ModeloDeLenguaje? elegirModeloDeLenguaje({
+  required bool hayClaveDeGemini,
+  required bool hayClaveDeGroq,
+}) {
+  if (hayClaveDeGemini) {
+    return hayClaveDeGroq
+        ? ModeloConRespaldo(principal: GeminiClient(), respaldo: GroqClient())
+        : GeminiClient();
+  }
+  return hayClaveDeGroq ? GroqClient() : null;
+}
+
+// El modelo de lenguaje a usar. Es null si no hay ninguna clave cargada. En las
+// pruebas se reemplaza por uno falso.
 final modeloDeLenguajeProvider = Provider<ModeloDeLenguaje?>(
-  (ref) => GroqConfig.disponible ? GroqClient() : null,
+  (ref) => elegirModeloDeLenguaje(
+    hayClaveDeGemini: GeminiConfig.disponible,
+    hayClaveDeGroq: GroqConfig.disponible,
+  ),
 );
 
 /// Sinónimos que sugiere el modelo de lenguaje. NO se calculan solos: cada

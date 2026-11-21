@@ -205,15 +205,37 @@ Antes de guardar un insumo nuevo, el formulario de Alta tiene un botón **"Busca
 
 **Cuota:** cada vez que se toca el botón y hay clave se hace hasta una consulta por cada tipo de insumo (comprado y solución), y más si hay más de 250 de un tipo. No hay límite ni memoria de lo ya consultado.
 
-**Cambiar de proveedor de IA:** la app habla con la IA a través de la interfaz `ModeloDeLenguaje`. Para usar otro proveedor (por ejemplo Gemini) hay que escribir un cliente nuevo que la implemente y cambiar `modeloDeLenguajeProvider` en `sinonimos_provider.dart`. Los textos que ve la persona no nombran al proveedor.
+**Proveedor de IA:** la app habla con la IA a través de la interfaz `ModeloDeLenguaje`. Se usa **Gemini** si hay clave (`GEMINI_API_KEY`); si además hay clave de Groq, Groq queda de **respaldo** y se usa solo cuando Gemini falla (por ejemplo, límite diario agotado). Con una sola clave se usa esa. Para sumar otro proveedor hay que escribir un cliente nuevo que implemente la interfaz y sumarlo en `elegirModeloDeLenguaje` (`sinonimos_provider.dart`). Los textos que ve la persona no nombran al proveedor.
 
 ## Servicios externos
 
 La app puede usar servicios de terceros para funciones de IA y datos quimicos. Ninguno es obligatorio para compilar ni ejecutar: si falta la clave, la funcion simplemente no activa.
 
-### Groq (deteccion de sinonimos)
+### Gemini (deteccion de sinonimos, proveedor principal)
 
-Groq es el modelo de lenguaje que usa hoy la deteccion de sinonimos al dar de alta un insumo (requerimiento A10): se dispara desde el boton "Buscar duplicados" del formulario de Alta. Esta detras de la interfaz `ModeloDeLenguaje`, asi que se puede cambiar por otro proveedor sin tocar las pantallas.
+Gemini es el modelo de lenguaje que usa la deteccion de sinonimos al dar de alta un insumo (requerimiento A10): se dispara desde el boton "Buscar duplicados" del formulario de Alta.
+
+**Configurar la clave:**
+1. Crear una clave en [Google AI Studio](https://aistudio.google.com/apikey) (plan gratuito, sin tarjeta).
+2. Copiar `env.example.json` a `env.json` (si todavia no existe) y completar `GEMINI_API_KEY`.
+3. `env.json` esta en `.gitignore` y **nunca** debe subirse al repositorio.
+
+**Ejecutar con la clave:**
+```
+flutter run --dart-define-from-file=env.json -d <id-del-emulador>
+```
+
+**Cambiar el modelo** (opcional): setear `GEMINI_MODEL` en `env.json`. El valor por defecto es `gemini-3.5-flash-lite`. Los nombres disponibles para una clave se ven en Google AI Studio, o listandolos con la API (`GET /v1beta/models`). Si el limite diario no alcanza, probar con otro "flash-lite".
+
+**Limites del plan gratuito:** los define Google por proyecto y por modelo, y cambian con el tiempo. Ver la tabla real de la clave en Google AI Studio (icono de uso y limites). Si se agota, la app usa Groq de respaldo, si hay clave.
+
+**Privacidad:** en el plan gratuito Google puede usar lo que se le envia para mejorar sus productos. La app solo envia nombres de insumos.
+
+**Aviso de seguridad:** igual que con Groq, la clave queda embebida en el binario compilado. Para la demo alcanza.
+
+### Groq (deteccion de sinonimos, respaldo)
+
+Groq es el modelo de lenguaje de respaldo: se usa si no hay clave de Gemini, o cuando Gemini falla y hay clave de Groq. Esta detras de la interfaz `ModeloDeLenguaje`, asi que se puede cambiar por otro proveedor sin tocar las pantallas.
 
 **Configurar la clave:**
 1. Copiar `env.example.json` a `env.json` en la raiz del proyecto.
