@@ -31,6 +31,27 @@ class AppStrings {
   static const String comprasSinSugerencias = 'No hay sugerencias nuevas';
   static const String comprasErrorSugerencias =
       'No se pudieron agregar las sugerencias';
+  static const String comprasCambiarEstado = 'Cambiar estado';
+  static const String comprasMarcarComprado = 'Marcar como comprado';
+  static const String comprasDescartar = 'Descartar';
+  static const String comprasDeshacer = 'Deshacer';
+  static const String comprasErrorEstado = 'No se pudo cambiar el estado';
+  static const String cancelar = 'Cancelar';
+  static const String comprasAgregarTitulo = 'Agregar a la lista';
+  static const String comprasCampoInsumo = 'Insumo';
+  static const String comprasCampoCantidad = 'Cantidad a comprar';
+  static const String comprasTodosEnLista =
+      'Todos los insumos ya están en la lista';
+  static const String comprasErrorAgregar = 'No se pudo agregar a la lista';
+  static String comprasStockActual(int stock) => 'Stock actual: $stock u.';
+  static String comprasAgregado(String nombre) =>
+      '$nombre agregado a la lista';
+
+  // Aviso al sacar un ítem de la lista: sale porque la pantalla muestra solo
+  // los pendientes, por eso trae el botón Deshacer.
+  static String comprasMarcadoComprado(String nombre) =>
+      '$nombre: marcado como comprado';
+  static String comprasDescartado(String nombre) => '$nombre: descartado';
 
   static String comprasSugerenciasAgregadas(int cantidad) => cantidad == 1
       ? 'Se agregó 1 sugerencia'
@@ -42,6 +63,8 @@ class AppStrings {
   static const String historialTitulo = 'Historial de movimientos';
   static const String historialVacio = 'Todavía no hay movimientos registrados';
   static const String historialError = 'No se pudo cargar el historial';
+  static const String historialExportarVacio =
+      'No hay movimientos para exportar';
   static const String historialSinCoincidencias =
       'Ningún movimiento coincide con los filtros';
   static const String historialLimpiarFiltros = 'Limpiar filtros';
@@ -63,12 +86,49 @@ class AppStrings {
   static const String movimientoSalida = 'Salida de stock';
 
   static const String alertasTitulo = 'Alertas';
+  static String alertasConCantidad(int cantidad) => 'Alertas ($cantidad)';
+
+  // Aviso de duplicados al dar de alta un insumo.
+  static const String duplicadosBuscar = 'Buscar duplicados';
+  static const String duplicadosEscribirNombre = 'Escribí un nombre primero';
+  static const String duplicadosNinguno = 'No se encontraron duplicados';
+  static const String duplicadosEncontrados = 'Ya hay insumos parecidos';
+  static const String duplicadosMismoCodigo = 'Mismo código de barras';
+  static const String duplicadosNombreParecido = 'Nombre muy parecido';
+  static const String duplicadosCargarConsumo = 'Cargarle un consumo';
+  static const String duplicadosSeguir = 'Es distinto, seguir cargando';
+  static const String duplicadosCerrar = 'Cerrar';
+  static const String duplicadosUnidades = 'unidades';
+  static const String duplicadosError = 'No se pudo buscar duplicados';
+  static const String duplicadosBuscandoIa = 'Buscando sinónimos con IA…';
+  static const String duplicadosSugeridoIa = 'Sugerido por la IA';
+  static const String duplicadosIaFallo =
+      'No se pudo consultar la IA: se muestra solo la comparación de texto';
+  static const String duplicadosIaNoDisponible =
+      'La búsqueda con IA no está configurada';
+  static const String duplicadosCargando =
+      'Los insumos todavía se están cargando, probá de nuevo en un momento';
+  static String duplicadosStockActual(int stock, String unidad) =>
+      'Stock actual: $stock $unidad';
   static const String alertasVacia = 'No hay alertas por ahora';
   static const String alertasError = 'No se pudieron cargar las alertas';
   static const String alertaSinStock = 'Sin stock';
   static const String alertaStockBajo = 'Stock bajo';
   static const String alertaVencimientoCercano = 'Vencimiento cercano';
   static const String alertaVencido = 'Vencido';
+  // Alertas de predicción de stock. La versión sin fecha o sin nombre es por si
+  // falta el dato, para no mostrar un texto cortado.
+  static const String alertaAgotamientoProximo =
+      'Se agotaría antes de la próxima compra';
+  static String alertaAgotamientoConFecha(String fecha) =>
+      'Se agotaría el $fecha, antes de la próxima compra';
+  static const String alertaTpSinCobertura =
+      'No alcanza para un trabajo práctico';
+  static String alertaTpSinCoberturaConNombre(String tp, String fecha) =>
+      'No alcanza para $tp ($fecha)';
   static const String alertaCritica = 'Alerta crítica';
   static const String alertaAdvertencia = 'Advertencia';
+  static const String alertaMarcarVista = 'Marcar como vista';
+  static const String alertaMarcarNoVista = 'Marcar como no vista';
+  static const String alertasErrorMarcar = 'No se pudo actualizar la alerta';
 }
