@@ -52,7 +52,7 @@ class LoginScreen extends StatelessWidget {
                     child: ElevatedButton(
                       style: getButtonStyleOne(),
                       onPressed: (){
-                       loginCheck(context, email: email.text, password: password.text);
+                        loginCheck(context, email: email.text, password: password.text);
                       }, 
                       child: Text(
                         'Ingresar',
