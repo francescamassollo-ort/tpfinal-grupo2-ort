@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 class TpDetalleScreen extends StatelessWidget {
-  const TpDetalleScreen({super.key});
+  final String tpId;
+  const TpDetalleScreen({required this.tpId,super.key});
 
   @override
   Widget build(BuildContext context) {

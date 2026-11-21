@@ -40,4 +40,27 @@ class AppStrings {
   static const String alertaVencido = 'Vencido';
   static const String alertaCritica = 'Alerta crítica';
   static const String alertaAdvertencia = 'Advertencia';
+
+  //Lista Trabajos Practicos
+  static const String tpTitulo = 'Lista para trabajos prácticos';
+  static const String tpBuscarHint = 'Buscar trabajo práctico';
+  static const String tpEditar = 'Editar trabajo práctico';
+  static const String tpVacia = 'Todavía no hay trabajos prácticos cargados';
+  static const String tpSinResultados = 'No se encontraron trabajos prácticos';
+  static const String tpError = 'No se pudieron cargar los trabajos prácticos';
+  static const String tpInsumosCompletos = 'Insumos completos';
+  static const String tpErrorDisponibilidad = 'No se pudo verificar el stock';
+  static String tpInsumosFaltantes(int cantidad) =>
+      cantidad == 1 ? 'Falta 1 insumo' : 'Faltan $cantidad insumos';
+  static const String cancelar = 'Cancelar';
+  static const String tpEliminar = 'Eliminar';
+  static const String tpEliminarTitulo = '¿Eliminar trabajos prácticos?';
+  static const String tpErrorEliminar =
+      'No se pudieron eliminar los trabajos prácticos';
+  static String tpDocente(String nombre) => 'Docente: $nombre';
+  static String tpSeleccionados(int cantidad) =>
+      cantidad == 1 ? '1 seleccionado' : '$cantidad seleccionados';
+  static String tpEliminarMensaje(int cantidad) => cantidad == 1
+      ? 'Se va a eliminar 1 trabajo práctico de la lista.'
+      : 'Se van a eliminar $cantidad trabajos prácticos de la lista.';
 }
