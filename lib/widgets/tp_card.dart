@@ -4,9 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/app_colors.dart';
 import '../core/app_strings.dart';
 import '../core/app_text_styles.dart';
+import '../core/formatters.dart';
 import '../models/trabajo_practico.dart';
 import '../providers/trabajopractico_provider.dart';
-import '../services/trabajopractico_service.dart';
+import 'indicador_disponibilidad_tp.dart';
 
 // Tarjeta de un TP en la lista. ConsumerWidget porque cada tarjeta observa
 // SU propia disponibilidad: si cambia el stock, solo se redibujan las
@@ -71,10 +72,10 @@ class TpCard extends ConsumerWidget {
                       crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         Text(
-                          _formatearFecha(tp.fecha),
+                          formatearFecha(tp.fecha),
                           style: AppTextStyles.itemDetail,
                         ),
-                        _IndicadorDisponibilidad(
+                        IndicadorDisponibilidadTp(
                           disponibilidad: disponibilidad,
                         ),
                       ],
@@ -97,48 +98,4 @@ class TpCard extends ConsumerWidget {
       ),
     );
   }
-}
-
-// Verde si el stock alcanza para todo el TP, rojo si falta algún insumo.
-// El color siempre va acompañado de texto (no depende solo del color).
-class _IndicadorDisponibilidad extends StatelessWidget {
-  const _IndicadorDisponibilidad({required this.disponibilidad});
-
-  final AsyncValue<DisponibilidadTP> disponibilidad;
-
-  @override
-  Widget build(BuildContext context) {
-    return disponibilidad.when(
-      data: (d) {
-        final color = d.completo ? AppColors.stockOk : AppColors.stockDanger;
-        final texto = d.completo
-            ? AppStrings.tpInsumosCompletos
-            : AppStrings.tpInsumosFaltantes(d.faltantes.length);
-        return Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.circle, size: 10, color: color),
-            const SizedBox(width: 6),
-            Text(texto, style: AppTextStyles.itemDetail.copyWith(color: color)),
-          ],
-        );
-      },
-      loading: () => const SizedBox(
-        width: 14,
-        height: 14,
-        child: CircularProgressIndicator(strokeWidth: 2),
-      ),
-      error: (error, stack) => Text(
-        AppStrings.tpErrorDisponibilidad,
-        style: AppTextStyles.itemDetail,
-      ),
-    );
-  }
-}
-
-// dd/MM/yyyy sin sumar la dependencia intl solo para esto.
-String _formatearFecha(DateTime fecha) {
-  final dia = fecha.day.toString().padLeft(2, '0');
-  final mes = fecha.month.toString().padLeft(2, '0');
-  return '$dia/$mes/${fecha.year}';
 }

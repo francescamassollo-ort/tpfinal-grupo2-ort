@@ -140,7 +140,7 @@ class AppStrings {
   static const String tpErrorDisponibilidad = 'No se pudo verificar el stock';
   static String tpInsumosFaltantes(int cantidad) =>
       cantidad == 1 ? 'Falta 1 insumo' : 'Faltan $cantidad insumos';
-  static const String cancelarTp = 'Cancelar';
+  static const String tpCancelar = 'Cancelar';
   static const String tpEliminar = 'Eliminar';
   static const String tpEliminarTitulo = '¿Eliminar trabajos prácticos?';
   static const String tpErrorEliminar =
@@ -154,4 +154,16 @@ class AppStrings {
   static const String alertaMarcarVista = 'Marcar como vista';
   static const String alertaMarcarNoVista = 'Marcar como no vista';
   static const String alertasErrorMarcar = 'No se pudo actualizar la alerta';
+  //Detalle Trabajos Practicos
+    static const String tpNoEncontrado = 'No se encontró el trabajo práctico';
+  static const String tpErrorDetalle = 'No se pudo cargar el trabajo práctico';
+  static const String tpSinInsumos =
+      'Este trabajo práctico no tiene insumos cargados';
+  static const String tpInsumoNoEncontrado = 'Insumo no encontrado';
+  static const String tpColumnaNombre = 'Nombre';
+  static const String tpColumnaUbicacion = 'Ubicación';
+  static const String tpEliminarUnoTitulo = '¿Eliminar trabajo práctico?';
+  static String tpDocenteACargo(String nombre) => 'Docente a cargo: $nombre';
+  static String tpRequeridoStock(String requerido, int stock) =>
+      'Necesita $requerido · Stock $stock';
 }

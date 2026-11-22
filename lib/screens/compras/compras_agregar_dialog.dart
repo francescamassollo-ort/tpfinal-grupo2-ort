@@ -99,7 +99,7 @@ class _ComprasAgregarDialogState extends State<ComprasAgregarDialog> {
                 Expanded(
                   child: TextButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    child: const Text(AppStrings.cancelarTp),
+                    child: const Text(AppStrings.tpCancelar),
                   ),
                 ),
                 const SizedBox(width: 12),
