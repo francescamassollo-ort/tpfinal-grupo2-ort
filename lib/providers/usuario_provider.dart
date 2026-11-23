@@ -1,20 +1,24 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../services/usuario_actual_service.dart';
+import 'role_provider.dart';
 
 // Id de la persona que está usando la app, para guardar cosas que son de cada
 // una (por ejemplo, qué alertas ya vio).
 //
-// Sale de la sesión de Firebase: es el uid de la cuenta con la que se ingresó.
-// Si por algún motivo no hay sesión, se usa el id fijo [usuarioSinSesion].
+// Es el uid de la cuenta con la que se ingresó, y **cambia cuando entra o sale
+// alguien**: sale de [sesionProvider], que escucha a Firebase. Antes se leía una
+// sola vez y, si una persona cerraba sesión y entraba otra sin cerrar la app,
+// seguía valiendo el id de la primera (las alertas vistas y las protecciones de
+// la gestión de usuarios quedaban a su nombre). Sin sesión, o mientras se
+// averigua, vale el id fijo [usuarioSinSesion].
 //
 // En las pruebas se reemplaza por un id fijo: FirebaseAuth necesita que
 // Firebase esté inicializado.
 const usuarioSinSesion = 'sin-sesion';
 
 final usuarioActualIdProvider = Provider<String>(
-  (ref) => FirebaseAuth.instance.currentUser?.uid ?? usuarioSinSesion,
+  (ref) => ref.watch(sesionProvider).value?.uid ?? usuarioSinSesion,
 );
 
 // Quien averigua con qué nombre dejar constancia de lo que hace la persona (por
