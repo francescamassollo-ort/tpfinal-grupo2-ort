@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/app_strings.dart';
+import '../../models/datos_escaneados.dart';
 import '../../models/insumo.dart';
 import '../../providers/insumo_providers.dart';
 import '../../providers/sinonimos_provider.dart';
@@ -10,6 +11,7 @@ import '../../services/duplicate_detection_service.dart';
 import '../../services/stock_service.dart';
 import '../../services/synonym_detection_service.dart';
 import 'duplicados_dialog.dart';
+import 'sugerencias_nombre.dart';
 
 class InsumoAltaScreen extends ConsumerStatefulWidget {
   const InsumoAltaScreen({super.key});
@@ -33,6 +35,7 @@ class _InsumoAltaScreenState extends ConsumerState<InsumoAltaScreen> {
 
   final _marcaController = TextEditingController();
   final _proveedorController = TextEditingController();
+  final _formulaController = TextEditingController();
   final _pesoMolecularController = TextEditingController();
 
   final _concentracionController = TextEditingController();
@@ -106,6 +109,13 @@ class _InsumoAltaScreenState extends ConsumerState<InsumoAltaScreen> {
     }
     return null;
   },
+),
+
+// Mientras se escribe, avisa si ya existe un insumo con un nombre parecido.
+// Tocar uno abre su detalle; el Alta queda abierta atrás.
+SugerenciasNombre(
+  controller: _nombreController,
+  onElegir: (insumo) => context.push('/insumo/${insumo.id}'),
 ),
 
 const SizedBox(height: 12),
@@ -183,6 +193,15 @@ TextFormField(
   ),
 ),
 
+const SizedBox(height: 8),
+
+// Abre la cámara y completa el formulario con lo que se lea del código.
+OutlinedButton.icon(
+  onPressed: _escanear,
+  icon: const Icon(Icons.qr_code_scanner),
+  label: const Text(AppStrings.altaEscanear),
+),
+
 const SizedBox(height: 16),
 
 if (_tipo == InsumoTipo.comprado) ...[
@@ -199,6 +218,15 @@ if (_tipo == InsumoTipo.comprado) ...[
     controller: _proveedorController,
     decoration: const InputDecoration(
       labelText: 'Proveedor',
+    ),
+  ),
+
+  const SizedBox(height: 12),
+
+  TextFormField(
+    controller: _formulaController,
+    decoration: const InputDecoration(
+      labelText: 'Fórmula',
     ),
   ),
 
@@ -299,6 +327,38 @@ ElevatedButton(
         ),
       ),
     );
+  }
+
+  // Abre el escáner y completa el formulario con lo que devuelva. Solo llena los
+  // campos que están vacíos: un escaneo nunca pisa lo que la persona ya
+  // escribió. La marca, la fórmula y el peso molecular son de los insumos
+  // comprados, así que en una solución no se completan.
+  Future<void> _escanear() async {
+    final datos = await context.push<DatosEscaneados>('/scanner');
+    if (datos == null || !mounted) return;
+
+    void completar(TextEditingController campo, String? valor) {
+      if (valor != null && campo.text.trim().isEmpty) campo.text = valor;
+    }
+
+    setState(() {
+      // El código sí se reemplaza: es justo lo que se acaba de leer.
+      _codigoBarrasController.text = datos.codigo;
+      completar(_nombreController, datos.nombre);
+      if (_tipo == InsumoTipo.comprado) {
+        completar(_marcaController, datos.marca);
+        completar(_formulaController, datos.formula);
+        completar(_pesoMolecularController, datos.pesoMolecular?.toString());
+      }
+    });
+
+    // Si el escáner no encontró nada y solo trajo el código, no hay datos que
+    // avisar.
+    if (datos.nombre != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text(AppStrings.altaDatosCompletados)),
+      );
+    }
   }
 
   // Busca insumos parecidos al que se está cargando y muestra el resultado en
@@ -448,6 +508,11 @@ ElevatedButton(
 
       proveedor: _tipo == InsumoTipo.comprado
           ? _proveedorController.text
+          : null,
+
+      formula: _tipo == InsumoTipo.comprado &&
+              _formulaController.text.trim().isNotEmpty
+          ? _formulaController.text.trim()
           : null,
 
       pesoMolecular: _tipo == InsumoTipo.comprado &&

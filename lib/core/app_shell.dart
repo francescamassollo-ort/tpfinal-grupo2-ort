@@ -125,6 +125,11 @@ String? _rutaBotonAgregar(String location, UserRole role) {
   // Detalle y edición de TP: sin botón.
   if (location.startsWith('/tp/')) return null;
 
+  // Alta y detalle de un insumo: sin botón. En el Alta llevaría a la misma
+  // pantalla en la que ya se está, y en las dos tapa los botones de abajo
+  // ("Guardar" y "Registrar consumo").
+  if (location.startsWith('/insumo/')) return null;
+
   // Resto de las pantallas: alta de insumo, como antes.
   return '/insumo/alta';
 }

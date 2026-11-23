@@ -358,7 +358,12 @@ void main() {
 
       await _tocarBuscar(tester);
 
-      expect(find.text('Etanol'), findsOneWidget);
+      // Dentro de la ventana, no en el formulario: debajo del campo Nombre hay
+      // ahora una sugerencia con el mismo insumo.
+      expect(
+        find.descendant(of: find.byType(Dialog), matching: find.text('Etanol')),
+        findsOneWidget,
+      );
       expect(find.text('Nombre muy parecido'), findsOneWidget);
       expect(find.text('Sugerido por la IA'), findsNothing);
     });

@@ -14,6 +14,8 @@
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
+	<key>NSCameraUsageDescription</key>
+	<string>La cámara se usa para escanear el código de barras de los insumos.</string>
 	<key>CFBundleName</key>
 	<string>tpfinal_grupo2</string>
 	<key>CFBundlePackageType</key>

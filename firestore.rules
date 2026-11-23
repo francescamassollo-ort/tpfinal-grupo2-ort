@@ -1,0 +1,34 @@
+rules_version = '2';
+
+// Reglas de seguridad de Firestore del proyecto "proyecto-final-ort-d54c1".
+//
+// OJO: guardar este archivo en el repositorio NO las aplica. Hay que
+// publicarlas a mano en la consola de Firebase (Firestore Database > Reglas) o
+// con la herramienta de Firebase:
+//
+//   firebase deploy --only firestore:rules --project proyecto-final-ort-d54c1
+//
+// Si se cambian en la consola, copiar el cambio acá para que no se pierda.
+//
+// Colecciones que usa la app: insumos, movimientosStock, listaCompras,
+// listasTP, usuarios y alertasVistas (ver el README).
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      // HOY: abierto a cualquiera hasta el 31/01/2027. Es el "modo de prueba" de
+      // Firebase, renovado el 23/11/2026 cuando venció el anterior (el original,
+      // del 21/10/2026, duraba 30 días). Cuando la fecha pasa, la app deja de leer
+      // y escribir en todas las pantallas a la vez ("permission-denied"): hay
+      // que renovarla antes.
+      allow read, write: if request.time < timestamp.date(2027, 1, 31);
+
+      // PRÓXIMO PASO (cuando el login esté conectado): pedir una sesión iniciada.
+      //
+      //   allow read, write: if request.auth != null;
+      //
+      // Después, reglas por rol (administrador, ayudante, docente) leyendo el
+      // rol de usuarios/{uid}. Para eso el registro tiene que crear ese
+      // documento. Issue #46.
+    }
+  }
+}
