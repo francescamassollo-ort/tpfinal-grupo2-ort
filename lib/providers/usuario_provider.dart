@@ -1,8 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../models/usuario_actual.dart';
-
+import '../services/usuario_actual_service.dart';
 
 // Id de la persona que está usando la app, para guardar cosas que son de cada
 // una (por ejemplo, qué alertas ya vio).
@@ -21,14 +20,11 @@ final usuarioActualIdProvider = Provider<String>(
   (ref) => FirebaseAuth.instance.currentUser?.uid ?? usuarioSinSesion,
 );
 
-final usuarioActualProvider = Provider<UsuarioActual>((ref) {
-  final uid = ref.watch(usuarioActualIdProvider);
-  if (uid == usuarioSinSesion) return UsuarioActual.sinSesion;
-  final usuario = FirebaseAuth.instance.currentUser;
-  return UsuarioActual(
-    id: uid,
-    nombre: usuario?.displayName ??
-        usuario?.email ??
-        UsuarioActual.nombreSinDatos,
-  );
-});
+// Quien averigua con qué nombre dejar constancia de lo que hace la persona (por
+// ejemplo, el docente de un trabajo práctico). Es el mismo servicio que usan los
+// movimientos de stock, así que el nombre es el mismo en todas partes. Consulta
+// la sesión cada vez que se le pide (no la guarda), por eso siempre es de quien
+// está usando la app en ese momento.
+final usuarioActualServiceProvider = Provider<UsuarioActualService>(
+  (ref) => UsuarioActualService(),
+);

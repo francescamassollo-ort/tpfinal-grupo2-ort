@@ -225,12 +225,16 @@ class _FormularioTpState extends ConsumerState<_FormularioTp> {
     setState(() => _guardando = true);
     // Se obtiene antes del await: después puede que el widget ya no exista.
     final notifier = ref.read(tpProvider.notifier);
+    final usuarioService = ref.read(usuarioActualServiceProvider);
     final original = widget.tp;
     final nombre = _nombreController.text.trim();
     final descripcion = _descripcionController.text.trim();
 
     try {
       if (original == null) {
+        // El docente es quien crea el TP, con el mismo nombre que figura en el
+        // Historial (el de su documento en "usuarios", o el de su cuenta).
+        final docente = (await usuarioService.obtener()).nombre;
         await notifier.crear(
           TrabajoPractico(
             id: '', // lo genera Firestore
@@ -238,7 +242,7 @@ class _FormularioTpState extends ConsumerState<_FormularioTp> {
             descripcion: descripcion,
             fecha: _fecha,
             insumos: _insumos,
-            docente: ref.read(usuarioActualProvider).nombre,
+            docente: docente,
           ),
         );
       } else {
