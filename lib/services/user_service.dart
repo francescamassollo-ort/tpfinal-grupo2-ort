@@ -45,7 +45,28 @@ class UserService {
         );
   }
 
+  /// Un usuario por su id, y cada vez que cambia. Emite null si no tiene
+  /// documento.
+  Stream<Usuario?> watchById(String usuarioId) {
+    return _ref
+        .doc(usuarioId)
+        .snapshots()
+        .map((doc) => doc.exists ? doc.data() : null);
+  }
+
   // ---- Escrituras --------------------------------------------------------
+
+  /// Crea el documento del usuario solo si todavía no existe. Si ya existe no
+  /// toca nada: así volver a iniciar sesión nunca pisa un rol que alguien
+  /// cambió. Se hace en una transacción para que dos inicios de sesión a la
+  /// vez no se pisen entre sí.
+  Future<void> crearSiNoExiste(Usuario usuario) {
+    final doc = _ref.doc(usuario.id);
+    return doc.firestore.runTransaction((transaccion) async {
+      final actual = await transaccion.get(doc);
+      if (!actual.exists) transaccion.set(doc, usuario);
+    });
+  }
 
   /// Cambia solo el rol del usuario, sin tocar el resto de sus campos.
   Future<void> updateRol(String usuarioId, UserRole nuevoRol) {

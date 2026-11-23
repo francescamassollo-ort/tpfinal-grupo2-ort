@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tpfinal_grupo2/core/app_shell.dart';
 import 'package:tpfinal_grupo2/models/alerta.dart';
+import 'package:tpfinal_grupo2/models/usuario.dart';
 import 'package:tpfinal_grupo2/providers/alerta_provider.dart';
+import 'package:tpfinal_grupo2/providers/role_provider.dart';
 
 // Monta el shell en la ruta indicada, sin ir a Firestore.
 Future<void> _mostrar(WidgetTester tester, String ruta) async {
@@ -12,6 +14,9 @@ Future<void> _mostrar(WidgetTester tester, String ruta) async {
       overrides: [
         alertasProvider.overrideWithValue(const AsyncData(<Alerta>[])),
         alertasVistasProvider.overrideWith((ref) => Stream.value(<String>{})),
+        rolDeSesionProvider.overrideWith(
+          (ref) => Stream.value(UserRole.administrador),
+        ),
       ],
       child: MaterialApp(
         home: AppShell(location: ruta, child: const SizedBox()),
@@ -53,6 +58,14 @@ void main() {
 
       expect(find.byType(FloatingActionButton), findsOneWidget);
     });
+
+    for (final ruta in ['/perfil', '/usuarios', '/inventario/filtro']) {
+      testWidgets('en $ruta no está', (tester) async {
+        await _mostrar(tester, ruta);
+
+        expect(find.byType(FloatingActionButton), findsNothing);
+      });
+    }
 
     testWidgets('en el detalle de un TP no está', (tester) async {
       await _mostrar(tester, '/tp/detalle/abc');

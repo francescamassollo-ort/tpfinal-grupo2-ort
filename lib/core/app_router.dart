@@ -20,8 +20,8 @@ import '../screens/tp/tp_lista_screen.dart';
 import '../screens/usuarios/usuarios_screen.dart';
 import 'app_shell.dart';
 
-// Login queda para el final (lo pidió el profe), por eso se arranca
-// directo en /inventario en vez de /welcome o /login.
+// Se arranca en /inventario, pero sin sesión iniciada el redirect de abajo manda
+// a /welcome; con sesión, las pantallas de ingreso mandan a /inventario.
 final GoRouter appRouter = GoRouter(
   initialLocation: 'inventario',
   
