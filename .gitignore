@@ -31,6 +31,8 @@ migrate_working_dir/
 .pub-cache/
 .pub/
 /build/
+# Gradle genera acá informes (problems-report.html) que no se suben.
+/android/build/
 /coverage/
 
 # Symbolication related
