@@ -85,6 +85,11 @@ class AppStrings {
   static const String movimientoEntrada = 'Entrada de stock';
   static const String movimientoSalida = 'Salida de stock';
 
+  // Alta de insumo: sugerencias mientras se escribe el nombre.
+  static const String altaSugerenciasTitulo = 'Ya existe algo parecido:';
+  static const String altaSinCoincidencias =
+      'No hay un insumo con ese nombre: se va a agregar como nuevo';
+
   // Alta de insumo: lo que suma el escáner.
   static const String altaEscanear = 'Escanear código de barras';
   static const String altaDatosCompletados =

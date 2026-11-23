@@ -11,6 +11,7 @@ import '../../services/duplicate_detection_service.dart';
 import '../../services/stock_service.dart';
 import '../../services/synonym_detection_service.dart';
 import 'duplicados_dialog.dart';
+import 'sugerencias_nombre.dart';
 
 class InsumoAltaScreen extends ConsumerStatefulWidget {
   const InsumoAltaScreen({super.key});
@@ -108,6 +109,13 @@ class _InsumoAltaScreenState extends ConsumerState<InsumoAltaScreen> {
     }
     return null;
   },
+),
+
+// Mientras se escribe, avisa si ya existe un insumo con un nombre parecido.
+// Tocar uno abre su detalle; el Alta queda abierta atrás.
+SugerenciasNombre(
+  controller: _nombreController,
+  onElegir: (insumo) => context.push('/insumo/${insumo.id}'),
 ),
 
 const SizedBox(height: 12),

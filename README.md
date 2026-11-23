@@ -277,7 +277,12 @@ diseño). Al leer un código lo busca en capas y se queda con la primera que lo 
 
 ## Duplicados al dar de alta
 
-Antes de guardar un insumo nuevo, el formulario de Alta tiene un botón **"Buscar duplicados"** (requerimiento A10). Usa lo que ya se escribió (nombre, tipo, marca y código de barras) y abre una ventana:
+Mientras se escribe el **nombre** de un insumo nuevo, aparecen debajo del campo hasta 3 insumos que ya existen con un nombre
+parecido (sin mirar mayúsculas, tildes ni espacios; los que empiezan igual primero). Tocar uno abre su detalle. Si no hay
+ninguno, dice que se va a agregar como nuevo. Con menos de 2 letras no sugiere nada, y mientras no se cargaron los insumos
+no dice nada (afirmar que no hay ninguno sería engañoso). No frena la carga: es un aviso.
+
+Antes de guardar un insumo nuevo, el formulario de Alta tiene además un botón **"Buscar duplicados"** (requerimiento A10). Usa lo que ya se escribió (nombre, tipo, marca y código de barras) y abre una ventana:
 
 - **Comparación de texto** (siempre, instantánea y sin internet): encuentra insumos con el mismo código de barras o con un nombre muy parecido. Para eso usa `DuplicateDetectionService.buscarSimilares`.
 - **Sinónimos con IA** (solo si hay clave, ver "Servicios externos"): mientras tanto muestra "Buscando sinónimos con IA…" y, cuando termina, suma los insumos que la IA cree que son el mismo producto con otro nombre ("etanol" y "alcohol etílico"), marcados como "Sugerido por la IA". Si la IA falla o no está configurada, la ventana lo dice y deja el resultado de la comparación de texto.
