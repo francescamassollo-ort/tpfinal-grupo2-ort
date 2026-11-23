@@ -164,7 +164,7 @@ Las pruebas unitarias están en `test/` (fuera de `lib/`).
 ### Administración
 | Pantalla | Ruta | Estado |
 |---|---|---|
-| Usuarios | `/usuarios` | ⏳ Placeholder |
+| Usuarios | `/usuarios` | ✅ Hecha (solo administrador) |
 | Perfil | `/perfil` | ⏳ Placeholder |
 
 ## Predicción de stock
@@ -516,11 +516,26 @@ todavía no están hechos** (el botón dice "Próximamente"), pero ya solo los v
    `uid`, que figura en Authentication > Usuarios).
 3. Cambiar el campo `rol` de `docente` a `administrador`. La app lo toma sola.
 
+Con un administrador ya hecho, los demás roles se cambian desde la pantalla **Usuarios** (ver abajo), sin tocar la consola.
+
+### Gestión de usuarios
+Solo para administradores (el menú lateral la oculta a los demás y la pantalla además se protege sola). Lista a los usuarios
+activos con su rol y permite **cambiar el rol** y **dar de baja**:
+
+- **Reglas:** nadie se cambia el rol ni se da de baja a sí mismo, y no se puede dejar al sistema sin ningún administrador. La
+  lista que se ve es la de usuarios activos; si todavía no cargó, ante la duda no se toca a un administrador.
+- **La baja bloquea, no borra.** El documento queda con `activo: false` y la persona **ya no puede usar la app**: si estaba
+  adentro se le cierra la sesión en el momento y se le avisa ("Tu cuenta fue dada de baja"), y si intenta volver a ingresar se le
+  cierra de nuevo (`GuardiaDeCuenta`). No se borra nada porque el Historial guarda quién hizo cada movimiento y esos datos tienen
+  que seguir existiendo. Para volver a darle acceso hay que poner `activo` en `true` desde la consola (todavía no hay botón).
+- **Si no se puede saber** (sin conexión), no se bloquea a nadie: dejar sin acceso a todos por un corte de internet sería peor.
+- **El id de la persona sigue a la sesión** (`usuarioActualIdProvider`): si alguien cierra sesión y entra otra persona sin cerrar la
+  app, las alertas vistas y las protecciones de arriba pasan a ser las de la nueva persona.
+
 **Qué todavía no protege:** esto decide lo que **muestra la app**, no lo que **permite la base**. Las reglas de Firestore
 siguen abiertas hasta el 31/01/2027 (ver "Reglas de Firestore"), así que alguien que hable directo con la base podría cambiarse
-el rol. Las reglas por rol son el siguiente paso (issue #46) y recién ahí el rol es una barrera de verdad. Además, la
-pantalla de **Usuarios** (donde un administrador cambiaría los roles) todavía es un esqueleto: por ahora los roles se
-cambian en la consola.
+el rol, o saltarse el bloqueo de una cuenta dada de baja. Las reglas por rol son el siguiente paso (issue #46) y recién ahí el
+rol es una barrera de verdad.
 
 ## Reglas de Firestore
 Las reglas de seguridad de la base estan en [`firestore.rules`](firestore.rules). **Guardar el archivo no las aplica:** hay que
