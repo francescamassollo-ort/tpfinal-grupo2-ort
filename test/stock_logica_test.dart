@@ -183,6 +183,130 @@ void main() {
     });
   });
 
+  group('varias salidas a la vez', () {
+    List<CambioDeStock> salidas(
+      List<LineaDeSalida> lineas, {
+      Map<String, int> stocks = const {'a': 10, 'b': 5, 'c': 1},
+      String? motivo = 'TP 3',
+    }) =>
+        StockLogica.salidas(
+          lineas: lineas,
+          stocks: stocks,
+          usuario: _ana,
+          ahora: _ahora,
+          motivo: motivo,
+        );
+
+    Matcher fallaEn(String insumoId, String mensaje) => throwsA(
+          isA<StockException>()
+              .having((e) => e.insumoId, 'insumoId', insumoId)
+              .having((e) => e.mensaje, 'mensaje', mensaje),
+        );
+
+    test('resta cada línea de su insumo y devuelve un cambio por línea', () {
+      final cambios = salidas([
+        (insumoId: 'a', cantidad: 4),
+        (insumoId: 'b', cantidad: 5),
+      ]);
+
+      expect(cambios, hasLength(2));
+      expect(cambios[0].stockNuevo, 6);
+      expect(cambios[1].stockNuevo, 0);
+    });
+
+    test('cada línea deja su movimiento de salida, en el mismo orden', () {
+      final cambios = salidas([
+        (insumoId: 'a', cantidad: 4),
+        (insumoId: 'b', cantidad: 2),
+      ]);
+
+      expect(cambios[0].movimiento.productoId, 'a');
+      expect(cambios[0].movimiento.cantidad, 4);
+      expect(cambios[1].movimiento.productoId, 'b');
+      expect(cambios[1].movimiento.cantidad, 2);
+      for (final cambio in cambios) {
+        expect(cambio.movimiento.tipo, TipoMovimiento.salida);
+        expect(cambio.movimiento.motivo, 'TP 3');
+        expect(cambio.movimiento.usuarioNombre, 'Ana Pérez');
+        expect(cambio.movimiento.fecha, _ahora);
+      }
+    });
+
+    test('si una línea no tiene stock suficiente, falla diciendo cuál', () {
+      expect(
+        () => salidas([
+          (insumoId: 'a', cantidad: 4),
+          (insumoId: 'b', cantidad: 6),
+        ]),
+        fallaEn('b', 'Stock insuficiente'),
+      );
+    });
+
+    test('todo o nada: una línea mala no deja cambios de las buenas', () {
+      // La función no devuelve nada si falla: no hay cambios que aplicar.
+      List<CambioDeStock>? resultado;
+      try {
+        resultado = salidas([
+          (insumoId: 'a', cantidad: 1),
+          (insumoId: 'c', cantidad: 2),
+        ]);
+      } on StockException {
+        // Se esperaba.
+      }
+
+      expect(resultado, isNull);
+    });
+
+    test('un insumo que no existe falla diciendo cuál', () {
+      expect(
+        () => salidas([(insumoId: 'zzz', cantidad: 1)]),
+        fallaEn('zzz', 'Insumo no encontrado'),
+      );
+    });
+
+    test('una cantidad de 0 o negativa falla diciendo cuál', () {
+      expect(
+        () => salidas([(insumoId: 'a', cantidad: 0)]),
+        fallaEn('a', 'La cantidad debe ser mayor a 0'),
+      );
+      expect(
+        () => salidas([(insumoId: 'a', cantidad: -2)]),
+        fallaEn('a', 'La cantidad debe ser mayor a 0'),
+      );
+    });
+
+    test('sin líneas no hay nada que retirar', () {
+      expect(
+        () => salidas([]),
+        throwsA(
+          isA<StockException>()
+              .having((e) => e.mensaje, 'mensaje', 'No hay insumos para retirar')
+              .having((e) => e.insumoId, 'insumoId', isNull),
+        ),
+      );
+    });
+
+    test('el mismo insumo en dos líneas se rechaza', () {
+      // Cada línea por separado cabría en el stock, pero juntas no.
+      expect(
+        () => salidas([
+          (insumoId: 'a', cantidad: 6),
+          (insumoId: 'a', cantidad: 6),
+        ]),
+        fallaEn('a', 'El mismo insumo está más de una vez'),
+      );
+    });
+
+    test('un motivo vacío queda sin motivo en todos los movimientos', () {
+      final cambios = salidas(
+        [(insumoId: 'a', cantidad: 1), (insumoId: 'b', cantidad: 1)],
+        motivo: '  ',
+      );
+
+      expect(cambios.map((c) => c.movimiento.motivo), [null, null]);
+    });
+  });
+
   group('alta de un insumo', () {
     MovimientoStock? alta({int stock = 12, UsuarioActual usuario = _ana}) =>
         StockLogica.altaDeInsumo(
