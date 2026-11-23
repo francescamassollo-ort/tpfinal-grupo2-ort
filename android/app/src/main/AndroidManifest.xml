@@ -1,4 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- El escáner de códigos de barras usa la cámara. No es obligatoria: la app
+         sirve igual en un equipo sin cámara, solo que sin escanear. -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
     <application
         android:label="tpfinal_grupo2"
         android:name="${applicationName}"

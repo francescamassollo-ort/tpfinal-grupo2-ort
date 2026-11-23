@@ -25,6 +25,7 @@ dependencies:
   # una archive más nueva, y pdf 3.12.0 no deja pasar de archive 4.0.9: con la
   # 4.11.0 no compila. Se puede quitar al actualizar pdf (3.13 pide Flutter 3.44).
   image: ">=4.1.0 <4.11.0"
+  mobile_scanner: ^7.5.0
 
 dev_dependencies:
   flutter_test:
