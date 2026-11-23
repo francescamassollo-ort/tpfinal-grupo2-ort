@@ -120,11 +120,11 @@ Las pruebas unitarias están en `test/` (fuera de `lib/`).
 
 ## Navegación
 - La app arranca en **Inventario**. El login queda para el final.
-- **Dentro del `AppShell`** (barra inferior y menú lateral, que muestra opciones según el rol): Inventario, Detalle de insumo (`/insumo/:id`), Alta de insumo, Consumo, Alertas, Trabajos prácticos, Usuarios y Perfil.
-- **Fuera del `AppShell`**, a pantalla completa: Welcome, Login, Register, **Historial**, **Lista de compras** y **Escáner**.
+- **Dentro del `AppShell`** (barra inferior y menú lateral, que muestra opciones según el rol): Inventario, Detalle de insumo (`/insumo/:id`), Alta de insumo, Alertas, Trabajos prácticos, Usuarios y Perfil.
+- **Fuera del `AppShell`**, a pantalla completa: Welcome, Login, Register, **Historial**, **Lista de compras**, **Registro de consumo** y **Escáner**.
 
 ### Decisiones de navegación
-- **Historial, Lista de compras y Escáner** van fuera del `AppShell` porque en el diseño no llevan la barra inferior del shell. Lista de compras tiene además su propio botón flotante circular. La flecha de volver regresa a la pantalla anterior o, si no hay, a Inventario.
+- **Historial, Lista de compras, Registro de consumo y Escáner** van fuera del `AppShell` porque en el diseño no llevan la barra inferior del shell. Lista de compras tiene además su propio botón flotante circular. La flecha de volver regresa a la pantalla anterior o, si no hay, a Inventario.
 - **Alertas** va dentro del `AppShell` porque el diseño lleva la barra inferior, pero sin el botón flotante: el shell recibe la ruta actual (`location`) y lo esconde solo en `/alertas`.
 
 ## Seguimiento de pantallas
@@ -145,7 +145,7 @@ Las pruebas unitarias están en `test/` (fuera de `lib/`).
 | Detalle de insumo | `/insumo/:id` | ✅ Funcional (lee el insumo de Firestore en tiempo real; Editar y Baja avisan "Próximamente"; Historial y Registrar consumo navegan a sus pantallas) |
 | Alta de insumo | `/insumo/alta` | ✅ Funcional (formulario de alta que guarda en Firestore; "Escanear código de barras" completa los datos, ver "Escáner de código de barras"; el botón "Buscar duplicados" avisa si ya existe algo parecido, ver "Duplicados al dar de alta") |
 | Escáner | `/scanner` | ✅ Funcional, ver "Escáner de código de barras" (cámara a pantalla completa; busca el código en nuestros insumos y, si no está, en UPCitemdb y PubChem; "Sumar stock", "Usar estos datos" o "Cargar a mano") |
-| Consumo | `/consumo` | ✅ Funcional (registra una salida de stock; con `/consumo?insumo=ID` abre con ese insumo ya elegido) |
+| Registro de consumo | `/consumo` | ✅ Funcional, ver "Registro de consumo" (lista de insumos con cuánto retirar de cada uno y "Confirmar salida"; con `/consumo?insumo=ID` abre con ese insumo ya elegido) |
 
 ### Historial, alertas y compras
 | Pantalla | Ruta | Estado |
@@ -200,7 +200,8 @@ usa la predicción). Lo escribe `StockService`:
 - **Una sola transacción:** el stock nuevo del insumo y su movimiento se guardan juntos. Si una de las dos escrituras
   falla, no se guarda ninguna: no queda un stock cambiado sin su movimiento ni al revés. La lectura del stock va dentro
   de la transacción, así dos consumos a la vez no se pisan.
-- **Qué operaciones hay:** `registrarEntrada`, `registrarSalida` (no deja sacar más de lo que hay), `registrarAjuste` (deja
+- **Qué operaciones hay:** `registrarEntrada`, `registrarSalida` (no deja sacar más de lo que hay), `registrarSalidas`
+  (varios insumos a la vez, todo o nada, ver "Registro de consumo"), `registrarAjuste` (deja
   el stock en un valor y guarda la diferencia con signo) y `registrarAlta` (el insumo nuevo más una entrada por su stock
   inicial, con el motivo "Alta de insumo"; si el stock inicial es 0 no hay movimiento).
 - **Cómo se guarda la cantidad:** positiva en entradas y salidas (el sentido lo da el tipo) y con signo en los ajustes.
@@ -212,6 +213,24 @@ usa la predicción). Lo escribe `StockService`:
 - Los errores (cantidad inválida, stock insuficiente, insumo inexistente) son `StockException` con un mensaje listo para
   mostrar.
 - Las reglas de Firestore (#46) tienen que permitir escribir en `insumos` y en `movimientosStock`.
+
+## Registro de consumo
+La pantalla sigue el diseño ("Registro de consumo" del prototipo): una lista de insumos, cada uno con cuánto hay
+disponible y un selector de cuánto retirar, un enlace "+ Agregar otro insumo" y el botón "Confirmar salida".
+
+- **Varios insumos en una sola salida.** Cada fila tiene un selector que nunca baja de 1 ni pasa de lo disponible. Una fila
+  se saca de la lista deslizándola hacia la izquierda.
+- **"+ Agregar otro insumo"** abre un buscador (sin mirar mayúsculas ni tildes) con los insumos que tienen stock y todavía
+  no están en la lista.
+- **El motivo no está en el diseño, pero se necesita** (TP, Clase, Investigación u Otro, con un detalle obligatorio). Queda
+  debajo de la lista, antes del botón, y es el mismo para todas las líneas de la salida.
+- **Confirmar es todo o nada.** `StockService.registrarSalidas` guarda todo en una sola transacción: si falta stock de un
+  solo insumo, no se registra ninguno y el aviso dice de cuál ("No hay stock suficiente de ..."). Cada línea deja su propio
+  movimiento de salida en el historial.
+- **Después de confirmar** la lista queda vacía para poder cargar otro consumo.
+- **Cómo se llega:** desde el detalle de un insumo ("Registrar consumo") se abre ya con ese insumo; también desde el aviso de
+  duplicados del Alta ("Cargarle un consumo"). Un id que no corresponde a ningún insumo se ignora.
+- Va fuera del `AppShell`, sin barra inferior ni botón flotante, como en el diseño.
 
 ## Alertas vistas
 Cada alerta se puede marcar como vista desde la pantalla de Alertas. Queda en la lista, atenuada, y la campana de la

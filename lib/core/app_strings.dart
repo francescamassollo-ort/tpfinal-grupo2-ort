@@ -128,6 +128,37 @@ class AppStrings {
   static const String sumarStockConfirmar = 'Sumar';
   static const String escanerUnidadPorDefecto = 'u.';
 
+  // Registro de consumo.
+  static const String consumoTitulo = 'Registro de consumo';
+  static const String consumoSubtitulo =
+      'Seleccionar la cantidad de insumos a retirar';
+  static const String consumoAgregarOtro = '+ Agregar otro insumo';
+  static const String consumoConfirmar = 'Confirmar salida';
+  static const String consumoMotivo = 'Motivo';
+  static const String consumoMotivoTp = 'TP';
+  static const String consumoMotivoClase = 'Clase';
+  static const String consumoMotivoInvestigacion = 'Investigación';
+  static const String consumoMotivoOtro = 'Otro';
+  static const String consumoDetalleMotivo = 'Detalle del motivo';
+  static const String consumoDetalleObligatorio =
+      'Escribí el detalle del motivo';
+  static const String consumoRegistrado = 'Consumo registrado correctamente';
+  static const String consumoError = 'No se pudo registrar el consumo';
+  static const String consumoErrorCargar = 'No se pudieron cargar los insumos';
+  static const String consumoSinMasInsumos =
+      'No hay más insumos con stock para agregar';
+  static const String consumoAgregarTitulo = 'Agregar insumo';
+  static const String consumoBuscarInsumo = 'Buscar insumo';
+  static const String consumoSinCoincidencias =
+      'Ningún insumo coincide con la búsqueda';
+  static const String consumoUnidadPorDefecto = 'u.';
+  static String consumoDisponible(int stock, String unidad) =>
+      'Disponible: $stock $unidad';
+  static String consumoSinStock(String nombre) =>
+      'No hay stock suficiente de $nombre';
+  static String consumoInsumoNoExiste(String nombre) =>
+      '$nombre ya no existe';
+
   static const String alertasTitulo = 'Alertas';
   static String alertasConCantidad(int cantidad) => 'Alertas ($cantidad)';
 
