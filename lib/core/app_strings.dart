@@ -268,6 +268,9 @@ class AppStrings {
   static const String tpInsumoNoEncontrado = 'Insumo no encontrado';
   static const String tpColumnaNombre = 'Nombre';
   static const String tpColumnaUbicacion = 'Ubicación';
+  // Pantallas que el rol de la persona no puede usar.
+  static const String sinPermiso = 'No tenés permiso para usar esta pantalla';
+
   static const String tpEliminarUnoTitulo = '¿Eliminar trabajo práctico?';
   static String tpDocenteACargo(String nombre) => 'Docente a cargo: $nombre';
   static String tpRequeridoStock(String requerido, int stock) =>
