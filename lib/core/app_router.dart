@@ -1,9 +1,11 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
 import 'go_router_refresh_stream.dart';
+import 'redireccion_sesion.dart';
 import '../screens/alertas/alertas_screen.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/auth/register_screen.dart';
+import '../screens/auth/verificar_email_screen.dart';
 import '../screens/auth/welcome_screen.dart';
 import '../screens/compras/compras_screen.dart';
 import '../screens/consumo/consumo_screen.dart';
@@ -28,13 +30,15 @@ final GoRouter appRouter = GoRouter(
   initialLocation: 'inventario',
   
   refreshListenable: GoRouterRefreshStream(FirebaseAuth.instance.authStateChanges()), 
+  // Sin sesión solo se ven las pantallas de acceso; con sesión pero sin el mail
+  // verificado, solo la de verificación (ver redirigirSegunSesion).
   redirect: (context, state) {
-    final bool isLoggedIn = FirebaseAuth.instance.currentUser != null; 
-    final String location = state.uri.path; 
-    final bool isAuthRoute = location == '/welcome' || location == '/login' || location == '/register'; 
-    if (!isLoggedIn && !isAuthRoute) {return '/welcome';} 
-    if (isLoggedIn && isAuthRoute) { return '/inventario'; } 
-    return null; 
+    final usuario = FirebaseAuth.instance.currentUser;
+    return redirigirSegunSesion(
+      conSesion: usuario != null,
+      mailVerificado: usuario?.emailVerified ?? false,
+      ruta: state.uri.path,
+    );
   },
   
   routes: [
@@ -42,6 +46,10 @@ final GoRouter appRouter = GoRouter(
     GoRoute(path: '/welcome', builder: (context, state) => const WelcomeScreen()),
     GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
     GoRoute(path: '/register', builder: (context, state) => const RegisterScreen()),
+    GoRoute(
+      path: rutaVerificarMail,
+      builder: (context, state) => const VerificarEmailScreen(),
+    ),
 
     // Historial va sin barra inferior ni botón flotante, como en el diseño.
     GoRoute(path: '/historial', builder: (context, state) => const HistorialScreen()),

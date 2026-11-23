@@ -6,18 +6,20 @@ import '../models/usuario.dart';
 import '../services/rol_de_sesion_service.dart';
 import '../services/user_service.dart';
 
-// Quién tiene la sesión iniciada (null si nadie), y cada vez que entra o sale
-// alguien. En las pruebas se reemplaza: FirebaseAuth necesita que Firebase esté
-// inicializado.
+// Quién tiene la sesión iniciada y el mail verificado (null si nadie, o si
+// todavía no verificó), y cada vez que entra o sale alguien. En las pruebas se
+// reemplaza: FirebaseAuth necesita que Firebase esté inicializado.
+//
+// Que la persona verifique su mail no hace que Firebase avise: la pantalla de
+// verificación vuelve a pedir este provider (`ref.invalidate`) cuando pasa.
 final sesionProvider = StreamProvider<PersonaConSesion?>(
   (ref) => FirebaseAuth.instance.authStateChanges().map(
-        (usuario) => usuario == null
-            ? null
-            : (
-                uid: usuario.uid,
-                nombre: usuario.displayName,
-                email: usuario.email,
-              ),
+        (usuario) => RolDeSesionService.personaDeSesion(
+          uid: usuario?.uid,
+          nombre: usuario?.displayName,
+          email: usuario?.email,
+          mailVerificado: usuario?.emailVerified ?? false,
+        ),
       ),
 );
 

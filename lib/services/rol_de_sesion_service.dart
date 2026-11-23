@@ -44,6 +44,20 @@ class RolDeSesionService {
     yield* _vigilar(persona.uid).map(rolDelUsuario);
   }
 
+  /// Quién cuenta como persona con sesión para tener un rol: alguien con la
+  /// sesión iniciada **y el mail verificado**. Una cuenta recién registrada, que
+  /// todavía no confirmó su mail, no tiene documento ni rol: si no, cualquiera
+  /// podría aparecer en la lista de usuarios con un mail que no es suyo.
+  static PersonaConSesion? personaDeSesion({
+    required String? uid,
+    required String? nombre,
+    required String? email,
+    required bool mailVerificado,
+  }) {
+    if (uid == null || !mailVerificado) return null;
+    return (uid: uid, nombre: nombre, email: email);
+  }
+
   /// El documento que se crea la primera vez que una persona entra.
   static Usuario usuarioNuevo(PersonaConSesion persona) => Usuario(
         id: persona.uid,
