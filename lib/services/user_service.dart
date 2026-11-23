@@ -28,6 +28,13 @@ class UserService {
     return snap.docs.map((d) => d.data()).where((u) => u.activo).toList();
   }
 
+  /// Un usuario por su id (el de su cuenta de Firebase), o null si todavía no
+  /// tiene documento. Incluye a los dados de baja.
+  Future<Usuario?> getById(String usuarioId) async {
+    final doc = await _ref.doc(usuarioId).get();
+    return doc.exists ? doc.data() : null;
+  }
+
   // ---- Versión Stream (tiempo real) --------------------------------------
 
   /// Igual que [getAll], pero se actualiza sola ante cambios en Firestore.
