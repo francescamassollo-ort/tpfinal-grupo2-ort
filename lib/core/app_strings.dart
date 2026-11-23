@@ -85,6 +85,16 @@ class AppStrings {
   static const String movimientoEntrada = 'Entrada de stock';
   static const String movimientoSalida = 'Salida de stock';
 
+  // Alta de insumo: lectura de la etiqueta con la cámara.
+  static const String altaLeerEtiqueta = 'Leer etiqueta con la cámara';
+  static const String altaLeyendoEtiqueta = 'Leyendo la etiqueta…';
+  static const String altaEtiquetaLeida =
+      'Se completaron los datos de la etiqueta: revisalos antes de guardar';
+  static const String altaEtiquetaVacia =
+      'No se encontraron datos en la foto. Probá con más luz y la etiqueta bien de frente';
+  static const String altaEtiquetaError = 'No se pudo leer la etiqueta';
+  static const String altaCamaraError = 'No se pudo abrir la cámara';
+
   // Alta de insumo: categoría sugerida.
   static String categoriaSugerida(String categoria) =>
       'Categoría sugerida: $categoria';

@@ -26,6 +26,8 @@ dependencies:
   # 4.11.0 no compila. Se puede quitar al actualizar pdf (3.13 pide Flutter 3.44).
   image: ">=4.1.0 <4.11.0"
   mobile_scanner: ^7.5.0
+  image_picker: ^1.2.4
+  google_mlkit_text_recognition: ^0.16.0
 
 dev_dependencies:
   flutter_test:

@@ -6,8 +6,10 @@ import '../../core/app_strings.dart';
 import '../../models/datos_escaneados.dart';
 import '../../models/insumo.dart';
 import '../../providers/insumo_providers.dart';
+import '../../providers/ocr_provider.dart';
 import '../../providers/sinonimos_provider.dart';
 import '../../services/duplicate_detection_service.dart';
+import '../../services/ocr_service.dart';
 import '../../services/stock_service.dart';
 import '../../services/synonym_detection_service.dart';
 import 'duplicados_dialog.dart';
@@ -45,6 +47,9 @@ class _InsumoAltaScreenState extends ConsumerState<InsumoAltaScreen> {
 
   DateTime? _fechaElaboracion;
   DateTime? _fechaVencimiento;
+
+  // Mientras se lee una foto de etiqueta, el botón avisa y no se puede tocar.
+  bool _leyendoEtiqueta = false;
 
   final bool _guardando = false;
 
@@ -191,6 +196,26 @@ OutlinedButton.icon(
   onPressed: _escanear,
   icon: const Icon(Icons.qr_code_scanner),
   label: const Text(AppStrings.altaEscanear),
+),
+
+const SizedBox(height: 8),
+
+// Saca una foto a la etiqueta y completa el formulario con el texto que se
+// lea: nombre, fórmula, peso molecular y vencimiento.
+OutlinedButton.icon(
+  onPressed: _leyendoEtiqueta ? null : _leerEtiqueta,
+  icon: _leyendoEtiqueta
+      ? const SizedBox(
+          width: 18,
+          height: 18,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        )
+      : const Icon(Icons.document_scanner_outlined),
+  label: Text(
+    _leyendoEtiqueta
+        ? AppStrings.altaLeyendoEtiqueta
+        : AppStrings.altaLeerEtiqueta,
+  ),
 ),
 
 const SizedBox(height: 16),
@@ -350,6 +375,70 @@ ElevatedButton(
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text(AppStrings.altaDatosCompletados)),
       );
+    }
+  }
+
+  // Saca una foto a la etiqueta, reconoce el texto y completa el formulario con
+  // lo que se entienda. Igual que el escáner, solo llena los campos vacíos: una
+  // lectura nunca pisa lo que la persona ya escribió, y todo queda editable
+  // porque reconocer texto en una foto se equivoca.
+  Future<void> _leerEtiqueta() async {
+    final avisos = ScaffoldMessenger.of(context);
+
+    final String? ruta;
+    try {
+      ruta = await ref.read(capturadorDeFotoProvider)();
+    } catch (error) {
+      debugPrint('No se pudo abrir la cámara: $error');
+      avisos.showSnackBar(
+        const SnackBar(content: Text(AppStrings.altaCamaraError)),
+      );
+      return;
+    }
+    // Sin foto (se canceló) no hay nada que hacer.
+    if (ruta == null || !mounted) return;
+
+    setState(() => _leyendoEtiqueta = true);
+    try {
+      final etiqueta = await ref.read(ocrServiceProvider).leerEtiqueta(ruta);
+      if (!mounted) return;
+
+      if (etiqueta.vacia) {
+        avisos.showSnackBar(
+          const SnackBar(content: Text(AppStrings.altaEtiquetaVacia)),
+        );
+        return;
+      }
+
+      void completar(TextEditingController campo, String? valor) {
+        if (valor != null && campo.text.trim().isEmpty) campo.text = valor;
+      }
+
+      setState(() {
+        completar(_nombreController, etiqueta.nombre);
+        if (_tipo == InsumoTipo.comprado) {
+          completar(_marcaController, etiqueta.marca);
+          completar(_formulaController, etiqueta.formula);
+          completar(
+            _pesoMolecularController,
+            etiqueta.pesoMolecular?.toString(),
+          );
+        }
+        // El vencimiento sirve para los dos tipos de insumo.
+        _fechaVencimiento ??= etiqueta.fechaVencimiento;
+      });
+      avisos.showSnackBar(
+        const SnackBar(content: Text(AppStrings.altaEtiquetaLeida)),
+      );
+    } on OcrException catch (error) {
+      avisos.showSnackBar(SnackBar(content: Text(error.mensaje)));
+    } catch (error) {
+      debugPrint('No se pudo leer la etiqueta: $error');
+      avisos.showSnackBar(
+        const SnackBar(content: Text(AppStrings.altaEtiquetaError)),
+      );
+    } finally {
+      if (mounted) setState(() => _leyendoEtiqueta = false);
     }
   }
 
