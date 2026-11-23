@@ -5,6 +5,7 @@ import '../../core/app_colors.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/auth_logic/login_check.dart';
 import '../../services/auth_logic/recovery_check.dart';
+import '../../widgets/boton_google.dart';
 import '../../widgets/handy_input_decoration.dart';
 import '../../widgets/handy_button_style_one.dart';
 import '../../widgets/handy_text_button_black.dart';
@@ -109,6 +110,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ),
                       ) 
                     ),
+                    const BotonGoogle(),
                   ],
                 ),
               ),

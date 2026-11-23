@@ -19,6 +19,10 @@ final sesionProvider = StreamProvider<PersonaConSesion?>(
           nombre: usuario?.displayName,
           email: usuario?.email,
           mailVerificado: usuario?.emailVerified ?? false,
+          // Con Google solo valen las cuentas de ORT.
+          exigeMailInstitucional:
+              usuario?.providerData.any((p) => p.providerId == 'google.com') ??
+                  false,
         ),
       ),
 );

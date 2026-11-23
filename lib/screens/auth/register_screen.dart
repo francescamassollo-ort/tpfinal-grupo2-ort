@@ -7,6 +7,7 @@ import '../../providers/auth_provider.dart';
 import '../../services/auth_logic/registration_check.dart';
 import '../../widgets/handy_button_style_one.dart';
 import '../../widgets/handy_input_decoration.dart';
+import '../../widgets/boton_google.dart';
 import '../../widgets/handy_text_button_black.dart';
 import '../../widgets/requisitos_contrasena.dart';
 
@@ -109,6 +110,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     child: const Text('Registrarse'),
                   ),
                 ),
+                const BotonGoogle(),
                 const HandyTextButtonBlack(
                   textPhrase: 'Ya tengo una cuenta',
                   direction: '/login',

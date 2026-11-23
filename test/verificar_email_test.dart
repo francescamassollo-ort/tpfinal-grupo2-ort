@@ -118,6 +118,31 @@ void main() {
     test('sin sesión no', () {
       expect(persona(uid: null), isNull);
     });
+
+    test('con Google solo vale un mail institucional', () {
+      PersonaConSesion? google(String email) => RolDeSesionService.personaDeSesion(
+            uid: 'u1',
+            nombre: 'Ana',
+            email: email,
+            mailVerificado: true,
+            exigeMailInstitucional: true,
+          );
+
+      expect(google('ana@comunidadort.edu.ar'), isNotNull);
+      expect(google('ana@ort.edu.ar'), isNotNull);
+      expect(google('ana@gmail.com'), isNull);
+    });
+
+    test('sin esa exigencia, una cuenta vieja con otro mail sigue teniendo rol', () {
+      final cuentaVieja = RolDeSesionService.personaDeSesion(
+        uid: 'u1',
+        nombre: 'Ana',
+        email: 'ana@gmail.com',
+        mailVerificado: true,
+      );
+
+      expect(cuentaVieja, isNotNull);
+    });
   });
 
   group('pantalla de verificación', () {

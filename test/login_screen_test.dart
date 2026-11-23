@@ -123,6 +123,33 @@ void main() {
     });
   });
 
+  group('Continuar con Google', () {
+    testWidgets('el botón inicia sesión con Google', (tester) async {
+      final auth = AuthFalso();
+      await _abrir(tester, auth);
+
+      await tester.tap(find.text('Continuar con Google'));
+      await tester.pumpAndSettle();
+
+      expect(auth.ingresosConGoogle, 1);
+      // No toca el ingreso con mail y contraseña.
+      expect(auth.ingresos, isEmpty);
+    });
+
+    testWidgets('si no se pudo entrar, el botón queda disponible para reintentar',
+        (tester) async {
+      final auth = AuthFalso()..entrarConGoogle = false;
+      await _abrir(tester, auth);
+
+      await tester.tap(find.text('Continuar con Google'));
+      await tester.pumpAndSettle();
+
+      final boton = tester.widget<OutlinedButton>(find.byType(OutlinedButton));
+      expect(boton.onPressed, isNotNull);
+      expect(find.text('Continuar con Google'), findsOneWidget);
+    });
+  });
+
   testWidgets('"Crear una nueva cuenta" lleva al registro', (tester) async {
     await _abrir(tester, AuthFalso());
 

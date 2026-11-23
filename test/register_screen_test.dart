@@ -220,9 +220,23 @@ void main() {
     expect(auth.verificacionesEnviadas, 0);
   });
 
+  testWidgets('también se puede crear la cuenta con Google', (tester) async {
+    final auth = AuthFalso();
+    await _abrir(tester, auth);
+
+    await tester.ensureVisible(find.text('Continuar con Google'));
+    await tester.tap(find.text('Continuar con Google'));
+    await tester.pumpAndSettle();
+
+    expect(auth.ingresosConGoogle, 1);
+    expect(auth.registros, isEmpty);
+  });
+
   testWidgets('"Ya tengo una cuenta" lleva al ingreso', (tester) async {
     await _abrir(tester);
 
+    // La pantalla se desplaza: el enlace queda abajo.
+    await tester.ensureVisible(find.text('Ya tengo una cuenta'));
     await tester.tap(find.text('Ya tengo una cuenta'));
     await tester.pumpAndSettle();
 

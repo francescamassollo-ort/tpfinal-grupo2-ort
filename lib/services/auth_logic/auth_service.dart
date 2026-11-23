@@ -1,6 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import 'validaciones_auth.dart';
+
 // 1. Global key accessible from anywhere in your app
 final GlobalKey<ScaffoldMessengerState> rootScaffoldMessengerKey =
     GlobalKey<ScaffoldMessengerState>();
@@ -87,6 +89,63 @@ class AuthService {
       debugPrint("General error during sign-in: $e");
       // Sin esto el ingreso fallaba sin decir nada: ahora el aviso sale acá,
       // igual que en el registro.
+      showGlobalErrorSnackBar('Ocurrió un error inesperado. Revisá tu conexión.');
+      return false;
+    }
+  }
+
+  /// Inicia sesión con una cuenta de Google (se abre la hoja de Google en el
+  /// navegador, no hace falta tener la cuenta cargada en el celular). Devuelve
+  /// true si se inició sesión; si no, el motivo ya se mostró en un cartel, salvo
+  /// que la persona haya cancelado.
+  ///
+  /// Solo valen cuentas con mail institucional de ORT (R14). Si entra otra, se
+  /// cierra la sesión enseguida y, si la cuenta se acababa de crear, se borra
+  /// para no dejar cuentas de personas ajenas en Authentication. Esto lo hace la
+  /// app: para que lo haga cumplir el servidor hace falta una función de
+  /// bloqueo en la consola de Firebase (ver el README).
+  Future<bool> signInWithGoogle() async {
+    try {
+      // Pide elegir la cuenta cada vez, para no entrar sola con una personal.
+      final proveedor = GoogleAuthProvider()
+        ..setCustomParameters({'prompt': 'select_account'});
+      final resultado = await _auth.signInWithProvider(proveedor);
+
+      final usuario = resultado.user;
+      if (!ValidacionesAuth.esMailInstitucional(usuario?.email ?? '')) {
+        try {
+          if (resultado.additionalUserInfo?.isNewUser ?? false) {
+            await usuario?.delete();
+          } else {
+            await _auth.signOut();
+          }
+        } catch (e) {
+          debugPrint("Error closing a non-institutional Google session: $e");
+          await _auth.signOut();
+        }
+        showGlobalErrorSnackBar(ValidacionesAuth.avisoMailNoInstitucional);
+        return false;
+      }
+      return true;
+    } on FirebaseAuthException catch (e) {
+      debugPrint("FirebaseAuthException during Google sign-in: ${e.code} - ${e.message}");
+      // La persona cerró la hoja de Google: no es un error.
+      if (e.code == 'canceled' ||
+          e.code == 'web-context-canceled' ||
+          e.code == 'popup-closed-by-user') {
+        return false;
+      }
+      final message = switch (e.code) {
+        'account-exists-with-different-credential' =>
+          'Ese mail ya tiene una cuenta creada con contraseña. Ingresá con tu mail y contraseña.',
+        'user-disabled' => 'Esta cuenta ha sido deshabilitada.',
+        'network-request-failed' => 'No se pudo conectar. Revisá tu conexión.',
+        _ => 'No se pudo ingresar con Google (${e.code}).',
+      };
+      showGlobalErrorSnackBar(message);
+      return false;
+    } catch (e) {
+      debugPrint("General error during Google sign-in: $e");
       showGlobalErrorSnackBar('Ocurrió un error inesperado. Revisá tu conexión.');
       return false;
     }
