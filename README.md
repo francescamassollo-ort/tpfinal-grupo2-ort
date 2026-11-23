@@ -469,11 +469,35 @@ La app usa **Firebase Authentication** con mail y contraseña (`AuthService`, en
   Ingresar o Registrarse. Con sesión iniciada, esas tres pantallas redirigen a Inventario. El router se entera de los cambios de
   sesión con `GoRouterRefreshStream` (en `lib/core/`), por eso al ingresar o cerrar sesión va solo a donde corresponde.
 - **Cerrar sesión** está al final del menú lateral.
-- **Los errores se explican en español** con el motivo que devuelve Firebase (mail mal escrito, contraseña de menos de 6
-  caracteres, cuenta repetida, contraseña incorrecta, demasiados intentos) en un cartel rojo que sale de `AuthService`. Las
-  comprobaciones previas (campos vacíos, contraseñas distintas) están en `ValidacionesAuth` y se prueban solas.
+- **Los errores se explican en español** con el motivo que devuelve Firebase (mail mal escrito, cuenta repetida, contraseña
+  incorrecta, demasiados intentos) en un cartel rojo que sale de `AuthService`. Las comprobaciones previas (campos vacíos,
+  mail institucional, contraseña segura) están en `ValidacionesAuth` y se prueban solas.
 - **No se limita el largo del mail:** los institucionales (`usuario@comunidadort.edu.ar`) tienen más de 20 caracteres.
 - **El rol de cada persona** sale de su documento en `usuarios/{uid}` (ver "Roles").
+
+### Seguridad del acceso
+- **Mail institucional (R14):** para **registrarse** hace falta un mail de `@comunidadort.edu.ar` o `@ort.edu.ar` (el dominio
+  tiene que ser exactamente uno de esos: `ana@miort.edu.ar` o `ana@alumnos.ort.edu.ar` no valen). Los dominios están en
+  `ValidacionesAuth.dominiosInstitucionales`. **Ingresar** no exige el dominio, porque hay cuentas creadas antes de esta regla.
+- **Contraseña segura:** al registrarse tiene que tener **al menos 8 caracteres, una mayúscula, una minúscula, un número y un
+  símbolo**. La pantalla muestra la lista de requisitos y los va tildando mientras se escribe. Ingresar no la vuelve a exigir.
+- **Verificar el mail:** al registrarse se manda un correo con un enlace, y hasta que se verifica el router solo deja ver la
+  pantalla "Verificá tu mail" (con "Ya verifiqué", "Reenviar el correo" y "Usar otra cuenta"). **También le pasa a cualquier
+  cuenta anterior que nunca verificó su mail:** al ingresar la pantalla le pide verificar. El rol y el documento
+  `usuarios/{uid}` solo se crean para cuentas con el mail verificado.
+- **Olvidé mi contraseña:** el botón del ingreso manda un correo para elegir una contraseña nueva, con el mail que ya se
+  escribió. El aviso es el mismo exista o no una cuenta con ese mail, para que nadie averigüe qué mails están registrados.
+
+**Qué todavía hace cumplir solo la app, no el servidor:** el dominio del mail y las reglas de la contraseña se comprueban en el
+celular, así que alguien que hable directo con Firebase se las salta. Para que también las haga cumplir el servidor:
+1. En la consola de Firebase, Authentication > Configuración > **Política de contraseñas**: activar la exigencia con los mismos
+   requisitos (8 caracteres, mayúscula, minúscula, número y símbolo).
+2. Restringir el dominio del mail con una función de bloqueo (Authentication > Configuración > Funciones de bloqueo) o con las
+   reglas de Firestore por rol (issue #46).
+
+**Pendiente:** el ingreso con **Google** (hace falta habilitar el proveedor en la consola de Firebase, cargar la huella SHA-1
+de la app y bajar un `google-services.json` nuevo; con Google el mail ya viene verificado) y el **cierre de sesión por
+inactividad**, que figuraba entre las mitigaciones del plan de riesgos.
 - Antes de mostrarla al profesor conviene crear una cuenta de prueba: el registro escribe en Firebase de verdad.
 
 ## Roles
