@@ -3,10 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/app_colors.dart';
+import '../../core/permisos.dart';
 import '../../models/insumo.dart';
 import '../../providers/insumo_providers.dart';
 import '../../providers/role_provider.dart';
-import '../../models/usuario.dart';
 
 
 // Detalle de un insumo. Recibe solo el id (viene en la ruta /insumo/:id)
@@ -20,8 +20,11 @@ class InsumoDetalleScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final insumoAsync = ref.watch(insumoPorIdProvider(insumoId));
-    // El Docente solo puede mirar: no edita, no da de baja ni registra salidas.
-    final puedeEditar = ref.watch(roleProvider) != UserRole.docente;
+    // Editar y dar de baja es del administrador; registrar consumo, también
+    // del ayudante. El docente solo mira.
+    final rol = ref.watch(roleProvider);
+    final puedeEditar = Permisos.puedeEditarOBaja(rol);
+    final puedeConsumir = Permisos.puedeRegistrarConsumo(rol);
 
     return SafeArea(
       child: insumoAsync.when(
@@ -29,7 +32,11 @@ class InsumoDetalleScreen extends ConsumerWidget {
           if (insumo == null) {
             return const Center(child: Text('El insumo no existe'));
           }
-          return _DetalleContenido(insumo: insumo, puedeEditar: puedeEditar);
+          return _DetalleContenido(
+            insumo: insumo,
+            puedeEditar: puedeEditar,
+            puedeConsumir: puedeConsumir,
+          );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(child: Text('Error: $error')),
@@ -41,10 +48,15 @@ class InsumoDetalleScreen extends ConsumerWidget {
 // El contenido ya con el insumo cargado. Es un StatelessWidget aparte para
 // que el build de arriba quede corto (solo decide cargando/error/datos).
 class _DetalleContenido extends StatelessWidget {
-  const _DetalleContenido({required this.insumo, required this.puedeEditar});
+  const _DetalleContenido({
+    required this.insumo,
+    required this.puedeEditar,
+    required this.puedeConsumir,
+  });
 
   final Insumo insumo;
   final bool puedeEditar;
+  final bool puedeConsumir;
 
   @override
   Widget build(BuildContext context) {
@@ -108,7 +120,7 @@ class _DetalleContenido extends StatelessWidget {
                   child: const Text('Historial'),
                 ),
               ),
-              if (puedeEditar) ...[
+              if (puedeConsumir) ...[
                 const SizedBox(width: 12),
                 Expanded(
                   child: ElevatedButton(

@@ -492,6 +492,24 @@ de ese documento (`RolDeSesionService`, en `lib/services/`) y la app decide con 
 - **Qué ve cada rol en el menú lateral:** el docente ve Inventario, Historial y Lista para trabajos prácticos; el ayudante
   suma Lista de compras; el administrador suma Usuarios.
 
+**Qué puede hacer cada rol con los insumos** (`Permisos`, en `lib/core/permisos.dart`, es el único lugar donde se decide):
+
+| | Administrador | Ayudante | Docente |
+|---|---|---|---|
+| Ver inventario, detalle e historial | sí | sí | sí |
+| Registrar consumo (salida de stock) | sí | sí | no |
+| Dar de alta un insumo (botón "+" y pantalla de Alta) | sí | no | no |
+| Editar o dar de baja un insumo | sí | no | no |
+
+Sale de los requerimientos: R15 (administrador, acceso total), R16 (ayudante, "ver y modificar stock") y R17 (docente, solo
+lectura). Los requerimientos no dicen qué rol da de alta, edita o da de baja (R01 y R06); **se reservó al administrador por
+interpretación**: el ayudante mueve el stock, pero no cambia el catálogo. Si el cliente decide otra cosa, se cambia solo en
+`Permisos`. El docente puede además marcar insumos para un trabajo práctico (R17), eso se maneja en su propia pantalla.
+
+Los botones de lo que no se puede hacer se esconden, y las pantallas de Alta, Escáner y Consumo se protegen además con
+`SoloConPermiso`, que muestra "No tenés permiso para usar esta pantalla" si el rol no corresponde. **Editar y dar de baja
+todavía no están hechos** (el botón dice "Próximamente"), pero ya solo los ve el administrador.
+
 **Cómo hacer al primer administrador** (hay que hacerlo una vez, a mano):
 1. Iniciar sesión en la app con esa cuenta, para que se cree su documento.
 2. En la consola de Firebase: Firestore Database > Datos > colección `usuarios` > el documento de esa persona (el id es su

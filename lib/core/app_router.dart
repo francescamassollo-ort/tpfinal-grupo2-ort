@@ -18,7 +18,9 @@ import '../screens/tp/tp_detalle_screen.dart';
 import '../screens/tp/tp_editar_screen.dart';
 import '../screens/tp/tp_lista_screen.dart';
 import '../screens/usuarios/usuarios_screen.dart';
+import '../widgets/solo_con_permiso.dart';
 import 'app_shell.dart';
+import 'permisos.dart';
 
 // Se arranca en /inventario, pero sin sesión iniciada el redirect de abajo manda
 // a /welcome; con sesión, las pantallas de ingreso mandan a /inventario.
@@ -50,15 +52,23 @@ final GoRouter appRouter = GoRouter(
 
     // El escáner de código de barras es la cámara a pantalla completa, sin barra
     // inferior ni botón flotante, como en el diseño.
-    GoRoute(path: '/scanner', builder: (context, state) => const ScannerScreen()),
+    GoRoute(
+      path: '/scanner',
+      builder: (context, state) => const SoloConPermiso(
+        permitido: Permisos.puedeDarDeAlta,
+        child: ScannerScreen(),
+      ),
+    ),
 
     // Registro de consumo también va sin barra inferior ni botón flotante, como
     // en el diseño. /consumo?insumo=ID abre la pantalla con ese insumo ya
     // elegido.
     GoRoute(
       path: '/consumo',
-      builder: (context, state) =>
-          ConsumoScreen(insumoId: state.uri.queryParameters['insumo']),
+      builder: (context, state) => SoloConPermiso(
+        permitido: Permisos.puedeRegistrarConsumo,
+        child: ConsumoScreen(insumoId: state.uri.queryParameters['insumo']),
+      ),
     ),
 
     // ShellRoute: todas estas rutas comparten el mismo AppShell
@@ -71,7 +81,13 @@ final GoRouter appRouter = GoRouter(
         GoRoute(path: '/inventario/filtro', builder: (context, state) => const BuscarFiltroScreen()),
         // /insumo/alta va antes que /insumo/:id; si no, go_router tomaría
         // "alta" como si fuera el id de un insumo.
-        GoRoute(path: '/insumo/alta', builder: (context, state) => const InsumoAltaScreen()),
+        GoRoute(
+          path: '/insumo/alta',
+          builder: (context, state) => const SoloConPermiso(
+            permitido: Permisos.puedeDarDeAlta,
+            child: InsumoAltaScreen(),
+          ),
+        ),
         GoRoute(
           path: '/insumo/:id',
           builder: (context, state) =>

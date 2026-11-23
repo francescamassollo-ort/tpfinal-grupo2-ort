@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../models/alerta.dart';
+import 'permisos.dart';
 import '../providers/alerta_provider.dart';
 import '../providers/role_provider.dart';
 import '../models/usuario.dart';
@@ -138,8 +139,8 @@ String? _rutaBotonAgregar(String location, UserRole role) {
   // ("Guardar" y "Registrar consumo").
   if (location.startsWith('/insumo/')) return null;
 
-  // Resto de las pantallas: alta de insumo, como antes.
-  return '/insumo/alta';
+  // Resto de las pantallas: alta de insumo, solo para quien puede darlos de alta.
+  return Permisos.puedeDarDeAlta(role) ? '/insumo/alta' : null;
 }
 
 class _AppDrawer extends StatelessWidget {
