@@ -65,7 +65,7 @@ flutter pub get
 ```
 flutter run -d <identificador-del-emulador>
 ```
-La app arranca en **Inventario**: el login todavía no está conectado a Firebase, así que no se piden credenciales.
+La app pide **iniciar sesión** (o crear una cuenta) antes de mostrar nada: ver "Inicio de sesión". La primera vez hay que registrarse con un mail y una contraseña de al menos 6 caracteres.
 
 Firebase ya viene configurado en el repositorio (`android/app/google-services.json` y
 `lib/firebase_options.dart`), no hace falta crear nada.
@@ -119,7 +119,7 @@ Todo el código está en `lib/`.
 Las pruebas unitarias están en `test/` (fuera de `lib/`).
 
 ## Navegación
-- La app arranca en **Inventario**. El login queda para el final.
+- La app arranca en **Bienvenida** si no hay una sesión iniciada, y en **Inventario** si la hay. Ver "Inicio de sesión".
 - **Dentro del `AppShell`** (barra inferior y menú lateral, que muestra opciones según el rol): Inventario, Detalle de insumo (`/insumo/:id`), Alta de insumo, Alertas, Trabajos prácticos, Usuarios y Perfil.
 - **Fuera del `AppShell`**, a pantalla completa: Welcome, Login, Register, **Historial**, **Lista de compras**, **Registro de consumo** y **Escáner**.
 
@@ -133,9 +133,9 @@ Las pruebas unitarias están en `test/` (fuera de `lib/`).
 ### Acceso
 | Pantalla | Ruta | Estado |
 |---|---|---|
-| Bienvenida | `/welcome` | 🚧 En construcción |
-| Iniciar sesión | `/login` | 🚧 En construcción (todavía no usa `AuthService`) |
-| Registro | `/register` | 🚧 En construcción (todavía no usa `AuthService`) |
+| Bienvenida | `/welcome` | ✅ Funcional (lleva a ingresar o a registrarse) |
+| Iniciar sesión | `/login` | ✅ Funcional (mail y contraseña con Firebase Authentication) |
+| Registro | `/register` | ✅ Funcional (crea la cuenta; las contraseñas se escriben ocultas) |
 
 ### Inventario
 | Pantalla | Ruta | Estado |
@@ -206,8 +206,8 @@ usa la predicción). Lo escribe `StockService`:
   inicial, con el motivo "Alta de insumo"; si el stock inicial es 0 no hay movimiento).
 - **Cómo se guarda la cantidad:** positiva en entradas y salidas (el sentido lo da el tipo) y con signo en los ajustes.
 - **Quién lo hizo:** el id y el nombre de la persona se guardan en el movimiento. El nombre sale del documento de la persona
-  en `usuarios`, o del nombre o el email de su cuenta de Firebase; sin sesión figura "Sin sesión" (hoy el login todavía no
-  está conectado). Para que salga el nombre del documento, el registro tiene que crear `usuarios/{uid}`.
+  en `usuarios`, o del nombre o el email de su cuenta de Firebase; sin sesión figura "Sin sesión" (con el login conectado no
+  debería pasar). Para que salga el nombre del documento, el registro tiene que crear `usuarios/{uid}`.
 - **Las cuentas se prueban solas:** validar, calcular el stock que queda y armar el movimiento está en `StockLogica`, sin
   Firestore. La transacción en sí no tiene prueba automática y se probó a mano.
 - Los errores (cantidad inválida, stock insuficiente, insumo inexistente) son `StockException` con un mensaje listo para
@@ -238,8 +238,8 @@ barra inferior deja de contarla (el color de la campana también mira solo las q
 
 - **Es por persona.** Se guarda en la colección `alertasVistas`, un documento por persona y alerta (id
   `{usuarioId}_{alertaId}`). Lo que marca una persona no cambia lo que ven las demás.
-- **El login todavía no está conectado**, así que hoy todos comparten el id `sin-sesion` y en la práctica se comparte. Cuando
-  se conecte, el id sale de la sesión de Firebase (`usuarioActualIdProvider`) y pasa a ser por persona sin tocar nada más.
+- **Con el login conectado, el id sale de la sesión de Firebase** (`usuarioActualIdProvider`), así que cada persona tiene sus
+  propias marcas. El id fijo `sin-sesion` queda solo como respaldo si no hubiera sesión.
 - **Las alertas se calculan, no se guardan:** lo único que se guarda es la marca. Cuando una alerta deja de existir (por
   ejemplo, se repone el stock) su marca se borra sola, así que si vuelve a aparecer lo hace como nueva.
 - **La limpieza es conservadora:** solo borra cuando los insumos, los movimientos, los trabajos prácticos y las marcas
@@ -404,6 +404,22 @@ La integracion de codigo de barras no esta implementada todavia. El flujo previs
 
   La primera busca claves de Groq y la segunda las de Gemini. En `lib/firebase_options.dart` aparece una clave que empieza con
   `AIza`: es la de Firebase, que genera la propia herramienta y se sube a proposito. No es una filtracion.
+
+## Inicio de sesión
+La app usa **Firebase Authentication** con mail y contraseña (`AuthService`, en `lib/services/auth_logic/`).
+
+- **Sin sesión no se ve nada:** el router redirige a Bienvenida (`/welcome`) desde cualquier pantalla que no sea Bienvenida,
+  Ingresar o Registrarse. Con sesión iniciada, esas tres pantallas redirigen a Inventario. El router se entera de los cambios de
+  sesión con `GoRouterRefreshStream` (en `lib/core/`), por eso al ingresar o cerrar sesión va solo a donde corresponde.
+- **Cerrar sesión** está al final del menú lateral.
+- **Los errores se explican en español** con el motivo que devuelve Firebase (mail mal escrito, contraseña de menos de 6
+  caracteres, cuenta repetida, contraseña incorrecta, demasiados intentos) en un cartel rojo que sale de `AuthService`. Las
+  comprobaciones previas (campos vacíos, contraseñas distintas) están en `ValidacionesAuth` y se prueban solas.
+- **No se limita el largo del mail:** los institucionales (`usuario@comunidadort.edu.ar`) tienen más de 20 caracteres.
+- **Pendiente:** al registrarse **no se crea el documento `usuarios/{uid}`** (nombre, mail y rol) y el rol de todos sigue
+  fijo en administrador (`roleProvider`). Por eso el Historial muestra el mail de la persona y la pantalla de Usuarios no
+  lista a quienes se registran. Hay que definir qué rol se le da a una cuenta nueva.
+- Antes de mostrarla al profesor conviene crear una cuenta de prueba: el registro escribe en Firebase de verdad.
 
 ## Reglas de Firestore
 Las reglas de seguridad de la base estan en [`firestore.rules`](firestore.rules). **Guardar el archivo no las aplica:** hay que
