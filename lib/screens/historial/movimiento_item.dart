@@ -1,8 +1,7 @@
 /// Un movimiento tal como lo muestra la pantalla de Historial.
 ///
-/// Es un modelo de presentación: tiene el texto ya listo para mostrar. Cuando
-/// exista el modelo de dominio de stock, se arma un MovimientoItem a partir de
-/// él sin tocar la pantalla.
+/// Es un modelo de presentación: tiene el texto ya listo para mostrar. Se arma
+/// a partir de un MovimientoStock en [HistorialItems].
 class MovimientoItem {
   const MovimientoItem({
     required this.id,

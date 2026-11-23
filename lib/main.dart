@@ -2,6 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'core/app_locale.dart';
 import 'core/app_router.dart';
 import 'core/theme.dart';
 import 'firebase_options.dart';
@@ -22,6 +23,9 @@ class MainApp extends StatelessWidget {
     return MaterialApp.router(
       theme: appTheme,
       routerConfig: appRouter,
+      locale: appLocale,
+      supportedLocales: appSupportedLocales,
+      localizationsDelegates: appLocalizationsDelegates,
     );
   }
 }
