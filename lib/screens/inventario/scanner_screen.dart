@@ -225,6 +225,13 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
           const SizedBox(height: 8),
           Text(detalles.join(' · '), style: AppTextStyles.listItemSubtitle),
         ],
+        // Las bases públicas a veces devuelven un producto que no es: el cartel
+        // de "autocompletado" no tiene que dar más seguridad de la que hay.
+        const SizedBox(height: 8),
+        Text(
+          AppStrings.escanerRevisarDatos,
+          style: AppTextStyles.listItemSubtitle,
+        ),
         const SizedBox(height: 16),
         Row(
           children: [

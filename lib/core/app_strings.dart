@@ -103,6 +103,8 @@ class AppStrings {
   static const String escanerCodigoAutocompletado =
       'CÓDIGO DETECTADO · AUTOCOMPLETADO';
   static const String escanerNoEncontrado = 'No encontramos este código';
+  static const String escanerRevisarDatos =
+      'Datos de una base pública: revisalos antes de usarlos';
   static const String escanerEditar = 'Editar';
   static const String escanerSumarStock = 'Sumar stock';
   static const String escanerEscanearDeNuevo = 'Escanear de nuevo';

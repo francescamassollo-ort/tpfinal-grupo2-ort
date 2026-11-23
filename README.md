@@ -272,8 +272,15 @@ diseño). Al leer un código lo busca en capas y se queda con la primera que lo 
   capa en `BarcodeService`.
 - **La cámara** usa `mobile_scanner` y solo lee códigos de barras de productos (EAN, UPC, Code 128, 39 y 93). Pide el permiso
   de cámara la primera vez; si se rechaza, la pantalla lo explica.
-- **Qué no se probó de forma automática:** la lectura real con la cámara (las pruebas usan una cámara falsa), y las respuestas
-  reales de UPCitemdb y PubChem (se probó con un servidor falso). Hay que probarlo en un celular físico.
+- **La calidad de los datos de UPCitemdb es variable.** Cubre productos comerciales, no reactivos de laboratorio, y a veces
+  devuelve avisos de tiendas online o un producto que no tiene nada que ver: en una prueba a mano, el código EAN de una
+  gaseosa devolvió "2 Packs Of 24 X 330ml Coke Cans" y un código inventado devolvió un producto cualquiera. Por eso el nombre
+  sale editable, la hoja avisa "Datos de una base pública: revisalos antes de usarlos" y no se aplica nada hasta tocar
+  "Usar estos datos". PubChem, en cambio, es confiable cuando reconoce el nombre (Ethanol da C2H6O y 46,07), pero un nombre
+  comercial largo no lo reconoce y en ese caso queda solo el nombre.
+- **Qué se probó y qué no:** las pruebas automáticas usan una cámara falsa y un servidor falso (así dan siempre lo mismo y no
+  gastan las consultas diarias de UPCitemdb). Se comprobó una vez a mano contra las APIs reales que el formato de las
+  respuestas coincide con lo que lee el servicio. Falta probar la lectura real con la cámara, que necesita un celular físico.
 
 ## Duplicados al dar de alta
 

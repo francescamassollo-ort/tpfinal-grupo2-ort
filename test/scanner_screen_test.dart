@@ -206,6 +206,13 @@ void main() {
       expect(find.text('Sumar stock'), findsOneWidget);
     });
 
+    testWidgets('no avisa de revisar los datos: son nuestros', (tester) async {
+      await _abrir(tester, caso: casoEnInventario());
+      await _leer(tester);
+
+      expect(find.textContaining('base pública'), findsNothing);
+    });
+
     testWidgets('"Editar" abre el detalle del insumo', (tester) async {
       await _abrir(tester, caso: casoEnInventario());
       await _leer(tester);
@@ -341,6 +348,17 @@ void main() {
       expect(caso.devuelto?.codigo, '7790001');
     });
 
+    testWidgets('avisa que hay que revisar los datos antes de usarlos',
+        (tester) async {
+      await _abrir(tester, caso: casoConocido());
+      await _leer(tester);
+
+      expect(
+        find.text('Datos de una base pública: revisalos antes de usarlos'),
+        findsOneWidget,
+      );
+    });
+
     testWidgets('sin fórmula ni marca muestra solo lo que hay', (tester) async {
       await _abrir(
         tester,
@@ -381,6 +399,8 @@ void main() {
       await _leer(tester);
 
       expect(find.textContaining('Sin conexión'), findsNothing);
+      // Tampoco hay datos que revisar: no se encontró nada.
+      expect(find.textContaining('base pública'), findsNothing);
     });
   });
 
