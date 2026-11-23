@@ -1,0 +1,189 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:tpfinal_grupo2/models/movimiento_stock.dart';
+import 'package:tpfinal_grupo2/models/usuario_actual.dart';
+import 'package:tpfinal_grupo2/services/stock_logica.dart';
+
+const _ana = UsuarioActual(id: 'u1', nombre: 'Ana Pérez');
+final _ahora = DateTime(2026, 11, 23, 10, 30);
+
+CambioDeStock _entrada({int stock = 10, int cantidad = 5, String? motivo}) =>
+    StockLogica.entrada(
+      insumoId: 'p1',
+      stockActual: stock,
+      cantidad: cantidad,
+      usuario: _ana,
+      ahora: _ahora,
+      motivo: motivo,
+    );
+
+CambioDeStock _salida({int stock = 10, int cantidad = 4, String? motivo}) =>
+    StockLogica.salida(
+      insumoId: 'p1',
+      stockActual: stock,
+      cantidad: cantidad,
+      usuario: _ana,
+      ahora: _ahora,
+      motivo: motivo,
+    );
+
+CambioDeStock _ajuste({int stock = 10, int deseado = 7, String? motivo}) =>
+    StockLogica.ajuste(
+      insumoId: 'p1',
+      stockActual: stock,
+      stockDeseado: deseado,
+      usuario: _ana,
+      ahora: _ahora,
+      motivo: motivo,
+    );
+
+Matcher _falla(String mensaje) => throwsA(
+      isA<StockException>().having((e) => e.mensaje, 'mensaje', mensaje),
+    );
+
+void main() {
+  group('entrada', () {
+    test('suma la cantidad al stock', () {
+      expect(_entrada(stock: 10, cantidad: 5).stockNuevo, 15);
+    });
+
+    test('se puede entrar stock a un insumo sin nada', () {
+      expect(_entrada(stock: 0, cantidad: 3).stockNuevo, 3);
+    });
+
+    test('el movimiento guarda la cantidad positiva y quién lo hizo', () {
+      final m = _entrada(cantidad: 5, motivo: 'Compra').movimiento;
+
+      expect(m.tipo, TipoMovimiento.entrada);
+      expect(m.cantidad, 5);
+      expect(m.productoId, 'p1');
+      expect(m.usuarioId, 'u1');
+      expect(m.usuarioNombre, 'Ana Pérez');
+      expect(m.fecha, _ahora);
+      expect(m.motivo, 'Compra');
+    });
+
+    test('el id va vacío: lo asigna Firestore', () {
+      expect(_entrada().movimiento.id, '');
+    });
+
+    test('una cantidad de 0 o negativa se rechaza', () {
+      expect(() => _entrada(cantidad: 0), _falla('La cantidad debe ser mayor a 0'));
+      expect(() => _entrada(cantidad: -2), _falla('La cantidad debe ser mayor a 0'));
+    });
+  });
+
+  group('salida', () {
+    test('resta la cantidad del stock', () {
+      expect(_salida(stock: 10, cantidad: 4).stockNuevo, 6);
+    });
+
+    test('se puede sacar todo lo que hay', () {
+      expect(_salida(stock: 10, cantidad: 10).stockNuevo, 0);
+    });
+
+    test('no se puede sacar más de lo que hay', () {
+      expect(() => _salida(stock: 3, cantidad: 4), _falla('Stock insuficiente'));
+    });
+
+    test('sin stock no se puede sacar nada', () {
+      expect(() => _salida(stock: 0, cantidad: 1), _falla('Stock insuficiente'));
+    });
+
+    test('el movimiento guarda la cantidad positiva, no con signo', () {
+      final m = _salida(cantidad: 4, motivo: 'TP').movimiento;
+
+      expect(m.tipo, TipoMovimiento.salida);
+      expect(m.cantidad, 4);
+      expect(m.motivo, 'TP');
+    });
+
+    test('una cantidad de 0 o negativa se rechaza', () {
+      expect(() => _salida(cantidad: 0), _falla('La cantidad debe ser mayor a 0'));
+      expect(() => _salida(cantidad: -1), _falla('La cantidad debe ser mayor a 0'));
+    });
+  });
+
+  group('ajuste', () {
+    test('deja el stock en la cantidad deseada', () {
+      expect(_ajuste(stock: 10, deseado: 7).stockNuevo, 7);
+    });
+
+    test('si el stock baja, el movimiento guarda la diferencia negativa', () {
+      final m = _ajuste(stock: 10, deseado: 7).movimiento;
+
+      expect(m.tipo, TipoMovimiento.ajuste);
+      expect(m.cantidad, -3);
+    });
+
+    test('si el stock sube, el movimiento guarda la diferencia positiva', () {
+      final m = _ajuste(stock: 10, deseado: 14).movimiento;
+
+      expect(m.cantidad, 4);
+    });
+
+    test('se puede dejar el stock en 0', () {
+      final cambio = _ajuste(stock: 10, deseado: 0);
+
+      expect(cambio.stockNuevo, 0);
+      expect(cambio.movimiento.cantidad, -10);
+    });
+
+    test('un stock negativo se rechaza', () {
+      expect(
+        () => _ajuste(deseado: -1),
+        _falla('El stock no puede ser negativo'),
+      );
+    });
+
+    test('un ajuste que no cambia nada se rechaza', () {
+      expect(() => _ajuste(stock: 10, deseado: 10), _falla('El stock ya es esa cantidad'));
+    });
+  });
+
+  group('lo que ve el historial', () {
+    test('la variación del movimiento es justo lo que cambió el stock', () {
+      final casos = [
+        (stock: 10, cambio: _entrada(stock: 10, cantidad: 5)),
+        (stock: 10, cambio: _salida(stock: 10, cantidad: 4)),
+        (stock: 10, cambio: _ajuste(stock: 10, deseado: 7)),
+        (stock: 10, cambio: _ajuste(stock: 10, deseado: 25)),
+      ];
+
+      for (final caso in casos) {
+        expect(
+          caso.cambio.movimiento.variacion,
+          caso.cambio.stockNuevo - caso.stock,
+          reason: 'tipo ${caso.cambio.movimiento.tipo.name}',
+        );
+      }
+    });
+
+    test('un motivo vacío o de solo espacios queda sin motivo', () {
+      expect(_entrada(motivo: '   ').movimiento.motivo, isNull);
+      expect(_salida(motivo: '').movimiento.motivo, isNull);
+      expect(_ajuste(motivo: null).movimiento.motivo, isNull);
+    });
+
+    test('el motivo se guarda sin los espacios de los extremos', () {
+      expect(_salida(motivo: '  Trabajo práctico 3 ').movimiento.motivo,
+          'Trabajo práctico 3');
+    });
+
+    test('sin sesión, el movimiento queda a nombre de "Sin sesión"', () {
+      final cambio = StockLogica.salida(
+        insumoId: 'p1',
+        stockActual: 5,
+        cantidad: 1,
+        usuario: UsuarioActual.sinSesion,
+        ahora: _ahora,
+      );
+
+      expect(cambio.movimiento.usuarioId, 'sin-sesion');
+      expect(cambio.movimiento.usuarioNombre, 'Sin sesión');
+    });
+  });
+
+  test('la excepción se muestra con su mensaje, sin el prefijo "Exception"', () {
+    expect(const StockException('Stock insuficiente').toString(), 'Stock insuficiente');
+  });
+}
