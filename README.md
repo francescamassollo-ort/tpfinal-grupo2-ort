@@ -65,7 +65,7 @@ flutter pub get
 ```
 flutter run -d <identificador-del-emulador>
 ```
-La app pide **iniciar sesión** (o crear una cuenta) antes de mostrar nada: ver "Inicio de sesión". La primera vez hay que registrarse con un mail y una contraseña de al menos 6 caracteres.
+La app pide **iniciar sesión** (o crear una cuenta) antes de mostrar nada: ver "Inicio de sesión". La primera vez hay que registrarse con un mail institucional de ORT y una contraseña segura (8 caracteres, mayúscula, minúscula, número y símbolo), y después verificar el mail con el enlace que llega por correo.
 
 Firebase ya viene configurado en el repositorio (`android/app/google-services.json` y
 `lib/firebase_options.dart`), no hace falta crear nada.
