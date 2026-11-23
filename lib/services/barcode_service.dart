@@ -86,7 +86,7 @@ class BarcodeService {
           : const CodigoSinResultado(aviso: avisoError);
     }
 
-    final quimica = await _buscarEnPubchem(producto.nombre);
+    final quimica = await datosQuimicos(producto.nombre);
     return CodigoConocido(
       nombre: producto.nombre,
       marca: producto.marca,
@@ -163,15 +163,16 @@ class BarcodeService {
     }
   }
 
-  // PubChem completa los datos, pero no son imprescindibles: si falla o no
-  // reconoce el nombre, se sigue solo con el nombre del producto.
-  Future<({String? formula, double? pesoMolecular})?> _buscarEnPubchem(
-    String nombre,
+  /// La fórmula y el peso molecular que PubChem tiene para [nombreOCas]: un
+  /// nombre (en inglés anda mejor) o un número CAS ("64-17-5"). Devuelve null si
+  /// PubChem no lo reconoce o si falla: son datos de ayuda, nunca un error.
+  Future<({String? formula, double? pesoMolecular})?> datosQuimicos(
+    String nombreOCas,
   ) async {
     try {
       final respuesta = await _get(
         Uri.parse(
-          '$_pubchemUrlBase/compound/name/${Uri.encodeComponent(nombre)}'
+          '$_pubchemUrlBase/compound/name/${Uri.encodeComponent(nombreOCas)}'
           '/property/MolecularFormula,MolecularWeight/JSON',
         ),
       );
