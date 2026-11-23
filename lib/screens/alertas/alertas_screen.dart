@@ -10,12 +10,16 @@ import '../../providers/alerta_provider.dart';
 import '../../widgets/app_decorative_background.dart';
 import '../../widgets/app_screen_header.dart';
 import 'alerta_tile.dart';
+import 'alertas_filtro_dialog.dart';
 
 /// Alertas de stock y vencimientos. Va dentro del AppShell: conserva la barra
 /// inferior pero, según el diseño, sin botón flotante, Compartir ni Descargar.
 ///
 /// Cada alerta se puede marcar como vista: queda en la lista pero atenuada, y
 /// la campana deja de contarla. Es por persona.
+///
+/// El ícono de filtros abre un panel para ver solo un tipo de alerta o solo las
+/// vistas o sin ver. El filtro cambia la lista, no lo que cuenta la campana.
 class AlertasScreen extends ConsumerStatefulWidget {
   const AlertasScreen({super.key});
 
@@ -24,10 +28,6 @@ class AlertasScreen extends ConsumerStatefulWidget {
 }
 
 class _AlertasScreenState extends ConsumerState<AlertasScreen> {
-  // El filtro todavía no existe: el diseño solo dibuja el ícono y no define
-  // qué opciones tiene.
-  static const VoidCallback? _onFiltros = null;
-
   @override
   void initState() {
     super.initState();
@@ -54,8 +54,13 @@ class _AlertasScreenState extends ConsumerState<AlertasScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final alertas = ref.watch(alertasProvider);
+    final alertas = ref.watch(alertasFiltradasProvider);
     final vistas = ref.watch(alertasVistasIdsProvider);
+    final filtro = ref.watch(filtroAlertasProvider);
+    // Si no hay ninguna alerta, con o sin filtro, no tiene sentido ofrecer
+    // "limpiar filtros": no hay nada que el filtro esté escondiendo.
+    final hayAlertas =
+        (ref.watch(alertasProvider).value ?? const <Alerta>[]).isNotEmpty;
 
     return ColoredBox(
       color: AppColors.screenBackground,
@@ -70,17 +75,24 @@ class _AlertasScreenState extends ConsumerState<AlertasScreen> {
                 title: AppStrings.alertasTitulo,
                 onBack: () => _volver(context),
               ),
-              const Align(
+              Align(
                 alignment: Alignment.centerRight,
                 child: Padding(
-                  padding: EdgeInsets.only(right: 26),
+                  padding: const EdgeInsets.only(right: 26),
                   child: IconButton(
-                    onPressed: _onFiltros,
+                    onPressed: _abrirFiltros,
                     tooltip: AppStrings.filtros,
-                    icon: Icon(
-                      Icons.tune,
-                      size: 24,
-                      color: AppColors.titleColor,
+                    // El punto avisa que hay un filtro puesto: sin él, una
+                    // lista corta podría parecer que faltan alertas.
+                    icon: Badge(
+                      isLabelVisible: !filtro.estaVacio,
+                      smallSize: 9,
+                      backgroundColor: AppColors.movementBlue,
+                      child: const Icon(
+                        Icons.tune,
+                        size: 24,
+                        color: AppColors.titleColor,
+                      ),
                     ),
                   ),
                 ),
@@ -96,11 +108,10 @@ class _AlertasScreenState extends ConsumerState<AlertasScreen> {
                     ),
                   ),
                   data: (lista) => lista.isEmpty
-                      ? Center(
-                          child: Text(
-                            AppStrings.alertasVacia,
-                            style: AppTextStyles.listItemSubtitle,
-                          ),
+                      ? _ListaVacia(
+                          hayFiltro: !filtro.estaVacio && hayAlertas,
+                          onLimpiar:
+                              ref.read(filtroAlertasProvider.notifier).limpiar,
                         )
                       : ListView.separated(
                           padding: const EdgeInsets.fromLTRB(36, 8, 36, 20),
@@ -129,6 +140,18 @@ class _AlertasScreenState extends ConsumerState<AlertasScreen> {
     );
   }
 
+  // Abre el panel de filtros y espera a que se cierre. Si se tocó "Filtrar" o
+  // "Limpiar" devuelve el filtro elegido y se guarda; si se cerró tocando
+  // afuera devuelve null y no cambia nada.
+  Future<void> _abrirFiltros() async {
+    final elegido = await AlertasFiltroDialog.mostrar(
+      context,
+      ref.read(filtroAlertasProvider),
+    );
+    if (elegido == null || !mounted) return;
+    ref.read(filtroAlertasProvider.notifier).cambiar(elegido);
+  }
+
   // Marca la alerta como vista o, si ya lo estaba, la vuelve a dejar como
   // nueva. La lista se actualiza sola cuando Firestore confirma el cambio.
   Future<void> _alternarVista(Alerta alerta, bool vista) async {
@@ -155,5 +178,40 @@ class _AlertasScreenState extends ConsumerState<AlertasScreen> {
     } else {
       context.go('/inventario');
     }
+  }
+}
+
+/// Lo que se ve cuando no hay filas. Distingue dos casos: no hay alertas, o las
+/// hay pero ninguna cumple el filtro (con un enlace para sacarlo).
+class _ListaVacia extends StatelessWidget {
+  const _ListaVacia({required this.hayFiltro, required this.onLimpiar});
+
+  final bool hayFiltro;
+  final VoidCallback onLimpiar;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 36),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              hayFiltro
+                  ? AppStrings.alertasSinCoincidencias
+                  : AppStrings.alertasVacia,
+              textAlign: TextAlign.center,
+              style: AppTextStyles.listItemSubtitle,
+            ),
+            if (hayFiltro)
+              TextButton(
+                onPressed: onLimpiar,
+                child: const Text(AppStrings.alertasLimpiarFiltros),
+              ),
+          ],
+        ),
+      ),
+    );
   }
 }
