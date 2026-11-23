@@ -1,6 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
-import '../services/auth_logic/auth_service.dart';
+import 'go_router_refresh_stream.dart';
 import '../screens/alertas/alertas_screen.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/auth/register_screen.dart';
@@ -37,7 +37,6 @@ final GoRouter appRouter = GoRouter(
   
   routes: [
     // Pantallas sin barra ni drawer (todavía no hay sesión iniciada).
-    GoRoute(path: '/auth', builder: (context, state) => const AuthWrapper()),
     GoRoute(path: '/welcome', builder: (context, state) => const WelcomeScreen()),
     GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
     GoRoute(path: '/register', builder: (context, state) => const RegisterScreen()),

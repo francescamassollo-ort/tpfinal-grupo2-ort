@@ -1,10 +1,6 @@
 
-import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-//import '../auth_logic/auth_tester.dart';
-import '../../screens/auth/welcome_screen.dart';
-import '../../screens/inventario/inventario_screen.dart';
 
 // 1. Global key accessible from anywhere in your app
 final GlobalKey<ScaffoldMessengerState> rootScaffoldMessengerKey =
@@ -22,22 +18,6 @@ void showGlobalErrorSnackBar(String message) {
       ),
     );
 }
-
-class GoRouterRefreshStream extends ChangeNotifier { 
-  GoRouterRefreshStream(Stream<dynamic> stream) { 
-    notifyListeners(); 
-    _subscription = stream.asBroadcastStream().listen((_) => notifyListeners()); 
-  } 
-
-  late final StreamSubscription<dynamic> _subscription; 
-
-  @override 
-  void dispose() { 
-    _subscription.cancel(); 
-    super.dispose(); 
-  } 
-}
-
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -120,36 +100,3 @@ class AuthService {
 
   // aca iria autenticacion con ****** si se pide >.>
 }
-
-
-// Example of how AuthWrapper might look to manage navigation based on auth state
-class AuthWrapper extends StatelessWidget {
-  const AuthWrapper({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    // Access the user stream from AuthService
-    return StreamBuilder<User?>(
-      stream: AuthService().user, // Listen to authentication state changes
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          // While waiting for the authentication state to be determined, show a loading spinner
-          return const Scaffold(body: Center(child: CircularProgressIndicator()));
-        } else if (snapshot.hasData) {
-          // If there is user data, the user is signed in
-          //ESTO MUESTRA EL INVENTARIO
-          return const InventarioScreen(); // Navigate to your main app screen
-          //return const AuthTester(); //se usa para probar o modificar funcionalidades con auth.
-        } else {
-          // If there is no user data, the user is signed out
-          //return const SignInScreen(); // Navigate to your sign-in screen
-          return const WelcomeScreen();
-        }
-      },
-    );
-  }
-}
-
-
-
-
