@@ -30,8 +30,6 @@ class AppShell extends ConsumerWidget {
     // Mientras las alertas cargan, o si fallan, va sin número: no hace falta
     // avisar de nada que todavía no se sabe.
     final alertas = ref.watch(alertasSinVerProvider);
-    // El diseño de Alertas no lleva el botón flotante.
-    final mostrarBotonAgregar = location != '/alertas';
 
     return Scaffold(
       drawer: _AppDrawer(role: role),
