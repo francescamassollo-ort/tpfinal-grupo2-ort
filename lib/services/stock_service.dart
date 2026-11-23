@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../models/insumo.dart';
 import '../models/usuario_actual.dart';
 import 'historial_service.dart';
 import 'insumo_service.dart';
@@ -42,6 +43,32 @@ class StockService {
     }
 
     return insumo.stock;
+  }
+
+  /// Da de alta un insumo nuevo y, si trae stock, deja una entrada con ese
+  /// stock inicial en el historial. Las dos escrituras van juntas: o se guardan
+  /// las dos o ninguna. Devuelve el id del insumo creado.
+  Future<String> registrarAlta(Insumo insumo) async {
+    final usuario = await _usuarioActual.obtener();
+
+    final insumoRef = _db.collection(InsumoService.coleccion).doc();
+    final movimiento = StockLogica.altaDeInsumo(
+      insumoId: insumoRef.id,
+      stockInicial: insumo.stock,
+      usuario: usuario,
+      ahora: DateTime.now(),
+    );
+
+    final lote = _db.batch()..set(insumoRef, insumo.toMap());
+    if (movimiento != null) {
+      lote.set(
+        _db.collection(HistorialService.coleccion).doc(),
+        movimiento.toMap(),
+      );
+    }
+    await lote.commit();
+
+    return insumoRef.id;
   }
 
   /// Suma [cantidad] al stock del insumo. Deja un movimiento de entrada.

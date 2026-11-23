@@ -183,6 +183,55 @@ void main() {
     });
   });
 
+  group('alta de un insumo', () {
+    MovimientoStock? alta({int stock = 12, UsuarioActual usuario = _ana}) =>
+        StockLogica.altaDeInsumo(
+          insumoId: 'nuevo-1',
+          stockInicial: stock,
+          usuario: usuario,
+          ahora: _ahora,
+        );
+
+    test('deja una entrada por todo el stock inicial', () {
+      final m = alta(stock: 12)!;
+
+      expect(m.tipo, TipoMovimiento.entrada);
+      expect(m.cantidad, 12);
+      expect(m.productoId, 'nuevo-1');
+      expect(m.fecha, _ahora);
+    });
+
+    test('queda con el motivo "Alta de insumo" y a nombre de quien lo creó', () {
+      final m = alta()!;
+
+      expect(m.motivo, 'Alta de insumo');
+      expect(m.usuarioId, 'u1');
+      expect(m.usuarioNombre, 'Ana Pérez');
+    });
+
+    test('si el stock inicial es 0 no hay movimiento', () {
+      expect(alta(stock: 0), isNull);
+    });
+
+    test('un stock inicial negativo se rechaza', () {
+      expect(
+        () => alta(stock: -3),
+        _falla('El stock no puede ser negativo'),
+      );
+    });
+
+    test('el movimiento del alta suma justo el stock inicial al historial', () {
+      expect(alta(stock: 12)!.variacion, 12);
+    });
+
+    test('sin sesión queda a nombre de "Sin sesión"', () {
+      final m = alta(usuario: UsuarioActual.sinSesion)!;
+
+      expect(m.usuarioId, 'sin-sesion');
+      expect(m.usuarioNombre, 'Sin sesión');
+    });
+  });
+
   test('la excepción se muestra con su mensaje, sin el prefijo "Exception"', () {
     expect(const StockException('Stock insuficiente').toString(), 'Stock insuficiente');
   });

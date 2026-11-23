@@ -44,6 +44,10 @@ class StockLogica {
   static const String mensajeStockNegativo = 'El stock no puede ser negativo';
   static const String mensajeSinCambios = 'El stock ya es esa cantidad';
 
+  /// Motivo con el que queda registrada la entrada del stock inicial de un
+  /// insumo nuevo.
+  static const String motivoAlta = 'Alta de insumo';
+
   /// Suma [cantidad] al stock.
   static CambioDeStock entrada({
     required String insumoId,
@@ -120,6 +124,29 @@ class StockLogica {
         ahora: ahora,
         motivo: motivo,
       ),
+    );
+  }
+
+  /// El movimiento que deja el alta de un insumo con [stockInicial]: una
+  /// entrada por todo ese stock, para que el historial cuente desde el primer
+  /// día. Devuelve null si el stock inicial es 0, porque no hay nada que
+  /// registrar.
+  static MovimientoStock? altaDeInsumo({
+    required String insumoId,
+    required int stockInicial,
+    required UsuarioActual usuario,
+    required DateTime ahora,
+  }) {
+    if (stockInicial < 0) throw const StockException(mensajeStockNegativo);
+    if (stockInicial == 0) return null;
+
+    return _movimiento(
+      insumoId: insumoId,
+      tipo: TipoMovimiento.entrada,
+      cantidad: stockInicial,
+      usuario: usuario,
+      ahora: ahora,
+      motivo: motivoAlta,
     );
   }
 
