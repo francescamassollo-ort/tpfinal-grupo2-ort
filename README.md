@@ -473,10 +473,36 @@ La app usa **Firebase Authentication** con mail y contraseña (`AuthService`, en
   caracteres, cuenta repetida, contraseña incorrecta, demasiados intentos) en un cartel rojo que sale de `AuthService`. Las
   comprobaciones previas (campos vacíos, contraseñas distintas) están en `ValidacionesAuth` y se prueban solas.
 - **No se limita el largo del mail:** los institucionales (`usuario@comunidadort.edu.ar`) tienen más de 20 caracteres.
-- **Pendiente:** al registrarse **no se crea el documento `usuarios/{uid}`** (nombre, mail y rol) y el rol de todos sigue
-  fijo en administrador (`roleProvider`). Por eso el Historial muestra el mail de la persona y la pantalla de Usuarios no
-  lista a quienes se registran. Hay que definir qué rol se le da a una cuenta nueva.
+- **El rol de cada persona** sale de su documento en `usuarios/{uid}` (ver "Roles").
 - Antes de mostrarla al profesor conviene crear una cuenta de prueba: el registro escribe en Firebase de verdad.
+
+## Roles
+Hay tres roles: **administrador**, **ayudante** y **docente**. Cada persona tiene un documento `usuarios/{uid}` con su
+`nombre`, `email`, `rol`, `activo` y `puedeVerSedronar` (el `uid` es el de su cuenta de Firebase). `roleProvider` lee el rol
+de ese documento (`RolDeSesionService`, en `lib/services/`) y la app decide con él qué se ve y qué se puede hacer.
+
+- **Una cuenta nueva es docente**, el rol que menos puede hacer. **Nadie se vuelve administrador solo.**
+- **El documento se crea al iniciar sesión**, no al registrarse: así también lo tienen las cuentas que existían antes de que
+  hubiera documentos. Si ya existe no se toca (se crea dentro de una transacción), por eso volver a entrar nunca pisa un rol
+  que alguien cambió. El nombre arranca con el de la cuenta de Firebase, o con lo que va antes de la `@` del mail.
+- **Mientras se averigua el rol, si no hay sesión o si falla la lectura** (sin conexión, sin permiso) vale **docente**: es
+  mejor mostrar de menos un instante que dejar ver o tocar lo que no corresponde.
+- **El rol se actualiza solo:** si alguien lo cambia en Firestore mientras la persona usa la app, el menú y los botones se
+  actualizan sin cerrar sesión. Una persona dada de baja (`activo: false`) vale docente.
+- **Qué ve cada rol en el menú lateral:** el docente ve Inventario, Historial y Lista para trabajos prácticos; el ayudante
+  suma Lista de compras; el administrador suma Usuarios.
+
+**Cómo hacer al primer administrador** (hay que hacerlo una vez, a mano):
+1. Iniciar sesión en la app con esa cuenta, para que se cree su documento.
+2. En la consola de Firebase: Firestore Database > Datos > colección `usuarios` > el documento de esa persona (el id es su
+   `uid`, que figura en Authentication > Usuarios).
+3. Cambiar el campo `rol` de `docente` a `administrador`. La app lo toma sola.
+
+**Qué todavía no protege:** esto decide lo que **muestra la app**, no lo que **permite la base**. Las reglas de Firestore
+siguen abiertas hasta el 31/01/2027 (ver "Reglas de Firestore"), así que alguien que hable directo con la base podría cambiarse
+el rol. Las reglas por rol son el siguiente paso (issue #46) y recién ahí el rol es una barrera de verdad. Además, la
+pantalla de **Usuarios** (donde un administrador cambiaría los roles) todavía es un esqueleto: por ahora los roles se
+cambian en la consola.
 
 ## Reglas de Firestore
 Las reglas de seguridad de la base estan en [`firestore.rules`](firestore.rules). **Guardar el archivo no las aplica:** hay que
@@ -505,6 +531,11 @@ Parte del desarrollo (las pantallas de Historial, Lista de compras y Alertas, su
 y los componentes compartidos) se hizo con Claude (Anthropic) como asistente. Lo que propuso se revisó, se compiló y se probó en el emulador antes
 de subirlo.
 
+- **IA dentro de la app:** la app usa un modelo de lenguaje (Gemini, con Groq de respaldo) para dos cosas, siempre como
+  **sugerencia** que la persona acepta o descarta: detectar insumos duplicados con otro nombre ("Duplicados al dar de alta") y
+  sugerir la categoría de un insumo nuevo ("Categoría sugerida al dar de alta"). Solo reciben nombres y fórmulas, nunca
+  stock, ubicaciones ni datos de personas, y sin clave de IA la app sigue andando con comparación de texto y reglas. La
+  **lectura de etiquetas con la cámara** usa ML Kit, que corre en el teléfono y no manda la foto a ningún servidor.
 - **Por pasos chicos:** antes de escribir, se acordaba qué archivos cambiaban y en cuántos commits.
 - **Verificación:** después de cada paso se corría `flutter analyze` y se probaba la app en el emulador.
 - **Git lo manejamos nosotros:** ramas, commits, pushes y Pull Requests los hizo una persona del equipo.
