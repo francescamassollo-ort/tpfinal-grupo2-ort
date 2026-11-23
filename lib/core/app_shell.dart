@@ -24,6 +24,8 @@ class AppShell extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final role = ref.watch(roleProvider);
+    // A dónde lleva el botón flotante en la pantalla actual (null = sin botón).
+    final rutaBotonAgregar = _rutaBotonAgregar(location, role);
     // La campana cuenta solo las alertas que la persona todavía no vio.
     // Mientras las alertas cargan, o si fallan, va sin número: no hace falta
     // avisar de nada que todavía no se sabe.
@@ -34,9 +36,9 @@ class AppShell extends ConsumerWidget {
     return Scaffold(
       drawer: _AppDrawer(role: role),
       body: child,
-      floatingActionButton: mostrarBotonAgregar
+      floatingActionButton: rutaBotonAgregar != null
           ? FloatingActionButton(
-              onPressed: () => context.push('/insumo/alta'),
+              onPressed: () => context.push(rutaBotonAgregar),
               child: const Icon(Icons.add),
             )
           : null,
@@ -105,6 +107,26 @@ List<_DrawerItem> _itemsForRole(UserRole role) {
     items.add(const _DrawerItem('Usuarios', '/usuarios'));
   }
   return items;
+}
+
+// Ruta a la que lleva el botón flotante según la pantalla actual.
+// Devuelve null cuando la pantalla no lleva botón.
+String? _rutaBotonAgregar(String location, UserRole role) {
+  // El diseño de Alertas no lleva el botón flotante.
+  if (location == '/alertas') return null;
+
+  // Lista de TPs: crear un TP (solo admin y docente).
+  if (location == '/tp') {
+    final puedeCrearTp =
+        role == UserRole.administrador || role == UserRole.docente;
+    return puedeCrearTp ? '/tp/nuevo' : null;
+  }
+
+  // Detalle y edición de TP: sin botón.
+  if (location.startsWith('/tp/')) return null;
+
+  // Resto de las pantallas: alta de insumo, como antes.
+  return '/insumo/alta';
 }
 
 class _AppDrawer extends StatelessWidget {

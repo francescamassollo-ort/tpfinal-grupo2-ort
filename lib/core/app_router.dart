@@ -61,11 +61,26 @@ final GoRouter appRouter = GoRouter(
         ),
         GoRoute(path: '/alertas', builder: (context, state) => const AlertasScreen()),
         GoRoute(path: '/tp', builder: (context, state) => const TpListaScreen()),
-        GoRoute(path: '/tp/detalle', builder: (context, state) => const TpDetalleScreen()),
+        //GoRoute(path: '/tp/detalle', builder: (context, state) => const TpDetalleScreen()),
+        //GoRoute(path: '/tp/nuevo', builder: (context, state) => const TpEditarScreen()),
         GoRoute(path: '/tp/nuevo', builder: (context, state) => const TpEditarScreen()),
+        GoRoute(path: '/tp/detalle/:id',builder: (context, state) => TpDetalleScreen(tpId: state.pathParameters['id']!),),
+        GoRoute(path: '/tp/editar/:id', builder: (context, state) => TpEditarScreen(tpId: state.pathParameters['id']),),
         GoRoute(path: '/usuarios', builder: (context, state) => const UsuariosScreen()),
         GoRoute(path: '/perfil', builder: (context, state) => const PerfilScreen()),
       ],
     ),
   ],
 );
+
+/*
+GoRoute(path: '/tp/nuevo', builder: (context, state) => const TpEditarScreen()),
+GoRoute(
+  path: '/tp/detalle/:id',
+  builder: (context, state) => TpDetalleScreen(tpId: state.pathParameters['id']!),
+),
+GoRoute(
+  path: '/tp/editar/:id',
+  builder: (context, state) => TpEditarScreen(tpId: state.pathParameters['id']),
+),
+*/
