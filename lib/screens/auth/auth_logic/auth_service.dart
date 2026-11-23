@@ -135,9 +135,7 @@ class AuthWrapper extends StatelessWidget {
         } else if (snapshot.hasData) {
           // If there is user data, the user is signed in
           //ESTO MUESTRA EL INVENTARIO
-          //return const InventarioScreen(); // Navigate to your main app screen
-          //return const InventarioScreen();
-          return AuthTester();
+          return const InventarioScreen(); // Navigate to your main app screen
         } else {
           // If there is no user data, the user is signed out
           //return const SignInScreen(); // Navigate to your sign-in screen

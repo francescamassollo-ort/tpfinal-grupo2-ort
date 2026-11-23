@@ -71,7 +71,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ))
                       )
                     ),
-                    HandyTextButtonBlue(textPhrase: 'Olvidé mi contraseña',), //modificar
+                    //HandyTextButtonBlue(textPhrase: 'Olvidé mi contraseña',), //modificar
                     SizedBox(
                       width: double.infinity,
                       height: 52,

@@ -28,3 +28,8 @@ class AuthTester extends StatelessWidget {
     );
   }
 }
+
+/*
+Esto solo existe para probar y modificar auth cuando la base de datos no funciona.
+Se puede borrar sin problemas.
+*/

@@ -10,6 +10,8 @@ import '../models/usuario.dart';
 import 'app_colors.dart';
 import 'app_strings.dart';
 
+import '../screens/auth/auth_logic/auth_service.dart';
+
 // Envuelve todas las pantallas "internas" (las que tienen barra + drawer).
 // go_router llama a este widget una sola vez y le va cambiando el [child]
 // según la ruta actual, por eso la barra y el drawer no "parpadean" al
@@ -115,6 +117,7 @@ class _AppDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final items = _itemsForRole(role);
+    AuthService auth = AuthService();
 
     return Drawer(
       child: SafeArea(
@@ -145,9 +148,10 @@ class _AppDrawer extends StatelessWidget {
             const Spacer(),
             ListTile(
               title: const Text('Cerrar sesión'),
-              onTap: () {
-                Navigator.of(context).pop();
-                context.go('/login');
+              onTap: () async {
+                //Navigator.of(context).pop();
+                //context.go('/login');
+                await auth.signOut();
               },
             ),
           ],
