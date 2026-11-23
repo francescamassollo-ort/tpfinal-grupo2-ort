@@ -38,6 +38,7 @@ class TrabajoPractico {
     required this.nombre,
     required this.descripcion,
     required this.fecha,
+    required this.docente,
     required this.insumos,
     this.activo = true,
   });
@@ -46,6 +47,7 @@ class TrabajoPractico {
   final String nombre;
   final String descripcion;
   final DateTime fecha;
+  final String docente;
   final List<InsumoRequerido> insumos;
   final bool activo;
  
@@ -59,6 +61,7 @@ class TrabajoPractico {
       nombre: data['nombre'] as String,
       descripcion: (data['descripcion'] as String?) ?? '',
       fecha: (data['fecha'] as Timestamp).toDate(),
+      docente: (data['docente'] as String?) ?? '',
       insumos: ((data['insumos'] as List?) ?? [])
           .map((e) =>
               InsumoRequerido.fromMap(Map<String, dynamic>.from(e as Map)))
@@ -71,6 +74,7 @@ class TrabajoPractico {
         'nombre': nombre,
         'descripcion': descripcion,
         'fecha': Timestamp.fromDate(fecha),
+        'docente': docente,
         'insumos': insumos.map((e) => e.toMap()).toList(),
         'activo': activo,
       };
@@ -79,6 +83,7 @@ class TrabajoPractico {
     String? nombre,
     String? descripcion,
     DateTime? fecha,
+    String? docente,
     List<InsumoRequerido>? insumos,
     bool? activo,
   }) =>
@@ -87,6 +92,7 @@ class TrabajoPractico {
         nombre: nombre ?? this.nombre,
         descripcion: descripcion ?? this.descripcion,
         fecha: fecha ?? this.fecha,
+        docente: docente ?? this.docente,
         insumos: insumos ?? this.insumos,
         activo: activo ?? this.activo,
       );
@@ -98,10 +104,11 @@ class TrabajoPractico {
       other.nombre == nombre &&
       other.descripcion == descripcion &&
       other.fecha == fecha &&
+      other.docente == docente &&
       other.activo == activo &&
       listEquals(other.insumos, insumos);
  
   @override
   int get hashCode =>
-      Object.hash(id, nombre, descripcion, fecha, activo, Object.hashAll(insumos));
+      Object.hash(id, nombre, descripcion, fecha, activo,docente, Object.hashAll(insumos));
 }

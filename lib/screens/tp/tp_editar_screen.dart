@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 class TpEditarScreen extends StatelessWidget {
-  const TpEditarScreen({super.key});
+  final String? tpId;
+  const TpEditarScreen({this.tpId,super.key});
+
 
   @override
   Widget build(BuildContext context) {

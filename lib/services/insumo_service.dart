@@ -6,7 +6,11 @@ import '../models/insumo.dart';
 // Las pantallas le piden datos a esta clase, nunca hablan con Firestore
 // directo.
 class InsumoService {
-  final _insumosRef = FirebaseFirestore.instance.collection('insumos');
+  // Nombre de la colección. Tiene que coincidir con las reglas de Firestore
+  // (issue #46) y lo usa también StockService para cambiar el stock.
+  static const String coleccion = 'insumos';
+
+  final _insumosRef = FirebaseFirestore.instance.collection(coleccion);
 
   // Lista de insumos en tiempo real: cada vez que algo cambia en Firestore
   // (en este celular o en cualquier otro), este Stream emite la lista
