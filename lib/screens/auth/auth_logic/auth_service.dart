@@ -2,8 +2,26 @@
 import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:tpfinal_grupo2/screens/auth/auth_logic/auth_tester.dart';
 import '../welcome_screen.dart';
 import '../../inventario/inventario_screen.dart';
+
+// 1. Global key accessible from anywhere in your app
+final GlobalKey<ScaffoldMessengerState> rootScaffoldMessengerKey =
+    GlobalKey<ScaffoldMessengerState>();
+
+// 2. Helper function to show an error SnackBar without needing BuildContext
+void showGlobalErrorSnackBar(String message) {
+  rootScaffoldMessengerKey.currentState
+    ?..hideCurrentSnackBar() // Dismisses any active SnackBar so they don't queue up
+    ..showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red.shade700,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+}
 
 class GoRouterRefreshStream extends ChangeNotifier { 
   GoRouterRefreshStream(Stream<dynamic> stream) { 
@@ -43,28 +61,18 @@ class AuthService {
       // Catch specific Firebase authentication exceptions for better error handling
       debugPrint("FirebaseAuthException during registration: ${e.code} - ${e.message}");
       // You can display a user-friendly message based on e.code
-      
-      if (e.code == 'weak-password') {
-        // Handle weak password - espera al menos 6 caracteres!!
-        /*
-        esto deberia
-          _ tirar una alarma
-          _ borrar contraseña
-          _ retener usuario para no reescribirlo
-        */
-        debugPrint('error en auth ${e.code}');
-        return null;
-      } else 
-      
-      if (e.code == 'email-already-in-use') {
-        // Handle email already registered
-        // deberia de enviar un alerta, pero dejar las data de textField como está
-        debugPrint('error en auth ${e.code}');
-      }
+      final message = switch (e.code) {
+        'invalid-email' => 'El formato de mail agregado no es correcto.',
+        'weak-password' => 'Contraseña no debe ser menor a 6 caracteres!!',
+        'email-already-in-use' => 'Éste email ya esta en uso!!',
+        _ => 'Error al registrarse (${e.code}).',
+      };
+      showGlobalErrorSnackBar(message);
       return null;
     } catch (e) {
       // Catch any other general exceptions
       debugPrint("General error during registration: $e");
+      showGlobalErrorSnackBar('Ocurrió un error inesperado. Revisá tu conexión.');
       return null;
     }
   }
@@ -80,15 +88,15 @@ class AuthService {
       return result.user;
     } on FirebaseAuthException catch (e) {
       debugPrint("FirebaseAuthException during sign-in: ${e.code} - ${e.message}");
-      if (e.code == 'user-not-found') {
-        // Handle no user found
-        // enviar alerta, no borrar mail en textField
-        debugPrint(e.code);
-      } else if (e.code == 'wrong-password') {
-        // Handle incorrect password
-        // borrar contraseña en el textField
-        debugPrint(e.code);
-      }
+      final message = switch (e.code) {
+        'user-not-found' || 'invalid-credential' => 'Correo o contraseña incorrectos.',
+        'wrong-password' => 'Contraseña incorrecta.',
+        'invalid-email' => 'El formato del correo no es válido.',
+        'user-disabled' => 'Esta cuenta ha sido deshabilitada.',
+        'too-many-requests' => 'Demasiados intentos. Intentá más tarde.',
+        _ => 'Error al iniciar sesión (${e.code}).',
+      };
+      showGlobalErrorSnackBar(message);
       return null;
     } catch (e) {
       debugPrint("General error during sign-in: $e");
@@ -128,7 +136,8 @@ class AuthWrapper extends StatelessWidget {
           // If there is user data, the user is signed in
           //ESTO MUESTRA EL INVENTARIO
           //return const InventarioScreen(); // Navigate to your main app screen
-          return const InventarioScreen();
+          //return const InventarioScreen();
+          return AuthTester();
         } else {
           // If there is no user data, the user is signed out
           //return const SignInScreen(); // Navigate to your sign-in screen

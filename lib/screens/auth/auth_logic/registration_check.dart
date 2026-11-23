@@ -8,7 +8,9 @@ void registrationCheck(BuildContext context, {String? email, String? password, S
   final contextVariable = ScaffoldMessenger.of(context);
   if (email!.isEmpty) {
     contextVariable.showSnackBar(const SnackBar(content: Text('No dejar espacio vacio en campo Email!!!')));
-  }  else if (password!.isEmpty || confirmPassword!.isEmpty){
+  } else if (email.length > 20) {
+    contextVariable.showSnackBar(const SnackBar(content: Text('Contraseña no debe ser mayor a 20 caracteres!!')));
+  } else if (password!.isEmpty || confirmPassword!.isEmpty){
     contextVariable.showSnackBar(const SnackBar(content: Text('No dejar espacio vacio en contraseñas!!!')));
   } else if (password != confirmPassword){
     // throw alert
