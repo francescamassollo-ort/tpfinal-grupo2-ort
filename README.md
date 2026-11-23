@@ -320,6 +320,63 @@ Antes de guardar un insumo nuevo, el formulario de Alta tiene además un botón 
 
 **Proveedor de IA:** la app habla con la IA a través de la interfaz `ModeloDeLenguaje`. Se usa **Gemini** si hay clave (`GEMINI_API_KEY`); si además hay clave de Groq, Groq queda de **respaldo** y se usa solo cuando Gemini falla (por ejemplo, límite diario agotado). Con una sola clave se usa esa. Para sumar otro proveedor hay que escribir un cliente nuevo que implemente la interfaz y sumarlo en `elegirModeloDeLenguaje` (`sinonimos_provider.dart`). Los textos que ve la persona no nombran al proveedor.
 
+## Categoría sugerida al dar de alta
+
+Debajo del campo **Categoría** del Alta aparece **"Categoría sugerida: X"** con un botón **"Usar"** (requerimiento #25). Se
+calcula con lo que ya se escribió, en este orden, y se queda con la primera que acierta (`CategorySuggestionService`):
+
+1. **Insumos parecidos que ya existen:** si hay uno con el mismo nombre (o que lo contiene), se sugiere su categoría. Es la
+   más confiable porque respeta cómo ya se cargó el inventario.
+2. **Reglas por nombre:** palabras como "etanol", "guante", "agar" o "enzima" apuntan a una categoría (Alcoholes y
+   solventes, Material descartable, Medios de cultivo, Enzimas, Buffers y soluciones, Ácidos y bases, Sales, Metales,
+   Colorantes, Material de vidrio).
+3. **Reglas por fórmula:** por ejemplo, una fórmula terminada en "COOH" es un ácido.
+4. **IA (opcional):** si no hay sugerencia y hay clave de IA, aparece **"Sugerir categoría con IA"**. Solo se le manda el
+   nombre, la fórmula y los nombres de las categorías que ya existen; elige una o propone una nueva (corta, en plural). Si
+   coincide con una existente, se usa la escritura de la existente.
+
+- **Es una sugerencia:** nunca se aplica sola. Si la categoría ya tiene texto, no se muestra nada.
+- **Sin clave de IA** las capas 1 a 3 funcionan igual, sin internet.
+
+## Validación del Alta
+
+El formulario de Alta revisa los datos antes de guardar (`ValidacionesAlta`, con sus propias pruebas):
+
+- **Cantidad inicial:** un número entero de 0 en adelante (el stock se cuenta en unidades enteras).
+- **Stock mínimo:** un número de 0 en adelante; acepta **coma o punto** decimal ("0,5" y "0.5"), porque en el teclado del
+  celular sale la coma.
+- **Peso molecular** (opcional): si se escribe, tiene que ser un número mayor que 0; un texto ya no rompe el guardado, avisa
+  en el campo.
+- **Nombre y ubicación** son obligatorios (sin contar espacios).
+- **Fechas:** el vencimiento no puede ser anterior a la elaboración.
+
+## Leer la etiqueta con la cámara
+
+El botón **"Leer etiqueta con la cámara"** del Alta (requerimiento #24) saca una foto a la etiqueta del frasco y completa el
+formulario con lo que se entienda: **nombre, marca, fórmula, peso molecular y vencimiento**.
+
+1. `image_picker` abre la cámara y devuelve la foto, reducida a 2000 px de ancho (una foto más grande no lee mejor).
+2. `LectorMlKit` reconoce el texto con **ML Kit de Google**, que corre **en el teléfono**: la foto no sale del equipo y no
+   hace falta internet.
+3. `InterpreteDeEtiqueta` busca en el texto la fórmula química, el peso molecular ("PM 46,07 g/mol"), el vencimiento
+   ("Venc: 11/2027", "Expira 30-11-2027"), el número CAS (validando su dígito verificador), la marca (cuando dice "Marca:",
+   "Fabricante:" o similar) y el nombre.
+4. Si la etiqueta trae un **número CAS** y falta la fórmula o el peso molecular, `OcrService` los consulta en **PubChem**
+   (`BarcodeService.datosQuimicos`). Si PubChem no responde, queda lo que se leyó. Solo se manda el número CAS.
+
+- **Todo queda editable y se avisa que se revise:** reconocer texto en una foto se equivoca (una "O" por un "0", por ejemplo).
+- **Solo llena campos vacíos**, igual que el escáner: una lectura nunca pisa lo que la persona ya escribió. En una solución
+  preparada solo se completa el nombre y el vencimiento (la marca, la fórmula y el peso molecular son de insumos comprados).
+- **Fechas:** con "mm/aaaa" se toma el **último día del mes**. Solo se toma una fecha si está junto a una palabra de
+  vencimiento (venc, expira, caduca, best before...), para no confundirla con la de elaboración o un lote.
+- **Si algo falla** (sin permiso de cámara, foto sin texto, lector caído) la pantalla lo dice sin mostrar detalles técnicos.
+- **Qué se probó y qué no:** las pruebas automáticas usan una cámara y un lector falsos con textos de etiqueta de ejemplo
+  (el intérprete, el servicio y el formulario). **Falta probar la lectura real con un celular físico:** el emulador no tiene
+  una cámara que enfoque una etiqueta, y la calidad de ML Kit depende de la luz y del enfoque.
+- **Versiones de Flutter:** `google_mlkit_text_recognition` está fijado en la serie `^0.16.0` porque la 1.x pide Dart 3.12
+  (Flutter 3.44 o más) y el proyecto admite Flutter 3.41.6. Al compilar con 3.41.6, Flutter puede reescribir `pubspec.lock`;
+  esos cambios no hay que commitearlos.
+
 ## Servicios externos
 
 La app puede usar servicios de terceros para funciones de IA y datos quimicos. Ninguno es obligatorio para compilar ni ejecutar: si falta la clave, la funcion simplemente no activa.

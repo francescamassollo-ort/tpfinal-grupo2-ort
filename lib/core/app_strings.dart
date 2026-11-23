@@ -85,6 +85,29 @@ class AppStrings {
   static const String movimientoEntrada = 'Entrada de stock';
   static const String movimientoSalida = 'Salida de stock';
 
+  // Alta de insumo: lectura de la etiqueta con la cámara.
+  static const String altaLeerEtiqueta = 'Leer etiqueta con la cámara';
+  static const String altaLeyendoEtiqueta = 'Leyendo la etiqueta…';
+  static const String altaEtiquetaLeida =
+      'Se completaron los datos de la etiqueta: revisalos antes de guardar';
+  static const String altaEtiquetaVacia =
+      'No se encontraron datos en la foto. Probá con más luz y la etiqueta bien de frente';
+  static const String altaEtiquetaError = 'No se pudo leer la etiqueta';
+  static const String altaCamaraError = 'No se pudo abrir la cámara';
+
+  // Alta de insumo: categoría sugerida.
+  static String categoriaSugerida(String categoria) =>
+      'Categoría sugerida: $categoria';
+  static const String categoriaUsar = 'Usar';
+  static const String categoriaPedirIa = 'Sugerir categoría con IA';
+  static const String categoriaConsultandoIa = 'Consultando a la IA…';
+  static const String categoriaIaSinRespuesta =
+      'La IA no pudo sugerir una categoría';
+  static const String categoriaIaError = 'No se pudo consultar la IA';
+  static const String categoriaOrigenInsumo = 'según un insumo parecido';
+  static const String categoriaOrigenReglas = 'por el nombre';
+  static const String categoriaOrigenIa = 'sugerida por la IA';
+
   // Alta de insumo: sugerencias mientras se escribe el nombre.
   static const String altaSugerenciasTitulo = 'Ya existe algo parecido:';
   static const String altaSinCoincidencias =
