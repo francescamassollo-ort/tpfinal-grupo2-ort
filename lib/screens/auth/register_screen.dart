@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import './auth_logic/registration_check.dart';
+import '../../services/auth_logic/registration_check.dart';
 import '../../widgets/handy_input_decoration.dart';
 import '../../widgets/handy_button_style_one.dart';
 import '../../widgets/handy_text_button_black.dart';

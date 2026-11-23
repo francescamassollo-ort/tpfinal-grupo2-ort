@@ -2,9 +2,9 @@
 import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:tpfinal_grupo2/screens/auth/auth_logic/auth_tester.dart';
-import '../welcome_screen.dart';
-import '../../inventario/inventario_screen.dart';
+import 'package:tpfinal_grupo2/services/auth_logic/auth_tester.dart';
+import '../../screens/auth/welcome_screen.dart';
+import '../../screens/inventario/inventario_screen.dart';
 
 // 1. Global key accessible from anywhere in your app
 final GlobalKey<ScaffoldMessengerState> rootScaffoldMessengerKey =

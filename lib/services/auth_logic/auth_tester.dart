@@ -1,7 +1,7 @@
 
 
 import 'package:flutter/material.dart';
-import 'package:tpfinal_grupo2/screens/auth/auth_logic/auth_service.dart';
+import 'package:tpfinal_grupo2/services/auth_logic/auth_service.dart';
 
 class AuthTester extends StatelessWidget {
   const AuthTester({super.key});

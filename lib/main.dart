@@ -1,7 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import './screens/auth/auth_logic/auth_service.dart';
+import 'services/auth_logic/auth_service.dart';
 
 import 'core/app_locale.dart';
 import 'core/app_router.dart';

@@ -10,7 +10,7 @@ import '../models/usuario.dart';
 import 'app_colors.dart';
 import 'app_strings.dart';
 
-import '../screens/auth/auth_logic/auth_service.dart';
+import '../services/auth_logic/auth_service.dart';
 
 // Envuelve todas las pantallas "internas" (las que tienen barra + drawer).
 // go_router llama a este widget una sola vez y le va cambiando el [child]
