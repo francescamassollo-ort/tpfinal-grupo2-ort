@@ -7,7 +7,7 @@ import '../../models/insumo.dart';
 import '../../providers/insumo_providers.dart';
 import '../../providers/sinonimos_provider.dart';
 import '../../services/duplicate_detection_service.dart';
-import '../../services/insumo_service.dart';
+import '../../services/stock_service.dart';
 import '../../services/synonym_detection_service.dart';
 import 'duplicados_dialog.dart';
 
@@ -467,7 +467,8 @@ ElevatedButton(
       fechaVencimiento: _fechaVencimiento,
     );
 
-    await InsumoService().agregarInsumo(insumo);
+    // Guarda el insumo y, si trae stock, su entrada en el historial.
+    await StockService().registrarAlta(insumo);
 
     if (!mounted) return;
 

@@ -114,7 +114,7 @@ Todo el código está en `lib/`.
 | `screens/<área>/` | Pantallas de cada flujo: `auth`, `inventario`, `consumo`, `historial`, `alertas`, `compras`, `tp`, `usuarios`, `perfil` |
 | `providers/` | Estado de la app con Riverpod |
 | `models/` | Modelos de dominio: `Insumo`, `TrabajoPractico`, `ListaCompra`, `Alerta`, `AlertaVista`, `MovimientoStock` y los de la predicción de stock (`PrediccionStock` y `VentanaPrediccion`) |
-| `services/` | Acceso a Firestore: `InsumoService` (colección `insumos`), `TpService` (colección `listasTP`), `ListaCompraService` (colección `listaCompras`) `HistorialService` (colección `movimientosStock`, solo lectura: los movimientos los escribe quien cambia el stock) y `AlertasVistasService` (colección `alertasVistas`: qué alertas ya vio cada persona). `AlertaService` y `StockPredictionService` no usan Firestore: generan las alertas y las predicciones de stock a partir de los insumos, los movimientos y los trabajos prácticos. `ListaCompraExportador` y `HistorialExportador` arman el PDF y el CSV de la lista de compras y del historial (con lo que comparten en `ExportacionComun`) y `ArchivoService` los comparte o los guarda en el teléfono |
+| `services/` | Acceso a Firestore: `InsumoService` (colección `insumos`), `TpService` (colección `listasTP`), `ListaCompraService` (colección `listaCompras`) `HistorialService` (colección `movimientosStock`, solo lectura: los movimientos los escribe `StockService`, junto con el cambio de stock) y `AlertasVistasService` (colección `alertasVistas`: qué alertas ya vio cada persona). `AlertaService` y `StockPredictionService` no usan Firestore: generan las alertas y las predicciones de stock a partir de los insumos, los movimientos y los trabajos prácticos. `ListaCompraExportador` y `HistorialExportador` arman el PDF y el CSV de la lista de compras y del historial (con lo que comparten en `ExportacionComun`) y `ArchivoService` los comparte o los guarda en el teléfono |
 
 Las pruebas unitarias están en `test/` (fuera de `lib/`).
 
@@ -150,7 +150,7 @@ Las pruebas unitarias están en `test/` (fuera de `lib/`).
 ### Historial, alertas y compras
 | Pantalla | Ruta | Estado |
 |---|---|---|
-| Historial de movimientos | `/historial` | ✅ Funcional (lee la colección `movimientosStock` de Firestore en tiempo real, los últimos 500, y muestra el nombre del insumo; aparece vacío hasta que Alta y Consumo registren movimientos; panel de filtros por tipo, insumo y fechas; Compartir y Descargar en PDF o CSV, con lo que se ve: si hay filtros puestos solo salen esos movimientos y el archivo lo aclara) |
+| Historial de movimientos | `/historial` | ✅ Funcional (lee la colección `movimientosStock` de Firestore en tiempo real, los últimos 500, y muestra el nombre del insumo; cada alta con stock, consumo, entrada o ajuste deja su movimiento, ver "Movimientos de stock"; panel de filtros por tipo, insumo y fechas; Compartir y Descargar en PDF o CSV, con lo que se ve: si hay filtros puestos solo salen esos movimientos y el archivo lo aclara) |
 | Alertas | `/alertas` | ✅ Funcional (alertas calculadas desde los insumos (sin stock, stock bajo, vencido y vencimiento cercano) y desde la predicción de stock (se agotaría antes de la próxima compra y no alcanza para un trabajo práctico, en naranja); tocar una alerta abre el detalle del insumo; cada alerta se puede marcar como vista, y queda en la lista pero atenuada; se pueden filtrar por tipo y por estado, ver "Filtro de alertas") |
 | Lista de compras | `/compras` | ✅ Funcional (colección `listaCompras` de Firestore: cantidad editable con mínimo 1; sugerencias del sistema para los insumos con stock bajo; agregar a mano un insumo desde un panel (solo se ofrecen los que no están en la lista); menú en cada ítem para marcarlo como comprado o descartarlo, con Deshacer (la lista muestra solo los pendientes, así que el ítem sale); Compartir y Descargar en PDF o CSV; buscar y papelera todavía sin acción) |
 
@@ -191,7 +191,27 @@ Todavía no se usa en las sugerencias de Lista de compras.
 Supuestos pendientes de confirmar:
 - La compra institucional es el 1 de julio y el 1 de diciembre (el requerimiento dice solo "julio / diciembre").
 - La cantidad que pide un TP está en la misma unidad que el stock, igual que en `TpService.verificarDisponibilidad`.
-- Mientras Alta y Consumo no registren movimientos, la predicción da una lista vacía y el autoajuste usa 30 días.
+- Mientras no haya movimientos de salida registrados (por ejemplo, en una base nueva), la predicción da una lista vacía y el autoajuste usa 30 días.
+
+## Movimientos de stock
+Cada cambio de stock deja un movimiento en la colección `movimientosStock` (es lo que muestra el Historial y lo que
+usa la predicción). Lo escribe `StockService`:
+
+- **Una sola transacción:** el stock nuevo del insumo y su movimiento se guardan juntos. Si una de las dos escrituras
+  falla, no se guarda ninguna: no queda un stock cambiado sin su movimiento ni al revés. La lectura del stock va dentro
+  de la transacción, así dos consumos a la vez no se pisan.
+- **Qué operaciones hay:** `registrarEntrada`, `registrarSalida` (no deja sacar más de lo que hay), `registrarAjuste` (deja
+  el stock en un valor y guarda la diferencia con signo) y `registrarAlta` (el insumo nuevo más una entrada por su stock
+  inicial, con el motivo "Alta de insumo"; si el stock inicial es 0 no hay movimiento).
+- **Cómo se guarda la cantidad:** positiva en entradas y salidas (el sentido lo da el tipo) y con signo en los ajustes.
+- **Quién lo hizo:** el id y el nombre de la persona se guardan en el movimiento. El nombre sale del documento de la persona
+  en `usuarios`, o del nombre o el email de su cuenta de Firebase; sin sesión figura "Sin sesión" (hoy el login todavía no
+  está conectado). Para que salga el nombre del documento, el registro tiene que crear `usuarios/{uid}`.
+- **Las cuentas se prueban solas:** validar, calcular el stock que queda y armar el movimiento está en `StockLogica`, sin
+  Firestore. La transacción en sí no tiene prueba automática y se probó a mano.
+- Los errores (cantidad inválida, stock insuficiente, insumo inexistente) son `StockException` con un mensaje listo para
+  mostrar.
+- Las reglas de Firestore (#46) tienen que permitir escribir en `insumos` y en `movimientosStock`.
 
 ## Alertas vistas
 Cada alerta se puede marcar como vista desde la pantalla de Alertas. Queda en la lista, atenuada, y la campana de la
