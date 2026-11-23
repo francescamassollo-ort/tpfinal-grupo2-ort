@@ -485,6 +485,11 @@ La app usa **Firebase Authentication** con mail y contraseña (`AuthService`, en
   pantalla "Verificá tu mail" (con "Ya verifiqué", "Reenviar el correo" y "Usar otra cuenta"). **También le pasa a cualquier
   cuenta anterior que nunca verificó su mail:** al ingresar la pantalla le pide verificar. El rol y el documento
   `usuarios/{uid}` solo se crean para cuentas con el mail verificado.
+- **Continuar con Google:** botón en el ingreso y en el registro. Abre la hoja de Google en el navegador (no hace falta tener
+  la cuenta cargada en el celular) y usa `firebase_auth` (`signInWithProvider`), sin dependencias nuevas. Solo valen cuentas con
+  mail institucional de ORT: si entra otra, la app cierra la sesión en el acto (y borra la cuenta si se acababa de crear), y esa
+  sesión no llega a tener rol ni documento en `usuarios`. Con Google el mail ya viene verificado, así que no pasa por "Verificá
+  tu mail". Si se cancela la hoja de Google no se muestra ningún error.
 - **Olvidé mi contraseña:** el botón del ingreso manda un correo para elegir una contraseña nueva, con el mail que ya se
   escribió. El aviso es el mismo exista o no una cuenta con ese mail, para que nadie averigüe qué mails están registrados.
 
@@ -495,9 +500,19 @@ celular, así que alguien que hable directo con Firebase se las salta. Para que 
 2. Restringir el dominio del mail con una función de bloqueo (Authentication > Configuración > Funciones de bloqueo) o con las
    reglas de Firestore por rol (issue #46).
 
-**Pendiente:** el ingreso con **Google** (hace falta habilitar el proveedor en la consola de Firebase, cargar la huella SHA-1
-de la app y bajar un `google-services.json` nuevo; con Google el mail ya viene verificado) y el **cierre de sesión por
-inactividad**, que figuraba entre las mitigaciones del plan de riesgos.
+**Para que Google funcione en cada compu** hay que cargar la huella SHA-1 de **su** `debug.keystore` en la consola de Firebase
+(Configuración del proyecto > Tus apps > la app Android > Agregar huella digital); si no, el botón falla en esa máquina. Se
+obtiene con:
+
+```powershell
+& "<JDK>in\keytool.exe" -list -v -alias androiddebugkey -keystore "$env:USERPROFILE\.android\debug.keystore" -storepass android -keypass android | Select-String "SHA1|SHA256"
+```
+
+La app todavía no tiene firma de publicación propia: cuando se genere, hay que cargar también su huella y bajar de nuevo
+`android/app/google-services.json`.
+
+**Pendiente:** el **cierre de sesión por inactividad**, que figuraba entre las mitigaciones del plan de riesgos, y que el
+servidor (y no solo la app) rechace las cuentas de Google que no son de ORT, con una función de bloqueo.
 - Antes de mostrarla al profesor conviene crear una cuenta de prueba: el registro escribe en Firebase de verdad.
 
 ## Roles
