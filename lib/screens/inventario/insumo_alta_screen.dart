@@ -13,6 +13,7 @@ import '../../services/synonym_detection_service.dart';
 import 'duplicados_dialog.dart';
 import 'sugerencia_de_categoria.dart';
 import 'sugerencias_nombre.dart';
+import 'validaciones_alta.dart';
 
 class InsumoAltaScreen extends ConsumerStatefulWidget {
   const InsumoAltaScreen({super.key});
@@ -104,12 +105,7 @@ class _InsumoAltaScreenState extends ConsumerState<InsumoAltaScreen> {
   decoration: const InputDecoration(
     labelText: 'Nombre',
   ),
-  validator: (value) {
-    if (value == null || value.trim().isEmpty) {
-      return 'Ingrese un nombre';
-    }
-    return null;
-  },
+  validator: ValidacionesAlta.nombre,
 ),
 
 // Mientras se escribe, avisa si ya existe un insumo con un nombre parecido.
@@ -143,12 +139,7 @@ TextFormField(
   decoration: const InputDecoration(
     labelText: 'Ubicación',
   ),
-  validator: (value) {
-    if (value == null || value.trim().isEmpty) {
-      return 'Ingrese una ubicación';
-    }
-    return null;
-  },
+  validator: ValidacionesAlta.ubicacion,
 ),
 
 const SizedBox(height: 12),
@@ -159,12 +150,7 @@ TextFormField(
     labelText: 'Cantidad inicial',
   ),
   keyboardType: TextInputType.number,
-  validator: (value) {
-    if (value == null || value.isEmpty) {
-      return 'Ingrese una cantidad';
-    }
-    return null;
-  },
+  validator: ValidacionesAlta.cantidadInicial,
 ),
 
 const SizedBox(height: 12),
@@ -174,13 +160,9 @@ TextFormField(
   decoration: const InputDecoration(
     labelText: 'Stock mínimo',
   ),
-  keyboardType: TextInputType.number,
-  validator: (value) {
-    if (value == null || value.isEmpty) {
-      return 'Ingrese un stock mínimo';
-    }
-    return null;
-  },
+  // Admite decimales (por ejemplo 0,5 litros): el teclado trae la coma.
+  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+  validator: ValidacionesAlta.stockMinimo,
 ),
 
 const SizedBox(height: 12),
@@ -246,7 +228,8 @@ if (_tipo == InsumoTipo.comprado) ...[
     decoration: const InputDecoration(
       labelText: 'Peso molecular',
     ),
-    keyboardType: TextInputType.number,
+    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+    validator: ValidacionesAlta.pesoMolecular,
   ),
 ]
 else ...[
@@ -488,16 +471,25 @@ ElevatedButton(
   Future<void> _guardar() async {
   if (!_formKey.currentState!.validate()) return;
 
+  final avisoFechas = ValidacionesAlta.fechas(
+    elaboracion: _fechaElaboracion,
+    vencimiento: _fechaVencimiento,
+  );
+  if (avisoFechas != null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(avisoFechas)),
+    );
+    return;
+  }
+
   try {
     final insumo = Insumo(
       id: '',
       nombre: _nombreController.text,
       tipo: _tipo,
-      stock: int.parse(_stockController.text),
+      stock: ValidacionesAlta.entero(_stockController.text)!,
       ubicacion: _ubicacionController.text,
-      umbralMinimo: num.parse(
-  _umbralMinimoController.text,
-),
+      umbralMinimo: ValidacionesAlta.numero(_umbralMinimoController.text)!,
 
       categoria: _categoriaController.text.isEmpty
           ? null
@@ -526,7 +518,7 @@ ElevatedButton(
 
       pesoMolecular: _tipo == InsumoTipo.comprado &&
               _pesoMolecularController.text.isNotEmpty
-          ? double.parse(_pesoMolecularController.text)
+          ? ValidacionesAlta.numero(_pesoMolecularController.text)
           : null,
 
       concentracion: _tipo == InsumoTipo.solucion
