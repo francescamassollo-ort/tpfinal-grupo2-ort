@@ -7,11 +7,8 @@ import '../models/usuario_actual.dart';
 // Id de la persona que está usando la app, para guardar cosas que son de cada
 // una (por ejemplo, qué alertas ya vio).
 //
-// Sale de la sesión de Firebase. Todavía no hay login conectado (se deja para
-// el final), así que hoy nadie tiene sesión y todos comparten el id fijo
-// [usuarioSinSesion]: en la práctica, lo que se guarda por persona se comparte
-// entre todos. Cuando se conecte el login, empieza a ser por persona sin
-// cambiar nada de lo que usa este provider.
+// Sale de la sesión de Firebase: es el uid de la cuenta con la que se ingresó.
+// Si por algún motivo no hay sesión, se usa el id fijo [usuarioSinSesion].
 //
 // En las pruebas se reemplaza por un id fijo: FirebaseAuth necesita que
 // Firebase esté inicializado.

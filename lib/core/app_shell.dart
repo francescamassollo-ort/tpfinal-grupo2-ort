@@ -10,6 +10,8 @@ import '../models/usuario.dart';
 import 'app_colors.dart';
 import 'app_strings.dart';
 
+import '../services/auth_logic/auth_service.dart';
+
 // Envuelve todas las pantallas "internas" (las que tienen barra + drawer).
 // go_router llama a este widget una sola vez y le va cambiando el [child]
 // según la ruta actual, por eso la barra y el drawer no "parpadean" al
@@ -113,6 +115,14 @@ String? _rutaBotonAgregar(String location, UserRole role) {
   // El diseño de Alertas no lleva el botón flotante.
   if (location == '/alertas') return null;
 
+  // Perfil, Usuarios y la pantalla de búsqueda y filtros no dan de alta nada:
+  // un "+" ahí llevaría al Alta sin que tenga que ver con lo que se está viendo.
+  if (location == '/perfil' ||
+      location == '/usuarios' ||
+      location == '/inventario/filtro') {
+    return null;
+  }
+
   // Lista de TPs: crear un TP (solo admin y docente).
   if (location == '/tp') {
     final puedeCrearTp =
@@ -122,6 +132,11 @@ String? _rutaBotonAgregar(String location, UserRole role) {
 
   // Detalle y edición de TP: sin botón.
   if (location.startsWith('/tp/')) return null;
+
+  // Alta y detalle de un insumo: sin botón. En el Alta llevaría a la misma
+  // pantalla en la que ya se está, y en las dos tapa los botones de abajo
+  // ("Guardar" y "Registrar consumo").
+  if (location.startsWith('/insumo/')) return null;
 
   // Resto de las pantallas: alta de insumo, como antes.
   return '/insumo/alta';
@@ -135,6 +150,7 @@ class _AppDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final items = _itemsForRole(role);
+    AuthService auth = AuthService();
 
     return Drawer(
       child: SafeArea(
@@ -165,9 +181,10 @@ class _AppDrawer extends StatelessWidget {
             const Spacer(),
             ListTile(
               title: const Text('Cerrar sesión'),
-              onTap: () {
-                Navigator.of(context).pop();
-                context.go('/login');
+              onTap: () async {
+                //Navigator.of(context).pop();
+                //context.go('/login');
+                await auth.signOut();
               },
             ),
           ],

@@ -1,0 +1,28 @@
+import 'package:flutter/material.dart';
+import '../core/app_colors.dart';
+
+
+InputDecoration getInputDecoration(String textForHint){
+    return InputDecoration(
+      hintText: textForHint,
+      hintStyle: TextStyle(
+      //background: ,
+      ),
+      fillColor: Color.fromARGB(255, 241, 244, 245),
+      filled: true,
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.all(Radius.circular(10)),
+        borderSide: BorderSide(
+          width: 2,
+          color: AppColors.primary,
+        ),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: BorderSide(
+          //width: 0,
+          color:Color.fromARGB(0, 0, 0, 0),
+        ),
+      ),
+    );
+  }

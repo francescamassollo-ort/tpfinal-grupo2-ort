@@ -1,5 +1,6 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
-
+import 'go_router_refresh_stream.dart';
 import '../screens/alertas/alertas_screen.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/auth/register_screen.dart';
@@ -19,10 +20,21 @@ import '../screens/tp/tp_lista_screen.dart';
 import '../screens/usuarios/usuarios_screen.dart';
 import 'app_shell.dart';
 
-// Login queda para el final (lo pidió el profe), por eso se arranca
-// directo en /inventario en vez de /welcome o /login.
+// Se arranca en /inventario, pero sin sesión iniciada el redirect de abajo manda
+// a /welcome; con sesión, las pantallas de ingreso mandan a /inventario.
 final GoRouter appRouter = GoRouter(
-  initialLocation: '/inventario',
+  initialLocation: 'inventario',
+  
+  refreshListenable: GoRouterRefreshStream(FirebaseAuth.instance.authStateChanges()), 
+  redirect: (context, state) {
+    final bool isLoggedIn = FirebaseAuth.instance.currentUser != null; 
+    final String location = state.uri.path; 
+    final bool isAuthRoute = location == '/welcome' || location == '/login' || location == '/register'; 
+    if (!isLoggedIn && !isAuthRoute) {return '/welcome';} 
+    if (isLoggedIn && isAuthRoute) { return '/inventario'; } 
+    return null; 
+  },
+  
   routes: [
     // Pantallas sin barra ni drawer (todavía no hay sesión iniciada).
     GoRoute(path: '/welcome', builder: (context, state) => const WelcomeScreen()),
@@ -35,6 +47,19 @@ final GoRouter appRouter = GoRouter(
     // Lista de compras también va sin barra inferior y con su propio botón
     // flotante, como en el diseño.
     GoRoute(path: '/compras', builder: (context, state) => const ComprasScreen()),
+
+    // El escáner de código de barras es la cámara a pantalla completa, sin barra
+    // inferior ni botón flotante, como en el diseño.
+    GoRoute(path: '/scanner', builder: (context, state) => const ScannerScreen()),
+
+    // Registro de consumo también va sin barra inferior ni botón flotante, como
+    // en el diseño. /consumo?insumo=ID abre la pantalla con ese insumo ya
+    // elegido.
+    GoRoute(
+      path: '/consumo',
+      builder: (context, state) =>
+          ConsumoScreen(insumoId: state.uri.queryParameters['insumo']),
+    ),
 
     // ShellRoute: todas estas rutas comparten el mismo AppShell
     // (barra inferior + drawer), que no se reconstruye al navegar entre ellas.
@@ -51,13 +76,6 @@ final GoRouter appRouter = GoRouter(
           path: '/insumo/:id',
           builder: (context, state) =>
               InsumoDetalleScreen(insumoId: state.pathParameters['id']!),
-        ),
-        GoRoute(path: '/scanner', builder: (context, state) => const ScannerScreen()),
-        // /consumo?insumo=ID abre la pantalla con ese insumo ya elegido.
-        GoRoute(
-          path: '/consumo',
-          builder: (context, state) =>
-              ConsumoScreen(insumoId: state.uri.queryParameters['insumo']),
         ),
         GoRoute(path: '/alertas', builder: (context, state) => const AlertasScreen()),
         GoRoute(path: '/tp', builder: (context, state) => const TpListaScreen()),

@@ -3,13 +3,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/app_strings.dart';
+import '../../models/datos_escaneados.dart';
 import '../../models/insumo.dart';
 import '../../providers/insumo_providers.dart';
+import '../../providers/ocr_provider.dart';
 import '../../providers/sinonimos_provider.dart';
 import '../../services/duplicate_detection_service.dart';
+import '../../services/ocr_service.dart';
 import '../../services/stock_service.dart';
 import '../../services/synonym_detection_service.dart';
 import 'duplicados_dialog.dart';
+import 'sugerencia_de_categoria.dart';
+import 'sugerencias_nombre.dart';
+import 'validaciones_alta.dart';
 
 class InsumoAltaScreen extends ConsumerStatefulWidget {
   const InsumoAltaScreen({super.key});
@@ -33,6 +39,7 @@ class _InsumoAltaScreenState extends ConsumerState<InsumoAltaScreen> {
 
   final _marcaController = TextEditingController();
   final _proveedorController = TextEditingController();
+  final _formulaController = TextEditingController();
   final _pesoMolecularController = TextEditingController();
 
   final _concentracionController = TextEditingController();
@@ -40,6 +47,9 @@ class _InsumoAltaScreenState extends ConsumerState<InsumoAltaScreen> {
 
   DateTime? _fechaElaboracion;
   DateTime? _fechaVencimiento;
+
+  // Mientras se lee una foto de etiqueta, el botón avisa y no se puede tocar.
+  bool _leyendoEtiqueta = false;
 
   final bool _guardando = false;
 
@@ -100,12 +110,14 @@ class _InsumoAltaScreenState extends ConsumerState<InsumoAltaScreen> {
   decoration: const InputDecoration(
     labelText: 'Nombre',
   ),
-  validator: (value) {
-    if (value == null || value.trim().isEmpty) {
-      return 'Ingrese un nombre';
-    }
-    return null;
-  },
+  validator: ValidacionesAlta.nombre,
+),
+
+// Mientras se escribe, avisa si ya existe un insumo con un nombre parecido.
+// Tocar uno abre su detalle; el Alta queda abierta atrás.
+SugerenciasNombre(
+  controller: _nombreController,
+  onElegir: (insumo) => context.push('/insumo/${insumo.id}'),
 ),
 
 const SizedBox(height: 12),
@@ -117,6 +129,14 @@ TextFormField(
   ),
 ),
 
+// Sugiere una categoría según el nombre y la fórmula. Tocar "Usar" la copia
+// al campo de arriba.
+SugerenciaDeCategoria(
+  nombreController: _nombreController,
+  formulaController: _formulaController,
+  categoriaController: _categoriaController,
+),
+
 const SizedBox(height: 12),
 
 TextFormField(
@@ -124,12 +144,7 @@ TextFormField(
   decoration: const InputDecoration(
     labelText: 'Ubicación',
   ),
-  validator: (value) {
-    if (value == null || value.trim().isEmpty) {
-      return 'Ingrese una ubicación';
-    }
-    return null;
-  },
+  validator: ValidacionesAlta.ubicacion,
 ),
 
 const SizedBox(height: 12),
@@ -140,12 +155,7 @@ TextFormField(
     labelText: 'Cantidad inicial',
   ),
   keyboardType: TextInputType.number,
-  validator: (value) {
-    if (value == null || value.isEmpty) {
-      return 'Ingrese una cantidad';
-    }
-    return null;
-  },
+  validator: ValidacionesAlta.cantidadInicial,
 ),
 
 const SizedBox(height: 12),
@@ -155,13 +165,9 @@ TextFormField(
   decoration: const InputDecoration(
     labelText: 'Stock mínimo',
   ),
-  keyboardType: TextInputType.number,
-  validator: (value) {
-    if (value == null || value.isEmpty) {
-      return 'Ingrese un stock mínimo';
-    }
-    return null;
-  },
+  // Admite decimales (por ejemplo 0,5 litros): el teclado trae la coma.
+  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+  validator: ValidacionesAlta.stockMinimo,
 ),
 
 const SizedBox(height: 12),
@@ -180,6 +186,35 @@ TextFormField(
   controller: _codigoBarrasController,
   decoration: const InputDecoration(
     labelText: 'Código de barras',
+  ),
+),
+
+const SizedBox(height: 8),
+
+// Abre la cámara y completa el formulario con lo que se lea del código.
+OutlinedButton.icon(
+  onPressed: _escanear,
+  icon: const Icon(Icons.qr_code_scanner),
+  label: const Text(AppStrings.altaEscanear),
+),
+
+const SizedBox(height: 8),
+
+// Saca una foto a la etiqueta y completa el formulario con el texto que se
+// lea: nombre, fórmula, peso molecular y vencimiento.
+OutlinedButton.icon(
+  onPressed: _leyendoEtiqueta ? null : _leerEtiqueta,
+  icon: _leyendoEtiqueta
+      ? const SizedBox(
+          width: 18,
+          height: 18,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        )
+      : const Icon(Icons.document_scanner_outlined),
+  label: Text(
+    _leyendoEtiqueta
+        ? AppStrings.altaLeyendoEtiqueta
+        : AppStrings.altaLeerEtiqueta,
   ),
 ),
 
@@ -205,11 +240,21 @@ if (_tipo == InsumoTipo.comprado) ...[
   const SizedBox(height: 12),
 
   TextFormField(
+    controller: _formulaController,
+    decoration: const InputDecoration(
+      labelText: 'Fórmula',
+    ),
+  ),
+
+  const SizedBox(height: 12),
+
+  TextFormField(
     controller: _pesoMolecularController,
     decoration: const InputDecoration(
       labelText: 'Peso molecular',
     ),
-    keyboardType: TextInputType.number,
+    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+    validator: ValidacionesAlta.pesoMolecular,
   ),
 ]
 else ...[
@@ -299,6 +344,102 @@ ElevatedButton(
         ),
       ),
     );
+  }
+
+  // Abre el escáner y completa el formulario con lo que devuelva. Solo llena los
+  // campos que están vacíos: un escaneo nunca pisa lo que la persona ya
+  // escribió. La marca, la fórmula y el peso molecular son de los insumos
+  // comprados, así que en una solución no se completan.
+  Future<void> _escanear() async {
+    final datos = await context.push<DatosEscaneados>('/scanner');
+    if (datos == null || !mounted) return;
+
+    void completar(TextEditingController campo, String? valor) {
+      if (valor != null && campo.text.trim().isEmpty) campo.text = valor;
+    }
+
+    setState(() {
+      // El código sí se reemplaza: es justo lo que se acaba de leer.
+      _codigoBarrasController.text = datos.codigo;
+      completar(_nombreController, datos.nombre);
+      if (_tipo == InsumoTipo.comprado) {
+        completar(_marcaController, datos.marca);
+        completar(_formulaController, datos.formula);
+        completar(_pesoMolecularController, datos.pesoMolecular?.toString());
+      }
+    });
+
+    // Si el escáner no encontró nada y solo trajo el código, no hay datos que
+    // avisar.
+    if (datos.nombre != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text(AppStrings.altaDatosCompletados)),
+      );
+    }
+  }
+
+  // Saca una foto a la etiqueta, reconoce el texto y completa el formulario con
+  // lo que se entienda. Igual que el escáner, solo llena los campos vacíos: una
+  // lectura nunca pisa lo que la persona ya escribió, y todo queda editable
+  // porque reconocer texto en una foto se equivoca.
+  Future<void> _leerEtiqueta() async {
+    final avisos = ScaffoldMessenger.of(context);
+
+    final String? ruta;
+    try {
+      ruta = await ref.read(capturadorDeFotoProvider)();
+    } catch (error) {
+      debugPrint('No se pudo abrir la cámara: $error');
+      avisos.showSnackBar(
+        const SnackBar(content: Text(AppStrings.altaCamaraError)),
+      );
+      return;
+    }
+    // Sin foto (se canceló) no hay nada que hacer.
+    if (ruta == null || !mounted) return;
+
+    setState(() => _leyendoEtiqueta = true);
+    try {
+      final etiqueta = await ref.read(ocrServiceProvider).leerEtiqueta(ruta);
+      if (!mounted) return;
+
+      if (etiqueta.vacia) {
+        avisos.showSnackBar(
+          const SnackBar(content: Text(AppStrings.altaEtiquetaVacia)),
+        );
+        return;
+      }
+
+      void completar(TextEditingController campo, String? valor) {
+        if (valor != null && campo.text.trim().isEmpty) campo.text = valor;
+      }
+
+      setState(() {
+        completar(_nombreController, etiqueta.nombre);
+        if (_tipo == InsumoTipo.comprado) {
+          completar(_marcaController, etiqueta.marca);
+          completar(_formulaController, etiqueta.formula);
+          completar(
+            _pesoMolecularController,
+            etiqueta.pesoMolecular?.toString(),
+          );
+        }
+        // El vencimiento sirve para los dos tipos de insumo.
+        _fechaVencimiento ??= etiqueta.fechaVencimiento;
+      });
+      avisos.showSnackBar(
+        const SnackBar(content: Text(AppStrings.altaEtiquetaLeida)),
+      );
+    } on OcrException catch (error) {
+      avisos.showSnackBar(SnackBar(content: Text(error.mensaje)));
+    } catch (error) {
+      debugPrint('No se pudo leer la etiqueta: $error');
+      avisos.showSnackBar(
+        const SnackBar(content: Text(AppStrings.altaEtiquetaError)),
+      );
+    } finally {
+      if (mounted) setState(() => _leyendoEtiqueta = false);
+    }
   }
 
   // Busca insumos parecidos al que se está cargando y muestra el resultado en
@@ -419,16 +560,25 @@ ElevatedButton(
   Future<void> _guardar() async {
   if (!_formKey.currentState!.validate()) return;
 
+  final avisoFechas = ValidacionesAlta.fechas(
+    elaboracion: _fechaElaboracion,
+    vencimiento: _fechaVencimiento,
+  );
+  if (avisoFechas != null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(avisoFechas)),
+    );
+    return;
+  }
+
   try {
     final insumo = Insumo(
       id: '',
       nombre: _nombreController.text,
       tipo: _tipo,
-      stock: int.parse(_stockController.text),
+      stock: ValidacionesAlta.entero(_stockController.text)!,
       ubicacion: _ubicacionController.text,
-      umbralMinimo: num.parse(
-  _umbralMinimoController.text,
-),
+      umbralMinimo: ValidacionesAlta.numero(_umbralMinimoController.text)!,
 
       categoria: _categoriaController.text.isEmpty
           ? null
@@ -450,9 +600,14 @@ ElevatedButton(
           ? _proveedorController.text
           : null,
 
+      formula: _tipo == InsumoTipo.comprado &&
+              _formulaController.text.trim().isNotEmpty
+          ? _formulaController.text.trim()
+          : null,
+
       pesoMolecular: _tipo == InsumoTipo.comprado &&
               _pesoMolecularController.text.isNotEmpty
-          ? double.parse(_pesoMolecularController.text)
+          ? ValidacionesAlta.numero(_pesoMolecularController.text)
           : null,
 
       concentracion: _tipo == InsumoTipo.solucion

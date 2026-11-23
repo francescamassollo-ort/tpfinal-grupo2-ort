@@ -65,7 +65,7 @@ flutter pub get
 ```
 flutter run -d <identificador-del-emulador>
 ```
-La app arranca en **Inventario**: el login todavía no está conectado a Firebase, así que no se piden credenciales.
+La app pide **iniciar sesión** (o crear una cuenta) antes de mostrar nada: ver "Inicio de sesión". La primera vez hay que registrarse con un mail y una contraseña de al menos 6 caracteres.
 
 Firebase ya viene configurado en el repositorio (`android/app/google-services.json` y
 `lib/firebase_options.dart`), no hace falta crear nada.
@@ -119,12 +119,12 @@ Todo el código está en `lib/`.
 Las pruebas unitarias están en `test/` (fuera de `lib/`).
 
 ## Navegación
-- La app arranca en **Inventario**. El login queda para el final.
-- **Dentro del `AppShell`** (barra inferior y menú lateral, que muestra opciones según el rol): Inventario, Detalle de insumo (`/insumo/:id`), Alta de insumo, Consumo, Alertas, Trabajos prácticos, Usuarios y Perfil.
-- **Fuera del `AppShell`**, a pantalla completa: Welcome, Login, Register, **Historial** y **Lista de compras**.
+- La app arranca en **Bienvenida** si no hay una sesión iniciada, y en **Inventario** si la hay. Ver "Inicio de sesión".
+- **Dentro del `AppShell`** (barra inferior y menú lateral, que muestra opciones según el rol): Inventario, Detalle de insumo (`/insumo/:id`), Alta de insumo, Alertas, Trabajos prácticos, Usuarios y Perfil.
+- **Fuera del `AppShell`**, a pantalla completa: Welcome, Login, Register, **Historial**, **Lista de compras**, **Registro de consumo** y **Escáner**.
 
 ### Decisiones de navegación
-- **Historial y Lista de compras** van fuera del `AppShell` porque en el diseño no llevan la barra inferior del shell. Lista de compras tiene además su propio botón flotante circular. La flecha de volver regresa a la pantalla anterior o, si no hay, a Inventario.
+- **Historial, Lista de compras, Registro de consumo y Escáner** van fuera del `AppShell` porque en el diseño no llevan la barra inferior del shell. Lista de compras tiene además su propio botón flotante circular. La flecha de volver regresa a la pantalla anterior o, si no hay, a Inventario.
 - **Alertas** va dentro del `AppShell` porque el diseño lleva la barra inferior, pero sin el botón flotante: el shell recibe la ruta actual (`location`) y lo esconde solo en `/alertas`.
 
 ## Seguimiento de pantallas
@@ -133,9 +133,9 @@ Las pruebas unitarias están en `test/` (fuera de `lib/`).
 ### Acceso
 | Pantalla | Ruta | Estado |
 |---|---|---|
-| Bienvenida | `/welcome` | 🚧 En construcción |
-| Iniciar sesión | `/login` | 🚧 En construcción (todavía no usa `AuthService`) |
-| Registro | `/register` | 🚧 En construcción (todavía no usa `AuthService`) |
+| Bienvenida | `/welcome` | ✅ Funcional (lleva a ingresar o a registrarse) |
+| Iniciar sesión | `/login` | ✅ Funcional (mail y contraseña con Firebase Authentication) |
+| Registro | `/register` | ✅ Funcional (crea la cuenta; las contraseñas se escriben ocultas) |
 
 ### Inventario
 | Pantalla | Ruta | Estado |
@@ -143,9 +143,9 @@ Las pruebas unitarias están en `test/` (fuera de `lib/`).
 | Inventario | `/inventario` | ✅ Funcional (lee los insumos de Firestore, con buscador, filtros y tarjetas) |
 | Buscar y filtrar | `/inventario/filtro` | ⏳ Placeholder (hoy el filtro es un diálogo dentro de Inventario) |
 | Detalle de insumo | `/insumo/:id` | ✅ Funcional (lee el insumo de Firestore en tiempo real; Editar y Baja avisan "Próximamente"; Historial y Registrar consumo navegan a sus pantallas) |
-| Alta de insumo | `/insumo/alta` | ✅ Funcional (formulario de alta que guarda en Firestore; el botón "Buscar duplicados" avisa si ya existe algo parecido, ver "Duplicados al dar de alta") |
-| Escáner | `/scanner` | ⏳ Placeholder |
-| Consumo | `/consumo` | ✅ Funcional (registra una salida de stock; con `/consumo?insumo=ID` abre con ese insumo ya elegido) |
+| Alta de insumo | `/insumo/alta` | ✅ Funcional (formulario de alta que guarda en Firestore; "Escanear código de barras" completa los datos, ver "Escáner de código de barras"; el botón "Buscar duplicados" avisa si ya existe algo parecido, ver "Duplicados al dar de alta") |
+| Escáner | `/scanner` | ✅ Funcional, ver "Escáner de código de barras" (cámara a pantalla completa; busca el código en nuestros insumos y, si no está, en UPCitemdb y PubChem; "Sumar stock", "Usar estos datos" o "Cargar a mano") |
+| Registro de consumo | `/consumo` | ✅ Funcional, ver "Registro de consumo" (lista de insumos con cuánto retirar de cada uno y "Confirmar salida"; con `/consumo?insumo=ID` abre con ese insumo ya elegido) |
 
 ### Historial, alertas y compras
 | Pantalla | Ruta | Estado |
@@ -200,18 +200,37 @@ usa la predicción). Lo escribe `StockService`:
 - **Una sola transacción:** el stock nuevo del insumo y su movimiento se guardan juntos. Si una de las dos escrituras
   falla, no se guarda ninguna: no queda un stock cambiado sin su movimiento ni al revés. La lectura del stock va dentro
   de la transacción, así dos consumos a la vez no se pisan.
-- **Qué operaciones hay:** `registrarEntrada`, `registrarSalida` (no deja sacar más de lo que hay), `registrarAjuste` (deja
+- **Qué operaciones hay:** `registrarEntrada`, `registrarSalida` (no deja sacar más de lo que hay), `registrarSalidas`
+  (varios insumos a la vez, todo o nada, ver "Registro de consumo"), `registrarAjuste` (deja
   el stock en un valor y guarda la diferencia con signo) y `registrarAlta` (el insumo nuevo más una entrada por su stock
   inicial, con el motivo "Alta de insumo"; si el stock inicial es 0 no hay movimiento).
 - **Cómo se guarda la cantidad:** positiva en entradas y salidas (el sentido lo da el tipo) y con signo en los ajustes.
 - **Quién lo hizo:** el id y el nombre de la persona se guardan en el movimiento. El nombre sale del documento de la persona
-  en `usuarios`, o del nombre o el email de su cuenta de Firebase; sin sesión figura "Sin sesión" (hoy el login todavía no
-  está conectado). Para que salga el nombre del documento, el registro tiene que crear `usuarios/{uid}`.
+  en `usuarios`, o del nombre o el email de su cuenta de Firebase; sin sesión figura "Sin sesión" (con el login conectado no
+  debería pasar). Para que salga el nombre del documento, el registro tiene que crear `usuarios/{uid}`.
 - **Las cuentas se prueban solas:** validar, calcular el stock que queda y armar el movimiento está en `StockLogica`, sin
   Firestore. La transacción en sí no tiene prueba automática y se probó a mano.
 - Los errores (cantidad inválida, stock insuficiente, insumo inexistente) son `StockException` con un mensaje listo para
   mostrar.
 - Las reglas de Firestore (#46) tienen que permitir escribir en `insumos` y en `movimientosStock`.
+
+## Registro de consumo
+La pantalla sigue el diseño ("Registro de consumo" del prototipo): una lista de insumos, cada uno con cuánto hay
+disponible y un selector de cuánto retirar, un enlace "+ Agregar otro insumo" y el botón "Confirmar salida".
+
+- **Varios insumos en una sola salida.** Cada fila tiene un selector que nunca baja de 1 ni pasa de lo disponible. Una fila
+  se saca de la lista deslizándola hacia la izquierda.
+- **"+ Agregar otro insumo"** abre un buscador (sin mirar mayúsculas ni tildes) con los insumos que tienen stock y todavía
+  no están en la lista.
+- **El motivo no está en el diseño, pero se necesita** (TP, Clase, Investigación u Otro, con un detalle obligatorio). Queda
+  debajo de la lista, antes del botón, y es el mismo para todas las líneas de la salida.
+- **Confirmar es todo o nada.** `StockService.registrarSalidas` guarda todo en una sola transacción: si falta stock de un
+  solo insumo, no se registra ninguno y el aviso dice de cuál ("No hay stock suficiente de ..."). Cada línea deja su propio
+  movimiento de salida en el historial.
+- **Después de confirmar** la lista queda vacía para poder cargar otro consumo.
+- **Cómo se llega:** desde el detalle de un insumo ("Registrar consumo") se abre ya con ese insumo; también desde el aviso de
+  duplicados del Alta ("Cargarle un consumo"). Un id que no corresponde a ningún insumo se ignora.
+- Va fuera del `AppShell`, sin barra inferior ni botón flotante, como en el diseño.
 
 ## Alertas vistas
 Cada alerta se puede marcar como vista desde la pantalla de Alertas. Queda en la lista, atenuada, y la campana de la
@@ -219,8 +238,8 @@ barra inferior deja de contarla (el color de la campana también mira solo las q
 
 - **Es por persona.** Se guarda en la colección `alertasVistas`, un documento por persona y alerta (id
   `{usuarioId}_{alertaId}`). Lo que marca una persona no cambia lo que ven las demás.
-- **El login todavía no está conectado**, así que hoy todos comparten el id `sin-sesion` y en la práctica se comparte. Cuando
-  se conecte, el id sale de la sesión de Firebase (`usuarioActualIdProvider`) y pasa a ser por persona sin tocar nada más.
+- **Con el login conectado, el id sale de la sesión de Firebase** (`usuarioActualIdProvider`), así que cada persona tiene sus
+  propias marcas. El id fijo `sin-sesion` queda solo como respaldo si no hubiera sesión.
 - **Las alertas se calculan, no se guardan:** lo único que se guarda es la marca. Cuando una alerta deja de existir (por
   ejemplo, se repone el stock) su marca se borra sola, así que si vuelve a aparecer lo hace como nueva.
 - **La limpieza es conservadora:** solo borra cuando los insumos, los movimientos, los trabajos prácticos y las marcas
@@ -245,9 +264,51 @@ qué opciones tiene, así que se eligieron estas):
   filtros" (si no hay ninguna alerta, dice que no hay y no ofrece limpiar).
 - Se filtra en memoria, sobre las alertas ya calculadas, igual que el filtro del Historial.
 - **El filtro se guarda mientras la app está abierta** (`filtroAlertasProvider`) y se pierde al cerrarla.
+## Escáner de código de barras
+Desde el Alta, el botón **"Escanear código de barras"** abre la cámara a pantalla completa (sin barra inferior, como en el
+diseño). Al leer un código lo busca en capas y se queda con la primera que lo conoce (`BarcodeService`):
+
+1. **Nuestros insumos** (`Insumo.codigoBarras`). Si ya está cargado, la pantalla muestra su nombre y su stock con dos
+   botones: **"Sumar stock"** (pide cuántas unidades y registra una entrada de "Reposición", en vez de crear un duplicado)
+   y **"Editar"** (abre su detalle). Un código UPC-A de 12 cifras y su versión EAN-13 (con un 0 delante) cuentan como el
+   mismo.
+2. **UPCitemdb**, una base gratuita de productos comerciales (sin clave, unas 100 consultas por día): devuelve el nombre y
+   la marca.
+3. **PubChem**, con ese nombre: completa la **fórmula** y el **peso molecular**. PubChem no busca por código de barras, solo
+   por nombre o por número CAS, por eso se consulta después de tener un nombre.
+4. **Si nadie lo conoce**, el escáner dice "No encontramos este código" y **"Cargar a mano"** vuelve al Alta con solo el
+   código escrito. No es un error: los reactivos de laboratorio suelen no estar en bases públicas.
+
+- **Los datos externos son una sugerencia:** el nombre se puede corregir antes de **"Usar estos datos"**, que vuelve al Alta
+  con todo completado. El Alta solo llena los campos que están vacíos, así que un escaneo nunca pisa lo que ya se escribió, y
+  la marca, la fórmula y el peso molecular solo se completan en insumos comprados.
+- **El sistema aprende solo:** cuando se da de alta el insumo con su código, la próxima vez que se escanee se encuentra en la
+  capa 1. No hace falta una colección aparte ni reglas nuevas en Firestore.
+- **Si internet falla** (sin conexión, límite de consultas diario agotado), la pantalla lo dice y se carga a mano: no es lo
+  mismo que "el código no existe".
+- **Qué sale a internet:** solo el código leído (a UPCitemdb) y el nombre del producto (a PubChem). Sin claves.
+- **Se puede sumar otra fuente** (por ejemplo EAN-Search, que pide un token y su cuota gratis no está confirmada) agregando una
+  capa en `BarcodeService`.
+- **La cámara** usa `mobile_scanner` y solo lee códigos de barras de productos (EAN, UPC, Code 128, 39 y 93). Pide el permiso
+  de cámara la primera vez; si se rechaza, la pantalla lo explica.
+- **La calidad de los datos de UPCitemdb es variable.** Cubre productos comerciales, no reactivos de laboratorio, y a veces
+  devuelve avisos de tiendas online o un producto que no tiene nada que ver: en una prueba a mano, el código EAN de una
+  gaseosa devolvió "2 Packs Of 24 X 330ml Coke Cans" y un código inventado devolvió un producto cualquiera. Por eso el nombre
+  sale editable, la hoja avisa "Datos de una base pública: revisalos antes de usarlos" y no se aplica nada hasta tocar
+  "Usar estos datos". PubChem, en cambio, es confiable cuando reconoce el nombre (Ethanol da C2H6O y 46,07), pero un nombre
+  comercial largo no lo reconoce y en ese caso queda solo el nombre.
+- **Qué se probó y qué no:** las pruebas automáticas usan una cámara falsa y un servidor falso (así dan siempre lo mismo y no
+  gastan las consultas diarias de UPCitemdb). Se comprobó una vez a mano contra las APIs reales que el formato de las
+  respuestas coincide con lo que lee el servicio. Falta probar la lectura real con la cámara, que necesita un celular físico.
+
 ## Duplicados al dar de alta
 
-Antes de guardar un insumo nuevo, el formulario de Alta tiene un botón **"Buscar duplicados"** (requerimiento A10). Usa lo que ya se escribió (nombre, tipo, marca y código de barras) y abre una ventana:
+Mientras se escribe el **nombre** de un insumo nuevo, aparecen debajo del campo hasta 3 insumos que ya existen con un nombre
+parecido (sin mirar mayúsculas, tildes ni espacios; los que empiezan igual primero). Tocar uno abre su detalle. Si no hay
+ninguno, dice que se va a agregar como nuevo. Con menos de 2 letras no sugiere nada, y mientras no se cargaron los insumos
+no dice nada (afirmar que no hay ninguno sería engañoso). No frena la carga: es un aviso.
+
+Antes de guardar un insumo nuevo, el formulario de Alta tiene además un botón **"Buscar duplicados"** (requerimiento A10). Usa lo que ya se escribió (nombre, tipo, marca y código de barras) y abre una ventana:
 
 - **Comparación de texto** (siempre, instantánea y sin internet): encuentra insumos con el mismo código de barras o con un nombre muy parecido. Para eso usa `DuplicateDetectionService.buscarSimilares`.
 - **Sinónimos con IA** (solo si hay clave, ver "Servicios externos"): mientras tanto muestra "Buscando sinónimos con IA…" y, cuando termina, suma los insumos que la IA cree que son el mismo producto con otro nombre ("etanol" y "alcohol etílico"), marcados como "Sugerido por la IA". Si la IA falla o no está configurada, la ventana lo dice y deja el resultado de la comparación de texto.
@@ -258,6 +319,63 @@ Antes de guardar un insumo nuevo, el formulario de Alta tiene un botón **"Busca
 **Cuota:** cada vez que se toca el botón y hay clave se hace hasta una consulta por cada tipo de insumo (comprado y solución), y más si hay más de 250 de un tipo. No hay límite ni memoria de lo ya consultado.
 
 **Proveedor de IA:** la app habla con la IA a través de la interfaz `ModeloDeLenguaje`. Se usa **Gemini** si hay clave (`GEMINI_API_KEY`); si además hay clave de Groq, Groq queda de **respaldo** y se usa solo cuando Gemini falla (por ejemplo, límite diario agotado). Con una sola clave se usa esa. Para sumar otro proveedor hay que escribir un cliente nuevo que implemente la interfaz y sumarlo en `elegirModeloDeLenguaje` (`sinonimos_provider.dart`). Los textos que ve la persona no nombran al proveedor.
+
+## Categoría sugerida al dar de alta
+
+Debajo del campo **Categoría** del Alta aparece **"Categoría sugerida: X"** con un botón **"Usar"** (requerimiento #25). Se
+calcula con lo que ya se escribió, en este orden, y se queda con la primera que acierta (`CategorySuggestionService`):
+
+1. **Insumos parecidos que ya existen:** si hay uno con el mismo nombre (o que lo contiene), se sugiere su categoría. Es la
+   más confiable porque respeta cómo ya se cargó el inventario.
+2. **Reglas por nombre:** palabras como "etanol", "guante", "agar" o "enzima" apuntan a una categoría (Alcoholes y
+   solventes, Material descartable, Medios de cultivo, Enzimas, Buffers y soluciones, Ácidos y bases, Sales, Metales,
+   Colorantes, Material de vidrio).
+3. **Reglas por fórmula:** por ejemplo, una fórmula terminada en "COOH" es un ácido.
+4. **IA (opcional):** si no hay sugerencia y hay clave de IA, aparece **"Sugerir categoría con IA"**. Solo se le manda el
+   nombre, la fórmula y los nombres de las categorías que ya existen; elige una o propone una nueva (corta, en plural). Si
+   coincide con una existente, se usa la escritura de la existente.
+
+- **Es una sugerencia:** nunca se aplica sola. Si la categoría ya tiene texto, no se muestra nada.
+- **Sin clave de IA** las capas 1 a 3 funcionan igual, sin internet.
+
+## Validación del Alta
+
+El formulario de Alta revisa los datos antes de guardar (`ValidacionesAlta`, con sus propias pruebas):
+
+- **Cantidad inicial:** un número entero de 0 en adelante (el stock se cuenta en unidades enteras).
+- **Stock mínimo:** un número de 0 en adelante; acepta **coma o punto** decimal ("0,5" y "0.5"), porque en el teclado del
+  celular sale la coma.
+- **Peso molecular** (opcional): si se escribe, tiene que ser un número mayor que 0; un texto ya no rompe el guardado, avisa
+  en el campo.
+- **Nombre y ubicación** son obligatorios (sin contar espacios).
+- **Fechas:** el vencimiento no puede ser anterior a la elaboración.
+
+## Leer la etiqueta con la cámara
+
+El botón **"Leer etiqueta con la cámara"** del Alta (requerimiento #24) saca una foto a la etiqueta del frasco y completa el
+formulario con lo que se entienda: **nombre, marca, fórmula, peso molecular y vencimiento**.
+
+1. `image_picker` abre la cámara y devuelve la foto, reducida a 2000 px de ancho (una foto más grande no lee mejor).
+2. `LectorMlKit` reconoce el texto con **ML Kit de Google**, que corre **en el teléfono**: la foto no sale del equipo y no
+   hace falta internet.
+3. `InterpreteDeEtiqueta` busca en el texto la fórmula química, el peso molecular ("PM 46,07 g/mol"), el vencimiento
+   ("Venc: 11/2027", "Expira 30-11-2027"), el número CAS (validando su dígito verificador), la marca (cuando dice "Marca:",
+   "Fabricante:" o similar) y el nombre.
+4. Si la etiqueta trae un **número CAS** y falta la fórmula o el peso molecular, `OcrService` los consulta en **PubChem**
+   (`BarcodeService.datosQuimicos`). Si PubChem no responde, queda lo que se leyó. Solo se manda el número CAS.
+
+- **Todo queda editable y se avisa que se revise:** reconocer texto en una foto se equivoca (una "O" por un "0", por ejemplo).
+- **Solo llena campos vacíos**, igual que el escáner: una lectura nunca pisa lo que la persona ya escribió. En una solución
+  preparada solo se completa el nombre y el vencimiento (la marca, la fórmula y el peso molecular son de insumos comprados).
+- **Fechas:** con "mm/aaaa" se toma el **último día del mes**. Solo se toma una fecha si está junto a una palabra de
+  vencimiento (venc, expira, caduca, best before...), para no confundirla con la de elaboración o un lote.
+- **Si algo falla** (sin permiso de cámara, foto sin texto, lector caído) la pantalla lo dice sin mostrar detalles técnicos.
+- **Qué se probó y qué no:** las pruebas automáticas usan una cámara y un lector falsos con textos de etiqueta de ejemplo
+  (el intérprete, el servicio y el formulario). **Falta probar la lectura real con un celular físico:** el emulador no tiene
+  una cámara que enfoque una etiqueta, y la calidad de ML Kit depende de la luz y del enfoque.
+- **Versiones de Flutter:** `google_mlkit_text_recognition` está fijado en la serie `^0.16.0` porque la 1.x pide Dart 3.12
+  (Flutter 3.44 o más) y el proyecto admite Flutter 3.41.6. Al compilar con 3.41.6, Flutter puede reescribir `pubspec.lock`;
+  esos cambios no hay que commitearlos.
 
 ## Servicios externos
 
@@ -332,12 +450,75 @@ La integracion de codigo de barras no esta implementada todavia. El flujo previs
 
 ### Seguridad
 
-- Las reglas de Firestore estan abiertas hoy (issue #46). Mientras no esten cerradas, no guardar claves ni tokens en Firestore.
+- Las reglas de Firestore estan abiertas hasta el **31/01/2027** (issue #46): cualquiera que tenga los datos del proyecto
+  puede leer y escribir. Mientras esten abiertas, no guardar claves ni tokens en Firestore. Ver "Reglas de Firestore".
 - Antes de cada `git push`, verificar que no queden claves en el repositorio:
 
   ```
   git grep gsk_
+  git grep AIza
   ```
+
+  La primera busca claves de Groq y la segunda las de Gemini. En `lib/firebase_options.dart` aparece una clave que empieza con
+  `AIza`: es la de Firebase, que genera la propia herramienta y se sube a proposito. No es una filtracion.
+
+## Inicio de sesión
+La app usa **Firebase Authentication** con mail y contraseña (`AuthService`, en `lib/services/auth_logic/`).
+
+- **Sin sesión no se ve nada:** el router redirige a Bienvenida (`/welcome`) desde cualquier pantalla que no sea Bienvenida,
+  Ingresar o Registrarse. Con sesión iniciada, esas tres pantallas redirigen a Inventario. El router se entera de los cambios de
+  sesión con `GoRouterRefreshStream` (en `lib/core/`), por eso al ingresar o cerrar sesión va solo a donde corresponde.
+- **Cerrar sesión** está al final del menú lateral.
+- **Los errores se explican en español** con el motivo que devuelve Firebase (mail mal escrito, contraseña de menos de 6
+  caracteres, cuenta repetida, contraseña incorrecta, demasiados intentos) en un cartel rojo que sale de `AuthService`. Las
+  comprobaciones previas (campos vacíos, contraseñas distintas) están en `ValidacionesAuth` y se prueban solas.
+- **No se limita el largo del mail:** los institucionales (`usuario@comunidadort.edu.ar`) tienen más de 20 caracteres.
+- **El rol de cada persona** sale de su documento en `usuarios/{uid}` (ver "Roles").
+- Antes de mostrarla al profesor conviene crear una cuenta de prueba: el registro escribe en Firebase de verdad.
+
+## Roles
+Hay tres roles: **administrador**, **ayudante** y **docente**. Cada persona tiene un documento `usuarios/{uid}` con su
+`nombre`, `email`, `rol`, `activo` y `puedeVerSedronar` (el `uid` es el de su cuenta de Firebase). `roleProvider` lee el rol
+de ese documento (`RolDeSesionService`, en `lib/services/`) y la app decide con él qué se ve y qué se puede hacer.
+
+- **Una cuenta nueva es docente**, el rol que menos puede hacer. **Nadie se vuelve administrador solo.**
+- **El documento se crea al iniciar sesión**, no al registrarse: así también lo tienen las cuentas que existían antes de que
+  hubiera documentos. Si ya existe no se toca (se crea dentro de una transacción), por eso volver a entrar nunca pisa un rol
+  que alguien cambió. El nombre arranca con el de la cuenta de Firebase, o con lo que va antes de la `@` del mail.
+- **Mientras se averigua el rol, si no hay sesión o si falla la lectura** (sin conexión, sin permiso) vale **docente**: es
+  mejor mostrar de menos un instante que dejar ver o tocar lo que no corresponde.
+- **El rol se actualiza solo:** si alguien lo cambia en Firestore mientras la persona usa la app, el menú y los botones se
+  actualizan sin cerrar sesión. Una persona dada de baja (`activo: false`) vale docente.
+- **Qué ve cada rol en el menú lateral:** el docente ve Inventario, Historial y Lista para trabajos prácticos; el ayudante
+  suma Lista de compras; el administrador suma Usuarios.
+
+**Cómo hacer al primer administrador** (hay que hacerlo una vez, a mano):
+1. Iniciar sesión en la app con esa cuenta, para que se cree su documento.
+2. En la consola de Firebase: Firestore Database > Datos > colección `usuarios` > el documento de esa persona (el id es su
+   `uid`, que figura en Authentication > Usuarios).
+3. Cambiar el campo `rol` de `docente` a `administrador`. La app lo toma sola.
+
+**Qué todavía no protege:** esto decide lo que **muestra la app**, no lo que **permite la base**. Las reglas de Firestore
+siguen abiertas hasta el 31/01/2027 (ver "Reglas de Firestore"), así que alguien que hable directo con la base podría cambiarse
+el rol. Las reglas por rol son el siguiente paso (issue #46) y recién ahí el rol es una barrera de verdad. Además, la
+pantalla de **Usuarios** (donde un administrador cambiaría los roles) todavía es un esqueleto: por ahora los roles se
+cambian en la consola.
+
+## Reglas de Firestore
+Las reglas de seguridad de la base estan en [`firestore.rules`](firestore.rules). **Guardar el archivo no las aplica:** hay que
+publicarlas en la consola de Firebase (Firestore Database > Reglas) o con
+`firebase deploy --only firestore:rules --project proyecto-final-ort-d54c1` (`firebase.json` ya apunta al archivo).
+
+- **Hoy:** `allow read, write: if request.time < timestamp.date(2027, 1, 31)`. Es el "modo de prueba" de Firebase: abierto a
+  cualquiera hasta esa fecha.
+- **Se vencen.** El modo de prueba original (21/10/2026) duraba 30 dias. Cuando vencio, **toda la app dejo de leer y escribir a
+  la vez** (Inventario quedaba cargando para siempre y el error era `permission-denied`), sin importar la rama. Se renovo el
+  23/11/2026 hasta el 31/01/2027. **Hay que renovarlas o cambiarlas antes de esa fecha.**
+- **Si algo "no carga" de golpe en todas las pantallas,** mirar primero esta fecha antes de buscar un error en el codigo.
+- **Proximo paso:** cuando el login este conectado, pedir sesion iniciada (`request.auth != null`); mas adelante, reglas por
+  rol leyendo `usuarios/{uid}` (para eso el registro tiene que crear ese documento).
+- Las colecciones que usa la app son `insumos`, `movimientosStock`, `listaCompras`, `listasTP`, `usuarios` y `alertasVistas`;
+  las que todavia no existen en la consola se crean solas la primera vez que se escribe en ellas.
 
 ## Flujo de trabajo
 - Ramas: `main` (entregable), `dev` (integración) y `feat/<nombre>` por cada funcionalidad.
@@ -350,6 +531,11 @@ Parte del desarrollo (las pantallas de Historial, Lista de compras y Alertas, su
 y los componentes compartidos) se hizo con Claude (Anthropic) como asistente. Lo que propuso se revisó, se compiló y se probó en el emulador antes
 de subirlo.
 
+- **IA dentro de la app:** la app usa un modelo de lenguaje (Gemini, con Groq de respaldo) para dos cosas, siempre como
+  **sugerencia** que la persona acepta o descarta: detectar insumos duplicados con otro nombre ("Duplicados al dar de alta") y
+  sugerir la categoría de un insumo nuevo ("Categoría sugerida al dar de alta"). Solo reciben nombres y fórmulas, nunca
+  stock, ubicaciones ni datos de personas, y sin clave de IA la app sigue andando con comparación de texto y reglas. La
+  **lectura de etiquetas con la cámara** usa ML Kit, que corre en el teléfono y no manda la foto a ningún servidor.
 - **Por pasos chicos:** antes de escribir, se acordaba qué archivos cambiaban y en cuántos commits.
 - **Verificación:** después de cada paso se corría `flutter analyze` y se probaba la app en el emulador.
 - **Git lo manejamos nosotros:** ramas, commits, pushes y Pull Requests los hizo una persona del equipo.

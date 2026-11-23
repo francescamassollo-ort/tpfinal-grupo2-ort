@@ -112,7 +112,8 @@ class _DetalleContenido extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: () => context.push('/consumo'),
+                    // Abre el registro de consumo con este insumo ya elegido.
+                    onPressed: () => context.push('/consumo?insumo=${insumo.id}'),
                     child: const Text('Registrar consumo'),
                   ),
                 ),
