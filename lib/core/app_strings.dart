@@ -85,6 +85,37 @@ class AppStrings {
   static const String movimientoEntrada = 'Entrada de stock';
   static const String movimientoSalida = 'Salida de stock';
 
+  // Escáner de código de barras.
+  static const String escanerIndicacion =
+      'Apuntá la cámara al código de barras del producto';
+  static const String escanerBuscando = 'Buscando datos del código…';
+  static const String escanerCodigoDetectado = 'CÓDIGO DETECTADO';
+  static const String escanerCodigoAutocompletado =
+      'CÓDIGO DETECTADO · AUTOCOMPLETADO';
+  static const String escanerNoEncontrado = 'No encontramos este código';
+  static const String escanerEditar = 'Editar';
+  static const String escanerSumarStock = 'Sumar stock';
+  static const String escanerEscanearDeNuevo = 'Escanear de nuevo';
+  static const String escanerUsarDatos = 'Usar estos datos';
+  static const String escanerCargarAMano = 'Cargar a mano';
+  static const String escanerCampoNombre = 'Nombre';
+  static const String escanerSinPermiso =
+      'Para escanear hace falta permitir el acceso a la cámara';
+  static const String escanerCamaraError = 'No se pudo abrir la cámara';
+  static const String escanerMotivoReposicion = 'Reposición';
+  static const String escanerErrorSumar = 'No se pudo sumar el stock';
+  static String escanerStockActual(int stock, String unidad) =>
+      'Stock actual: $stock $unidad';
+  static String escanerFormula(String formula) => 'Fórmula: $formula';
+  static String escanerPesoMolecular(double peso) =>
+      'Peso molecular: ${peso.toString().replaceAll('.', ',')}';
+  static String escanerStockSumado(int cantidad, String nombre) =>
+      'Se sumaron $cantidad a $nombre';
+  static const String sumarStockTitulo = 'Sumar stock';
+  static const String sumarStockCantidad = 'Cantidad a sumar';
+  static const String sumarStockConfirmar = 'Sumar';
+  static const String escanerUnidadPorDefecto = 'u.';
+
   static const String alertasTitulo = 'Alertas';
   static String alertasConCantidad(int cantidad) => 'Alertas ($cantidad)';
 
