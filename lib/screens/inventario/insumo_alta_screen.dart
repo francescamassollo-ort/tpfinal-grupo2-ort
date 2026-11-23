@@ -11,6 +11,7 @@ import '../../services/duplicate_detection_service.dart';
 import '../../services/stock_service.dart';
 import '../../services/synonym_detection_service.dart';
 import 'duplicados_dialog.dart';
+import 'sugerencia_de_categoria.dart';
 import 'sugerencias_nombre.dart';
 
 class InsumoAltaScreen extends ConsumerStatefulWidget {
@@ -125,6 +126,14 @@ TextFormField(
   decoration: const InputDecoration(
     labelText: 'Categoría',
   ),
+),
+
+// Sugiere una categoría según el nombre y la fórmula. Tocar "Usar" la copia
+// al campo de arriba.
+SugerenciaDeCategoria(
+  nombreController: _nombreController,
+  formulaController: _formulaController,
+  categoriaController: _categoriaController,
 ),
 
 const SizedBox(height: 12),
