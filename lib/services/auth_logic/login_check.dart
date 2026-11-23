@@ -1,21 +1,30 @@
-import 'package:firebase_auth/firebase_auth.dart';
-import 'auth_service.dart';
 import 'package:flutter/material.dart';
 
-void loginCheck(BuildContext context, {String? email, String? password}) async {
-  final AuthService auth = AuthService();
-  final contextVariable = ScaffoldMessenger.of(context);
-  if (email!.isEmpty) {
-    contextVariable.showSnackBar(const SnackBar(content: Text('No dejar espacio vacio en campo Email!!!')));
-  }  else if (password!.isEmpty){
-    contextVariable.showSnackBar(const SnackBar(content: Text('No dejar espacio vacio en contraseñas!!!')));
-  } else {
-    debugPrint('registro tal');
-    User? user = await auth.signInWithEmailAndPassword(email, password);
-    if (user != null) {
-      contextVariable.showSnackBar(const SnackBar(content: Text('Ingreso exitoso.')));
-    } else {
-      contextVariable.showSnackBar(const SnackBar(content: Text('Ingreso Fallido.')));
-    }
+import 'auth_service.dart';
+import 'validaciones_auth.dart';
+
+/// Revisa lo escrito en el formulario de ingreso y, si está bien, inicia sesión.
+///
+/// Si Firebase rechaza el ingreso, `AuthService` ya muestra el motivo en un
+/// cartel: acá no se repite. Al entrar bien, el router lleva solo a Inventario.
+Future<void> loginCheck(
+  BuildContext context, {
+  required String email,
+  required String password,
+}) async {
+  final avisos = ScaffoldMessenger.of(context);
+
+  final problema = ValidacionesAuth.ingreso(email: email, password: password);
+  if (problema != null) {
+    avisos.showSnackBar(SnackBar(content: Text(problema)));
+    return;
+  }
+
+  final usuario = await AuthService().signInWithEmailAndPassword(
+    email.trim(),
+    password,
+  );
+  if (usuario != null) {
+    avisos.showSnackBar(const SnackBar(content: Text('Ingreso exitoso.')));
   }
 }

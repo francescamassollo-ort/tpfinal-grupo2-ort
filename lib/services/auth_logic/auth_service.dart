@@ -100,6 +100,9 @@ class AuthService {
       return null;
     } catch (e) {
       debugPrint("General error during sign-in: $e");
+      // Sin esto el ingreso fallaba sin decir nada: ahora el aviso sale acá,
+      // igual que en el registro.
+      showGlobalErrorSnackBar('Ocurrió un error inesperado. Revisá tu conexión.');
       return null;
     }
   }
