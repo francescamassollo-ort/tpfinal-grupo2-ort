@@ -109,6 +109,61 @@ class StockService {
     );
   }
 
+  /// Retira varios insumos a la vez, por ejemplo el consumo de un trabajo
+  /// práctico. Es todo o nada: si falla una línea (por ejemplo, no hay stock
+  /// suficiente de un insumo), no se registra ninguna. Cada línea deja su propio
+  /// movimiento de salida, con el mismo [motivo].
+  ///
+  /// Si una línea no se puede hacer, lanza una [StockException] cuyo
+  /// [StockException.insumoId] dice cuál.
+  Future<void> registrarSalidas(
+    List<LineaDeSalida> lineas,
+    String motivo,
+  ) async {
+    final usuario = await _usuarioActual.obtener();
+    final referencias = {
+      for (final linea in lineas)
+        linea.insumoId:
+            _db.collection(InsumoService.coleccion).doc(linea.insumoId),
+    };
+
+    await _db.runTransaction((transaccion) async {
+      // Firestore exige hacer todas las lecturas antes de la primera
+      // escritura.
+      final stocks = <String, int>{};
+      for (final entrada in referencias.entries) {
+        final doc = await transaccion.get(entrada.value);
+        final datos = doc.data();
+        if (!doc.exists || datos == null) {
+          throw StockException(
+            StockLogica.mensajeInsumoNoEncontrado,
+            insumoId: entrada.key,
+          );
+        }
+        stocks[entrada.key] = (datos['stock'] as num).toInt();
+      }
+
+      final cambios = StockLogica.salidas(
+        lineas: lineas,
+        stocks: stocks,
+        usuario: usuario,
+        ahora: DateTime.now(),
+        motivo: motivo,
+      );
+
+      for (var i = 0; i < lineas.length; i++) {
+        transaccion.update(
+          referencias[lineas[i].insumoId]!,
+          {'stock': cambios[i].stockNuevo},
+        );
+        transaccion.set(
+          _db.collection(HistorialService.coleccion).doc(),
+          cambios[i].movimiento.toMap(),
+        );
+      }
+    });
+  }
+
   /// Deja el stock del insumo en [cantidadNueva]. Deja un movimiento de ajuste
   /// con la diferencia.
   Future<void> registrarAjuste(
