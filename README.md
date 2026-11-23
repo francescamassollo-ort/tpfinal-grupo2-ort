@@ -125,7 +125,7 @@ Las pruebas unitarias están en `test/` (fuera de `lib/`).
 
 ### Decisiones de navegación
 - **Historial, Lista de compras y Registro de consumo** van fuera del `AppShell` porque en el diseño no llevan la barra inferior del shell. Lista de compras tiene además su propio botón flotante circular. La flecha de volver regresa a la pantalla anterior o, si no hay, a Inventario.
-- **Alertas** va dentro del `AppShell` porque el diseño lleva la barra inferior, pero sin el botón flotante: el shell recibe la ruta actual (`location`) y lo esconde solo en `/alertas`.
+- **Alertas** va dentro del `AppShell` porque el diseño lleva la barra inferior, pero sin el botón flotante: el shell recibe la ruta actual (`location`) y lo esconde en `/alertas` y en el Alta y el detalle de un insumo (`/insumo/...`), donde tapaba los botones de abajo ("Guardar" y "Registrar consumo").
 
 ## Seguimiento de pantallas
 ⏳ Placeholder: la ruta existe y la pantalla todavía no está hecha · 🚧 En construcción: interfaz armada, sin datos reales de Firebase · 🎭 Demostración: funciona con datos de ejemplo · 🔍 En revisión: hecha en una rama, todavía sin mergear a `dev` · ✅ Funcional: con datos reales (de Firebase o calculados a partir de ellos); las acciones que dependen de decisiones pendientes quedan indicadas
