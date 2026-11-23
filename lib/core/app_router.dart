@@ -36,6 +36,10 @@ final GoRouter appRouter = GoRouter(
     // flotante, como en el diseño.
     GoRoute(path: '/compras', builder: (context, state) => const ComprasScreen()),
 
+    // El escáner de código de barras es la cámara a pantalla completa, sin barra
+    // inferior ni botón flotante, como en el diseño.
+    GoRoute(path: '/scanner', builder: (context, state) => const ScannerScreen()),
+
     // Registro de consumo también va sin barra inferior ni botón flotante, como
     // en el diseño. /consumo?insumo=ID abre la pantalla con ese insumo ya
     // elegido.
@@ -61,7 +65,6 @@ final GoRouter appRouter = GoRouter(
           builder: (context, state) =>
               InsumoDetalleScreen(insumoId: state.pathParameters['id']!),
         ),
-        GoRoute(path: '/scanner', builder: (context, state) => const ScannerScreen()),
         GoRoute(path: '/alertas', builder: (context, state) => const AlertasScreen()),
         GoRoute(path: '/tp', builder: (context, state) => const TpListaScreen()),
         //GoRoute(path: '/tp/detalle', builder: (context, state) => const TpDetalleScreen()),
