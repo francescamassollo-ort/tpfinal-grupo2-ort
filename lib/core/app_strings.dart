@@ -275,4 +275,22 @@ class AppStrings {
   static String tpDocenteACargo(String nombre) => 'Docente a cargo: $nombre';
   static String tpRequeridoStock(String requerido, int stock) =>
       'Necesita $requerido · Stock $stock';
+  //Crear-Editar Trabajos Practicos
+  static const String tpFechaLabel = 'Fecha';
+  static const String tpNombreHint = 'Nombre del trabajo práctico';
+  static const String tpNombreRequerido = 'Ingresá un nombre';
+  static const String tpDescripcionHint = 'Descripción';
+  static const String tpAgregarInsumo = 'Agregar insumo';
+  static const String tpSeleccionarInsumo = 'Seleccionar insumo';
+  static const String tpBuscarInsumoHint = 'Buscar insumo';
+  static const String tpSinInsumosDisponibles = 'No hay insumos para agregar';
+  static const String tpInsumosVacios =
+      'Todavía no agregaste insumos. Usá el botón + para sumarlos.';
+  static const String tpDeslizarParaQuitar =
+      'Deslizá un insumo hacia la izquierda para quitarlo';
+  static const String tpSinInsumosError = 'Agregá al menos un insumo';
+  static const String tpGenerarLista = 'Generar lista';
+  static const String tpErrorGuardar = 'No se pudo guardar el trabajo práctico';
+  static const String tpStockInsuficiente = 'Stock insuficiente';
+  static String tpStockUnidades(int stock) => 'Stock: $stock u.';
 }
