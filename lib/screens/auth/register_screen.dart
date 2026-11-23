@@ -1,70 +1,133 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../services/auth_logic/registration_check.dart';
-import '../../widgets/handy_input_decoration.dart';
-import '../../widgets/handy_button_style_one.dart';
-import '../../widgets/handy_text_button_black.dart';
+
 import '../../core/app_colors.dart';
+import '../../services/auth_logic/registration_check.dart';
+import '../../widgets/handy_button_style_one.dart';
+import '../../widgets/handy_input_decoration.dart';
+import '../../widgets/handy_text_button_black.dart';
 
-
-class RegisterScreen extends StatelessWidget {
+/// Crear una cuenta con mail y contraseña. Las contraseñas se escriben ocultas,
+/// con un ojo para verlas, igual que en el ingreso.
+class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  State<RegisterScreen> createState() => _RegisterScreenState();
+}
 
-    final TextEditingController email = TextEditingController();
-    final TextEditingController password = TextEditingController();
-    final TextEditingController confirmPassword = TextEditingController();
-    
+class _RegisterScreenState extends State<RegisterScreen> {
+  // Los controles viven en el State, no en build(): si la pantalla se vuelve a
+  // dibujar, lo escrito no se pierde, y se liberan al salir.
+  final TextEditingController email = TextEditingController();
+  final TextEditingController password = TextEditingController();
+  final TextEditingController confirmPassword = TextEditingController();
+
+  bool ocultarContrasena = true;
+  bool ocultarConfirmacion = true;
+
+  @override
+  void dispose() {
+    email.dispose();
+    password.dispose();
+    confirmPassword.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            spacing: 22,
-            children: [
-              SizedBox(height: 20,),
-              Text(
-                'Crear cuenta',
-                style: GoogleFonts.poppins(
-                  color: AppColors.primary,
-                  fontSize: 26,
-                  fontWeight: FontWeight(700),
-                ),
-              ),
-              SizedBox(height: 26,),
-              TextField(
-                controller: email,
-                decoration: getInputDecoration('Email')
-              ),
-              TextField(
-                controller: password,
-                decoration: getInputDecoration('Contraseña')
-              ),
-              TextField(
-                controller: confirmPassword,
-                decoration: getInputDecoration('Confirmar contraseña')
-              ),
-              SizedBox(height: 10),
-              SizedBox(
-                width: double.infinity,
-                height: 54,
-                child: ElevatedButton(
-                  style: getButtonStyleOne(),
-                  onPressed: (){
-                    registrationCheck(context, email: email.text, password:  password.text, confirmPassword:  confirmPassword.text);
-                  }, 
-                  child: Text(
-                    'Registrarse',
+        // Con el teclado abierto la pantalla puede quedar chica: que se pueda
+        // desplazar en vez de desbordar.
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              spacing: 22,
+              children: [
+                const SizedBox(height: 20),
+                Text(
+                  'Crear cuenta',
+                  style: GoogleFonts.poppins(
+                    color: AppColors.primary,
+                    fontSize: 26,
+                    fontWeight: FontWeight.w700,
                   ),
-                ) 
-              ),
-              HandyTextButtonBlack(textPhrase: 'Ya tengo una cuenta', direction: '/login',),
-            ],
+                ),
+                const SizedBox(height: 26),
+                TextField(
+                  controller: email,
+                  keyboardType: TextInputType.emailAddress,
+                  decoration: getInputDecoration('Email'),
+                ),
+                TextField(
+                  controller: password,
+                  obscureText: ocultarContrasena,
+                  decoration: getInputDecoration('Contraseña').copyWith(
+                    suffixIcon: _Ojo(
+                      oculto: ocultarContrasena,
+                      onPressed: () => setState(
+                        () => ocultarContrasena = !ocultarContrasena,
+                      ),
+                    ),
+                  ),
+                ),
+                TextField(
+                  controller: confirmPassword,
+                  obscureText: ocultarConfirmacion,
+                  decoration: getInputDecoration('Confirmar contraseña').copyWith(
+                    suffixIcon: _Ojo(
+                      oculto: ocultarConfirmacion,
+                      onPressed: () => setState(
+                        () => ocultarConfirmacion = !ocultarConfirmacion,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: double.infinity,
+                  height: 54,
+                  child: ElevatedButton(
+                    style: getButtonStyleOne(),
+                    onPressed: () {
+                      registrationCheck(
+                        context,
+                        email: email.text,
+                        password: password.text,
+                        confirmPassword: confirmPassword.text,
+                      );
+                    },
+                    child: const Text('Registrarse'),
+                  ),
+                ),
+                const HandyTextButtonBlack(
+                  textPhrase: 'Ya tengo una cuenta',
+                  direction: '/login',
+                ),
+              ],
+            ),
           ),
         ),
       ),
+    );
+  }
+}
+
+/// El ojo que muestra u oculta lo escrito en un campo de contraseña.
+class _Ojo extends StatelessWidget {
+  const _Ojo({required this.oculto, required this.onPressed});
+
+  final bool oculto;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      onPressed: onPressed,
+      tooltip: oculto ? 'Mostrar contraseña' : 'Ocultar contraseña',
+      icon: Icon(oculto ? Icons.visibility_off : Icons.visibility),
     );
   }
 }
