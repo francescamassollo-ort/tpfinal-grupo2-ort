@@ -115,6 +115,14 @@ String? _rutaBotonAgregar(String location, UserRole role) {
   // El diseño de Alertas no lleva el botón flotante.
   if (location == '/alertas') return null;
 
+  // Perfil, Usuarios y la pantalla de búsqueda y filtros no dan de alta nada:
+  // un "+" ahí llevaría al Alta sin que tenga que ver con lo que se está viendo.
+  if (location == '/perfil' ||
+      location == '/usuarios' ||
+      location == '/inventario/filtro') {
+    return null;
+  }
+
   // Lista de TPs: crear un TP (solo admin y docente).
   if (location == '/tp') {
     final puedeCrearTp =

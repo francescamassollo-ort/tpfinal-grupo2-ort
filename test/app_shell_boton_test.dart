@@ -54,6 +54,14 @@ void main() {
       expect(find.byType(FloatingActionButton), findsOneWidget);
     });
 
+    for (final ruta in ['/perfil', '/usuarios', '/inventario/filtro']) {
+      testWidgets('en $ruta no está', (tester) async {
+        await _mostrar(tester, ruta);
+
+        expect(find.byType(FloatingActionButton), findsNothing);
+      });
+    }
+
     testWidgets('en el detalle de un TP no está', (tester) async {
       await _mostrar(tester, '/tp/detalle/abc');
 
