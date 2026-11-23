@@ -43,6 +43,7 @@ TrabajoPractico _tp(String producto, double cantidad) {
     nombre: 'PCR',
     descripcion: '',
     fecha: DateTime.now(),
+    docente: '',
     insumos: [InsumoRequerido(insumoId: producto, cantidad: cantidad, unidad: 'u')],
   );
 }

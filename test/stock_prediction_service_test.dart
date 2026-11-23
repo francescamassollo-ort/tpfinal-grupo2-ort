@@ -62,6 +62,7 @@ TrabajoPractico _tp(
     nombre: nombre,
     descripcion: '',
     fecha: fecha,
+    docente: '',
     insumos: [
       for (final e in pedidos.entries)
         InsumoRequerido(insumoId: e.key, cantidad: e.value, unidad: 'u'),
@@ -381,6 +382,7 @@ void main() {
             nombre: 'PCR',
             descripcion: '',
             fecha: DateTime(2026, 11, 20),
+            docente: '',
             insumos: const [
               InsumoRequerido(insumoId: 'p1', cantidad: 2, unidad: 'u'),
               InsumoRequerido(insumoId: 'p1', cantidad: 3, unidad: 'u'),
