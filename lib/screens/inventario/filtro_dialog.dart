@@ -3,9 +3,8 @@ import 'package:flutter/material.dart';
 import '../../models/insumo.dart';
 import '../../providers/inventario_filter_provider.dart';
 
-// Panel de filtros que se abre encima del Inventario.
-// Es un StatefulWidget común (sin Riverpod): mientras el usuario elige
-// opciones, se guardan acá con setState. Recién al tocar "Filtrar" se
+// Es un StatefulWidget mientras el usuario elige opciones se guardan acá con setState
+// opciones, se guardan acá con setState. Recién al tocar FILTRAR se
 // cierra el diálogo y le devuelve a la pantalla lo elegido.
 class FiltroDialog extends StatefulWidget {
   const FiltroDialog({
@@ -14,9 +13,9 @@ class FiltroDialog extends StatefulWidget {
     super.key,
   });
 
-  // Lo que ya estaba elegido, para que el panel abra con esos valores.
+  // Lo que ya estaba elegido asi el panel abra con esos valores.
   final InventarioFilter filtroActual;
-  // Todos los insumos, para armar las opciones de Categoría y Ubicación.
+  // Todos los insumos
   final List<Insumo> insumos;
 
   @override
@@ -33,16 +32,14 @@ class _FiltroDialogState extends State<FiltroDialog> {
   @override
   Widget build(BuildContext context) {
     // Opciones sin repetir, sacadas de los insumos cargados.
-    // whereType<String>() descarta los null (insumos sin categoría).
+    
     final categorias =
         widget.insumos.map((i) => i.categoria).whereType<String>().toSet().toList()
           ..sort();
     final ubicaciones =
         widget.insumos.map((i) => i.ubicacion).toSet().toList()..sort();
 
-    // Si lo que estaba elegido ya no existe (por ej. se movió el único
-    // insumo de esa ubicación), volvemos a "Todas". El desplegable falla si
-    // su valor no está entre las opciones.
+    // Si lo que estaba elegido ya no existe volvemos a Todas.
     if (!categorias.contains(_categoria)) _categoria = null;
     if (!ubicaciones.contains(_ubicacion)) _ubicacion = null;
 
@@ -56,7 +53,7 @@ class _FiltroDialogState extends State<FiltroDialog> {
           children: [
             DropdownButtonFormField<InventarioSort>(
               initialValue: _sort,
-              decoration: const InputDecoration(labelText: 'Ordenar por'),
+              decoration: const InputDecoration(labelText: 'Ordenar por'), //EL SORT
               items: const [
                 DropdownMenuItem(
                   value: InventarioSort.nombre,
@@ -71,13 +68,13 @@ class _FiltroDialogState extends State<FiltroDialog> {
                   child: Text('Stock (mayor a menor)'),
                 ),
               ],
-              // "!" porque este desplegable no tiene opción vacía.
+              
               onChanged: (value) => setState(() => _sort = value!),
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<String?>(
               initialValue: _categoria,
-              decoration: const InputDecoration(labelText: 'Categoría'),
+              decoration: const InputDecoration(labelText: 'Categoría'), //DROPDOWN DE CATEGORIA
               items: [
                 // value null = "Todas" (no filtra por categoría).
                 const DropdownMenuItem(value: null, child: Text('Todas')),
@@ -90,7 +87,7 @@ class _FiltroDialogState extends State<FiltroDialog> {
             const SizedBox(height: 12),
             DropdownButtonFormField<InsumoTipo?>(
               initialValue: _tipo,
-              decoration: const InputDecoration(labelText: 'Tipo de material'),
+              decoration: const InputDecoration(labelText: 'Tipo de material'), //DROPDOWN DE TIPO
               items: const [
                 DropdownMenuItem(value: null, child: Text('Todos')),
                 DropdownMenuItem(
@@ -107,7 +104,7 @@ class _FiltroDialogState extends State<FiltroDialog> {
             const SizedBox(height: 12),
             DropdownButtonFormField<String?>(
               initialValue: _ubicacion,
-              decoration: const InputDecoration(labelText: 'Ubicación'),
+              decoration: const InputDecoration(labelText: 'Ubicación'),//DROPDOWN DE UBICACION
               items: [
                 const DropdownMenuItem(value: null, child: Text('Todas')),
                 ...ubicaciones.map(

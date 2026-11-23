@@ -15,7 +15,7 @@ class InventarioScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final insumosAsync = ref.watch(insumosProvider);
-    // La lista ya filtrada y ordenada: la pantalla solo la dibuja.
+    // La lista ya filtrada y ordenada
     final filtradosAsync = ref.watch(inventarioFiltradoProvider);
 
     return SafeArea(
@@ -34,19 +34,19 @@ class InventarioScreen extends ConsumerWidget {
                 hintText: 'Buscar insumo',
                 prefixIcon: Icon(Icons.search),
               ),
-              // ref.read (no watch): acá no queremos escuchar cambios,
+              // ref.read xq acá no queremos escuchar cambios
               // solo llamar una vez al método del Notifier.
               onChanged: (text) => ref
                   .read(inventarioFilterProvider.notifier)
                   .setSearchText(text),
             ),
-            // Botón de filtros, alineado a la derecha como en el Figma.
+            // Botón de filtros alineado a la derecha
             Align(
               alignment: Alignment.centerRight,
               child: IconButton(
                 icon: const Icon(Icons.tune),
                 tooltip: 'Filtros',
-                // .value: la lista si ya cargó, o null si todavía no.
+                // .value: la lista si ya cargó, o null si todavía no
                 onPressed: () => _abrirFiltros(
                   context,
                   ref,
@@ -55,10 +55,9 @@ class InventarioScreen extends ConsumerWidget {
               ),
             ),
             Expanded(
-              // AsyncValue.when(): un Stream puede estar "cargando" (todavía
-              // no llegó el primer dato), con "error" (algo falló) o con
-              // "data" (ya tenemos la lista). .when() te obliga a manejar
-              // los 3 casos, así no te olvidás de ninguno.
+              // AsyncValue.when manejas los 3 casos por si no cargo,esta cargando o datos
+              
+              
               child: filtradosAsync.when(
                 data: (insumos) {
                   if (insumosAsync.value?.isEmpty ?? true) {
@@ -75,8 +74,8 @@ class InventarioScreen extends ConsumerWidget {
                     itemCount: insumos.length,
                     itemBuilder: (context, index) => InsumoCard(
                       insumo: insumos[index],
-                      // push (no go): apila el Detalle, así "volver"
-                      // regresa a Inventario. Solo viaja el id en la ruta.
+                      // aca se pone push y no go, asi se aplila y se vuelve al inv
+                      
                       onTap: () =>
                           context.push('/insumo/${insumos[index].id}'),
                     ),
@@ -93,7 +92,7 @@ class InventarioScreen extends ConsumerWidget {
     );
   }
 
-  // Abre el panel de filtros y espera (await) a que se cierre.
+  // Abre el panel de filtros y espera a que se cierre.
   // Si se tocó "Filtrar", showDialog devuelve el filtro elegido y se lo
   // pasamos al Notifier. Si se cerró tocando afuera, devuelve null.
   Future<void> _abrirFiltros(

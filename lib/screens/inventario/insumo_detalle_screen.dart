@@ -9,9 +9,9 @@ import '../../providers/role_provider.dart';
 import '../../models/usuario.dart';
 
 
-// Detalle de un insumo. Recibe solo el id (viene en la ruta /insumo/:id)
-// y busca el insumo actualizado con insumoPorIdProvider: si alguien registra
-// un consumo, el stock de esta pantalla se actualiza solo.
+// Detalle de un insumo,recibe solo el id
+// busca el insumo actualizado con insumoPorIdProvider: si alguien registra
+
 class InsumoDetalleScreen extends ConsumerWidget {
   const InsumoDetalleScreen({required this.insumoId, super.key});
 
@@ -20,7 +20,7 @@ class InsumoDetalleScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final insumoAsync = ref.watch(insumoPorIdProvider(insumoId));
-    // El Docente solo puede mirar: no edita, no da de baja ni registra salidas.
+
     final puedeEditar = ref.watch(roleProvider) != UserRole.docente;
 
     return SafeArea(
@@ -38,8 +38,8 @@ class InsumoDetalleScreen extends ConsumerWidget {
   }
 }
 
-// El contenido ya con el insumo cargado. Es un StatelessWidget aparte para
-// que el build de arriba quede corto (solo decide cargando/error/datos).
+
+
 class _DetalleContenido extends StatelessWidget {
   const _DetalleContenido({required this.insumo, required this.puedeEditar});
 
@@ -53,13 +53,13 @@ class _DetalleContenido extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Encabezado: volver, nombre y (si el rol lo permite) editar/baja.
+          
           Row(
             children: [
               IconButton(
                 icon: const Icon(Icons.arrow_back),
                 tooltip: 'Volver',
-                // pop: saca el Detalle de la pila y vuelve a Inventario.
+                // saca el Detalle de la pila y vuelve a Inventario.
                 onPressed: () => context.pop(),
               ),
               Expanded(
@@ -124,7 +124,7 @@ class _DetalleContenido extends StatelessWidget {
     );
   }
 
-  // Editar y Baja todavía no están hechos: avisamos con un mensaje abajo.
+  // se avisa con un snackbar que todavia no esta implementada
   void _proximamente(BuildContext context) {
     ScaffoldMessenger.of(
       context,
@@ -132,8 +132,8 @@ class _DetalleContenido extends StatelessWidget {
   }
 }
 
-// Tarjeta "STOCK ACTUAL": cantidad grande y la etiqueta de estado.
-// Usa la misma regla de colores que la tarjeta de Inventario (rojo gana).
+
+
 class _StockCard extends StatelessWidget {
   const _StockCard({required this.insumo});
 
@@ -195,9 +195,9 @@ class _StockCard extends StatelessWidget {
   }
 }
 
-// Tarjeta con la ficha completa. Los datos cambian según el tipo:
-// un producto comprado muestra marca, fórmula, etc.; una solución muestra
-// concentración, quién la preparó, etc.
+// Tarjeta con la ficha completa. Los datos cambian según el tipo solucion o compra
+
+
 class _FichaCard extends StatelessWidget {
   const _FichaCard({required this.insumo});
 
@@ -207,7 +207,7 @@ class _FichaCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final esSolucion = insumo.tipo == InsumoTipo.solucion;
 
-    // Lista de pares (título, valor). Si un valor es null se muestra "—".
+    // Lista de pares (título, valor). Si un valor es null se muestra -
     final List<(String, String?)> filas = esSolucion
         ? [
             ('Tipo de material', 'Solución preparada'),

@@ -54,19 +54,17 @@ class Insumo {
   final String? materia;
   final String? preparadoPor;
 
-  // Regla de negocio (CLAUDE.md sección 9.8): si el stock está en o por
-  // debajo del umbral, el insumo tiene que aparecer en Alertas/Compras.
+
   bool get stockBajo => stock <= umbralMinimo;
 
-  // "Por vencer": tiene la alarma activada y vence dentro de 30 días o menos
-  // (o ya venció). Los 30 días son provisorios, falta confirmarlo con el equipo.
+  // Devuelve true si la fecha de vencimiento está dentro de los próximos 30 días.
   bool get porVencer {
     if (!alarmaVencimiento || fechaVencimiento == null) return false;
     final limite = DateTime.now().add(const Duration(days: 30));
     return fechaVencimiento!.isBefore(limite);
   }
 
-  // Convierte un documento de Firestore (Map) en un Insumo de Dart.
+  // Convierte un documento de Firestore en un Insumo de Dart.
   factory Insumo.fromMap(String id, Map<String, dynamic> data) {
     return Insumo(
       id: id,
@@ -93,7 +91,7 @@ class Insumo {
     );
   }
 
-  // Convierte este Insumo en un Map listo para guardar en Firestore.
+  // Convierte este Insumo en un Map listo para Firestore.
   Map<String, dynamic> toMap() {
     return {
       'nombre': nombre,

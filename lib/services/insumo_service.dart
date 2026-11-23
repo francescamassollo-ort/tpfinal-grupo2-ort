@@ -2,15 +2,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../models/insumo.dart';
 
-// Único lugar de la app que habla con la colección "insumos" de Firestore.
-// Las pantallas le piden datos a esta clase, nunca hablan con Firestore
-// directo.
+// Único lugar de la app que habla con la colección insumos de Firestore.
 class InsumoService {
   final _insumosRef = FirebaseFirestore.instance.collection('insumos');
 
-  // Lista de insumos en tiempo real: cada vez que algo cambia en Firestore
-  // (en este celular o en cualquier otro), este Stream emite la lista
-  // actualizada solo, sin que nadie tenga que pedir nada de nuevo.
+  // Cada vez q algo cambia en firestore, devuelve la lista completa de insumos actualizada
+
   Stream<List<Insumo>> watchInsumos() {
     return _insumosRef.snapshots().map(
           (snapshot) => snapshot.docs

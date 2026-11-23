@@ -3,21 +3,21 @@ import 'package:flutter/material.dart';
 import '../core/app_colors.dart';
 import '../models/insumo.dart';
 
-// Tarjeta de un insumo en una lista: punto de color, nombre, ubicación,
-// stock y (si corresponde) la etiqueta "Stock bajo" o "Por vencer".
-// Es un StatelessWidget común: recibe el insumo y lo dibuja, nada más.
+// Tarjeta de un insumo en una lista: punto de color, nombre, ubicación y stock
+
+
 class InsumoCard extends StatelessWidget {
   const InsumoCard({required this.insumo, this.onTap, super.key});
 
   final Insumo insumo;
-  // Qué hacer al tocar la tarjeta. Lo decide quien la usa (por ej.
-  // Inventario abre el Detalle), así la tarjeta sirve en otras pantallas.
+  // Qué hacer al tocar la tarjeta lo decide quien lo usa
+
   final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    // Elegimos color y etiqueta. El orden importa: si tiene stock bajo
-    // y además está por vencer, gana el rojo porque es más urgente.
+    // Elegimos color y etiqueta
+  
     Color color = AppColors.stockOk;
     String? etiqueta;
     if (insumo.stockBajo) {
@@ -30,9 +30,9 @@ class InsumoCard extends StatelessWidget {
 
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
-      // Recorta el efecto de "toque" para que respete las esquinas redondeadas.
+      
       clipBehavior: Clip.antiAlias,
-      // InkWell: hace que la tarjeta se pueda tocar y muestra el efecto.
+      // InkWell es lo q hace el efecto de touch
       child: InkWell(
         onTap: onTap,
         child: Padding(
@@ -43,7 +43,7 @@ class InsumoCard extends StatelessWidget {
               CircleAvatar(radius: 5, backgroundColor: color),
               const SizedBox(width: 12),
               // Nombre y ubicación. Expanded ocupa todo el ancho que sobra,
-              // así el stock queda pegado a la derecha.
+              
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
