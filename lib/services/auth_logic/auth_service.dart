@@ -20,7 +20,9 @@ void showGlobalErrorSnackBar(String message) {
 }
 
 class AuthService {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  // Se pide cuando se usa y no al crear el servicio: el menú lateral crea uno
+  // apenas se dibuja, y así se puede dibujar (y probar) sin Firebase iniciado.
+  FirebaseAuth get _auth => FirebaseAuth.instance;
 
   // Stream to listen to authentication state changes (User logged in/out)
   Stream<User?> get user {

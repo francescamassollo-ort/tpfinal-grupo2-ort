@@ -4,7 +4,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:tpfinal_grupo2/core/app_colors.dart';
 import 'package:tpfinal_grupo2/core/app_shell.dart';
 import 'package:tpfinal_grupo2/models/alerta.dart';
+import 'package:tpfinal_grupo2/models/usuario.dart';
 import 'package:tpfinal_grupo2/providers/alerta_provider.dart';
+import 'package:tpfinal_grupo2/providers/role_provider.dart';
 
 Alerta _alerta(String id, TipoAlerta tipo) =>
     Alerta(productoId: id, productoNombre: 'Insumo $id', tipo: tipo);
@@ -20,6 +22,10 @@ Future<void> _mostrar(
         alertasProvider.overrideWithValue(alertas),
         // Las marcas de "vista" de la persona, sin ir a Firestore.
         alertasVistasProvider.overrideWith((ref) => Stream.value(vistas)),
+        // El rol de la persona, sin ir a Firebase.
+        rolDeSesionProvider.overrideWith(
+          (ref) => Stream.value(UserRole.administrador),
+        ),
       ],
       child: const MaterialApp(
         home: AppShell(location: '/inventario', child: SizedBox()),
