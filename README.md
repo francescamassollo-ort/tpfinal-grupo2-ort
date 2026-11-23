@@ -121,10 +121,10 @@ Las pruebas unitarias están en `test/` (fuera de `lib/`).
 ## Navegación
 - La app arranca en **Inventario**. El login queda para el final.
 - **Dentro del `AppShell`** (barra inferior y menú lateral, que muestra opciones según el rol): Inventario, Detalle de insumo (`/insumo/:id`), Alta de insumo, Consumo, Alertas, Trabajos prácticos, Usuarios y Perfil.
-- **Fuera del `AppShell`**, a pantalla completa: Welcome, Login, Register, **Historial** y **Lista de compras**.
+- **Fuera del `AppShell`**, a pantalla completa: Welcome, Login, Register, **Historial**, **Lista de compras** y **Escáner**.
 
 ### Decisiones de navegación
-- **Historial y Lista de compras** van fuera del `AppShell` porque en el diseño no llevan la barra inferior del shell. Lista de compras tiene además su propio botón flotante circular. La flecha de volver regresa a la pantalla anterior o, si no hay, a Inventario.
+- **Historial, Lista de compras y Escáner** van fuera del `AppShell` porque en el diseño no llevan la barra inferior del shell. Lista de compras tiene además su propio botón flotante circular. La flecha de volver regresa a la pantalla anterior o, si no hay, a Inventario.
 - **Alertas** va dentro del `AppShell` porque el diseño lleva la barra inferior, pero sin el botón flotante: el shell recibe la ruta actual (`location`) y lo esconde solo en `/alertas`.
 
 ## Seguimiento de pantallas
@@ -143,8 +143,8 @@ Las pruebas unitarias están en `test/` (fuera de `lib/`).
 | Inventario | `/inventario` | ✅ Funcional (lee los insumos de Firestore, con buscador, filtros y tarjetas) |
 | Buscar y filtrar | `/inventario/filtro` | ⏳ Placeholder (hoy el filtro es un diálogo dentro de Inventario) |
 | Detalle de insumo | `/insumo/:id` | ✅ Funcional (lee el insumo de Firestore en tiempo real; Editar y Baja avisan "Próximamente"; Historial y Registrar consumo navegan a sus pantallas) |
-| Alta de insumo | `/insumo/alta` | ✅ Funcional (formulario de alta que guarda en Firestore; el botón "Buscar duplicados" avisa si ya existe algo parecido, ver "Duplicados al dar de alta") |
-| Escáner | `/scanner` | ⏳ Placeholder |
+| Alta de insumo | `/insumo/alta` | ✅ Funcional (formulario de alta que guarda en Firestore; "Escanear código de barras" completa los datos, ver "Escáner de código de barras"; el botón "Buscar duplicados" avisa si ya existe algo parecido, ver "Duplicados al dar de alta") |
+| Escáner | `/scanner` | ✅ Funcional, ver "Escáner de código de barras" (cámara a pantalla completa; busca el código en nuestros insumos y, si no está, en UPCitemdb y PubChem; "Sumar stock", "Usar estos datos" o "Cargar a mano") |
 | Consumo | `/consumo` | ✅ Funcional (registra una salida de stock; con `/consumo?insumo=ID` abre con ese insumo ya elegido) |
 
 ### Historial, alertas y compras
@@ -245,6 +245,36 @@ qué opciones tiene, así que se eligieron estas):
   filtros" (si no hay ninguna alerta, dice que no hay y no ofrece limpiar).
 - Se filtra en memoria, sobre las alertas ya calculadas, igual que el filtro del Historial.
 - **El filtro se guarda mientras la app está abierta** (`filtroAlertasProvider`) y se pierde al cerrarla.
+## Escáner de código de barras
+Desde el Alta, el botón **"Escanear código de barras"** abre la cámara a pantalla completa (sin barra inferior, como en el
+diseño). Al leer un código lo busca en capas y se queda con la primera que lo conoce (`BarcodeService`):
+
+1. **Nuestros insumos** (`Insumo.codigoBarras`). Si ya está cargado, la pantalla muestra su nombre y su stock con dos
+   botones: **"Sumar stock"** (pide cuántas unidades y registra una entrada de "Reposición", en vez de crear un duplicado)
+   y **"Editar"** (abre su detalle). Un código UPC-A de 12 cifras y su versión EAN-13 (con un 0 delante) cuentan como el
+   mismo.
+2. **UPCitemdb**, una base gratuita de productos comerciales (sin clave, unas 100 consultas por día): devuelve el nombre y
+   la marca.
+3. **PubChem**, con ese nombre: completa la **fórmula** y el **peso molecular**. PubChem no busca por código de barras, solo
+   por nombre o por número CAS, por eso se consulta después de tener un nombre.
+4. **Si nadie lo conoce**, el escáner dice "No encontramos este código" y **"Cargar a mano"** vuelve al Alta con solo el
+   código escrito. No es un error: los reactivos de laboratorio suelen no estar en bases públicas.
+
+- **Los datos externos son una sugerencia:** el nombre se puede corregir antes de **"Usar estos datos"**, que vuelve al Alta
+  con todo completado. El Alta solo llena los campos que están vacíos, así que un escaneo nunca pisa lo que ya se escribió, y
+  la marca, la fórmula y el peso molecular solo se completan en insumos comprados.
+- **El sistema aprende solo:** cuando se da de alta el insumo con su código, la próxima vez que se escanee se encuentra en la
+  capa 1. No hace falta una colección aparte ni reglas nuevas en Firestore.
+- **Si internet falla** (sin conexión, límite de consultas diario agotado), la pantalla lo dice y se carga a mano: no es lo
+  mismo que "el código no existe".
+- **Qué sale a internet:** solo el código leído (a UPCitemdb) y el nombre del producto (a PubChem). Sin claves.
+- **Se puede sumar otra fuente** (por ejemplo EAN-Search, que pide un token y su cuota gratis no está confirmada) agregando una
+  capa en `BarcodeService`.
+- **La cámara** usa `mobile_scanner` y solo lee códigos de barras de productos (EAN, UPC, Code 128, 39 y 93). Pide el permiso
+  de cámara la primera vez; si se rechaza, la pantalla lo explica.
+- **Qué no se probó de forma automática:** la lectura real con la cámara (las pruebas usan una cámara falsa), y las respuestas
+  reales de UPCitemdb y PubChem (se probó con un servidor falso). Hay que probarlo en un celular físico.
+
 ## Duplicados al dar de alta
 
 Antes de guardar un insumo nuevo, el formulario de Alta tiene un botón **"Buscar duplicados"** (requerimiento A10). Usa lo que ya se escribió (nombre, tipo, marca y código de barras) y abre una ventana:

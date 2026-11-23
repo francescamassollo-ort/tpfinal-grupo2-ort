@@ -85,6 +85,11 @@ class AppStrings {
   static const String movimientoEntrada = 'Entrada de stock';
   static const String movimientoSalida = 'Salida de stock';
 
+  // Alta de insumo: lo que suma el escáner.
+  static const String altaEscanear = 'Escanear código de barras';
+  static const String altaDatosCompletados =
+      'Se completaron los datos con el código escaneado';
+
   // Escáner de código de barras.
   static const String escanerIndicacion =
       'Apuntá la cámara al código de barras del producto';
