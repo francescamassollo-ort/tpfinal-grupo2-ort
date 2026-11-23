@@ -393,12 +393,33 @@ La integracion de codigo de barras no esta implementada todavia. El flujo previs
 
 ### Seguridad
 
-- Las reglas de Firestore estan abiertas hoy (issue #46). Mientras no esten cerradas, no guardar claves ni tokens en Firestore.
+- Las reglas de Firestore estan abiertas hasta el **31/01/2027** (issue #46): cualquiera que tenga los datos del proyecto
+  puede leer y escribir. Mientras esten abiertas, no guardar claves ni tokens en Firestore. Ver "Reglas de Firestore".
 - Antes de cada `git push`, verificar que no queden claves en el repositorio:
 
   ```
   git grep gsk_
+  git grep AIza
   ```
+
+  La primera busca claves de Groq y la segunda las de Gemini. En `lib/firebase_options.dart` aparece una clave que empieza con
+  `AIza`: es la de Firebase, que genera la propia herramienta y se sube a proposito. No es una filtracion.
+
+## Reglas de Firestore
+Las reglas de seguridad de la base estan en [`firestore.rules`](firestore.rules). **Guardar el archivo no las aplica:** hay que
+publicarlas en la consola de Firebase (Firestore Database > Reglas) o con
+`firebase deploy --only firestore:rules --project proyecto-final-ort-d54c1` (`firebase.json` ya apunta al archivo).
+
+- **Hoy:** `allow read, write: if request.time < timestamp.date(2027, 1, 31)`. Es el "modo de prueba" de Firebase: abierto a
+  cualquiera hasta esa fecha.
+- **Se vencen.** El modo de prueba original (21/10/2026) duraba 30 dias. Cuando vencio, **toda la app dejo de leer y escribir a
+  la vez** (Inventario quedaba cargando para siempre y el error era `permission-denied`), sin importar la rama. Se renovo el
+  23/11/2026 hasta el 31/01/2027. **Hay que renovarlas o cambiarlas antes de esa fecha.**
+- **Si algo "no carga" de golpe en todas las pantallas,** mirar primero esta fecha antes de buscar un error en el codigo.
+- **Proximo paso:** cuando el login este conectado, pedir sesion iniciada (`request.auth != null`); mas adelante, reglas por
+  rol leyendo `usuarios/{uid}` (para eso el registro tiene que crear ese documento).
+- Las colecciones que usa la app son `insumos`, `movimientosStock`, `listaCompras`, `listasTP`, `usuarios` y `alertasVistas`;
+  las que todavia no existen en la consola se crean solas la primera vez que se escribe en ellas.
 
 ## Flujo de trabajo
 - Ramas: `main` (entregable), `dev` (integración) y `feat/<nombre>` por cada funcionalidad.
