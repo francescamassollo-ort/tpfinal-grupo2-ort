@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/app_colors.dart';
+import '../../providers/auth_provider.dart';
 import '../../services/auth_logic/registration_check.dart';
 import '../../widgets/handy_button_style_one.dart';
 import '../../widgets/handy_input_decoration.dart';
@@ -10,14 +12,14 @@ import '../../widgets/requisitos_contrasena.dart';
 
 /// Crear una cuenta con mail y contraseña. Las contraseñas se escriben ocultas,
 /// con un ojo para verlas, igual que en el ingreso.
-class RegisterScreen extends StatefulWidget {
+class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
 
   @override
-  State<RegisterScreen> createState() => _RegisterScreenState();
+  ConsumerState<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _RegisterScreenState extends State<RegisterScreen> {
+class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   // Los controles viven en el State, no en build(): si la pantalla se vuelve a
   // dibujar, lo escrito no se pierde, y se liberan al salir.
   final TextEditingController email = TextEditingController();
@@ -98,6 +100,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     onPressed: () {
                       registrationCheck(
                         context,
+                        auth: ref.read(authServiceProvider),
                         email: email.text,
                         password: password.text,
                         confirmPassword: confirmPassword.text,

@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:tpfinal_grupo2/providers/auth_provider.dart';
 import 'package:tpfinal_grupo2/screens/auth/register_screen.dart';
+
+import 'helpers/auth_falso.dart';
 
 // Monta el registro dentro de un router (el enlace "Ya tengo una cuenta" lo
 // necesita). Los botones de abajo permiten forzar que se vuelva a dibujar.
-Future<void> _abrir(WidgetTester tester) async {
+Future<void> _abrir(WidgetTester tester, [AuthFalso? auth]) async {
   tester.view.physicalSize = const Size(1080, 2400);
   tester.view.devicePixelRatio = 3;
   addTearDown(tester.view.reset);
@@ -24,7 +28,12 @@ Future<void> _abrir(WidgetTester tester) async {
     ],
   );
 
-  await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [authServiceProvider.overrideWithValue(auth ?? AuthFalso())],
+      child: MaterialApp.router(routerConfig: router),
+    ),
+  );
   await tester.pumpAndSettle();
 }
 
@@ -163,6 +172,52 @@ void main() {
     await tester.pump();
     expect(find.byIcon(Icons.check_circle), findsNWidgets(5));
     expect(find.byIcon(Icons.radio_button_unchecked), findsNothing);
+  });
+
+  testWidgets('con todo bien crea la cuenta y manda el correo de verificación',
+      (tester) async {
+    final auth = AuthFalso();
+    await _abrir(tester, auth);
+    await tester.enterText(_campo('Email'), ' ana@comunidadort.edu.ar ');
+    await tester.enterText(_campo('Contraseña'), 'Abcdef1!');
+    await tester.enterText(_campo('Confirmar contraseña'), 'Abcdef1!');
+
+    await tester.tap(find.text('Registrarse'));
+    await tester.pump();
+
+    expect(auth.registros, ['ana@comunidadort.edu.ar|Abcdef1!']);
+    expect(auth.verificacionesEnviadas, 1);
+    expect(find.text('Registro exitoso.'), findsOneWidget);
+  });
+
+  testWidgets('si Firebase rechaza el registro no manda ningún correo',
+      (tester) async {
+    final auth = AuthFalso()..registrar = false;
+    await _abrir(tester, auth);
+    await tester.enterText(_campo('Email'), 'ana@comunidadort.edu.ar');
+    await tester.enterText(_campo('Contraseña'), 'Abcdef1!');
+    await tester.enterText(_campo('Confirmar contraseña'), 'Abcdef1!');
+
+    await tester.tap(find.text('Registrarse'));
+    await tester.pump();
+
+    expect(auth.registros, hasLength(1));
+    expect(auth.verificacionesEnviadas, 0);
+    expect(find.text('Registro exitoso.'), findsNothing);
+  });
+
+  testWidgets('con datos inválidos no llega a Firebase', (tester) async {
+    final auth = AuthFalso();
+    await _abrir(tester, auth);
+    await tester.enterText(_campo('Email'), 'ana@gmail.com');
+    await tester.enterText(_campo('Contraseña'), 'abc');
+    await tester.enterText(_campo('Confirmar contraseña'), 'abc');
+
+    await tester.tap(find.text('Registrarse'));
+    await tester.pump();
+
+    expect(auth.registros, isEmpty);
+    expect(auth.verificacionesEnviadas, 0);
   });
 
   testWidgets('"Ya tengo una cuenta" lleva al ingreso', (tester) async {

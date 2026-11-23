@@ -29,6 +29,11 @@ class ValidacionesAuth {
   static const String avisoNoCoinciden = 'Contraseñas no coinciden!!!';
   static const String avisoMailNoInstitucional =
       'Usá tu mail institucional de ORT (@comunidadort.edu.ar o @ort.edu.ar)';
+  static const String avisoRecuperacionVacia =
+      'Escribí tu mail en el campo Email y volvé a tocar "Olvidé mi contraseña"';
+  static const String avisoRecuperacionEnviada =
+      'Si ese mail tiene una cuenta, te mandamos un correo para elegir una '
+      'contraseña nueva';
   static const String avisoContrasenaDebil =
       'La contraseña tiene que tener al menos 8 caracteres, una mayúscula, '
       'una minúscula, un número y un símbolo';
@@ -54,6 +59,11 @@ class ValidacionesAuth {
     if (password.isEmpty) return avisoContrasenaVacia;
     return null;
   }
+
+  /// Recuperar la contraseña: hace falta el mail. No se exige que sea
+  /// institucional: la cuenta puede ser anterior a esa regla.
+  static String? recuperacion({required String email}) =>
+      email.trim().isEmpty ? avisoRecuperacionVacia : null;
 
   /// Registro: el mail no puede estar vacío y tiene que ser institucional, las
   /// dos contraseñas tienen que ser iguales y la contraseña tiene que ser

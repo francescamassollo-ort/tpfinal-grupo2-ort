@@ -1,18 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../core/app_colors.dart';
+import '../../providers/auth_provider.dart';
 import '../../services/auth_logic/login_check.dart';
+import '../../services/auth_logic/recovery_check.dart';
 import '../../widgets/handy_input_decoration.dart';
 import '../../widgets/handy_button_style_one.dart';
 import '../../widgets/handy_text_button_black.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   final TextEditingController email = TextEditingController();
   final TextEditingController password = TextEditingController();
   bool obscurePassword = true;
@@ -70,14 +74,35 @@ class _LoginScreenState extends State<LoginScreen> {
                         ))
                       )
                     ),
-                    //HandyTextButtonBlue(textPhrase: 'Olvidé mi contraseña',), //modificar
+                    // Pide el correo para elegir una contraseña nueva, con el mail
+                    // que ya se escribió arriba.
+                    TextButton(
+                      onPressed: () => recoveryCheck(
+                        context,
+                        auth: ref.read(authServiceProvider),
+                        email: email.text,
+                      ),
+                      child: Text(
+                        'Olvidé mi contraseña',
+                        style: GoogleFonts.poppins(
+                          fontWeight: FontWeight(500),
+                          color: AppColors.primary,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
                     SizedBox(
                       width: double.infinity,
                       height: 52,
                       child: ElevatedButton(
                         style: getButtonStyleOne(),
                         onPressed: (){
-                          loginCheck(context, email: email.text, password: password.text);
+                          loginCheck(
+                            context,
+                            auth: ref.read(authServiceProvider),
+                            email: email.text,
+                            password: password.text,
+                          );
                         }, 
                         child: Text(
                           'Ingresar',
