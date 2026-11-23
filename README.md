@@ -505,7 +505,7 @@ celular, así que alguien que hable directo con Firebase se las salta. Para que 
 obtiene con:
 
 ```powershell
-& "<carpeta del JDK>in\keytool.exe" -list -v -alias androiddebugkey -keystore "$env:USERPROFILE\.android\debug.keystore" -storepass android -keypass android | Select-String "SHA1|SHA256"
+& "<carpeta del JDK>\bin\keytool.exe" -list -v -alias androiddebugkey -keystore "$env:USERPROFILE\.android\debug.keystore" -storepass android -keypass android | Select-String "SHA1|SHA256"
 ```
 
 La app todavía no tiene firma de publicación propia: cuando se genere, hay que cargar también su huella y bajar de nuevo
