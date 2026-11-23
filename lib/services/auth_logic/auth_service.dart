@@ -2,7 +2,7 @@
 import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:tpfinal_grupo2/services/auth_logic/auth_tester.dart';
+//import '../auth_logic/auth_tester.dart';
 import '../../screens/auth/welcome_screen.dart';
 import '../../screens/inventario/inventario_screen.dart';
 
@@ -136,6 +136,7 @@ class AuthWrapper extends StatelessWidget {
           // If there is user data, the user is signed in
           //ESTO MUESTRA EL INVENTARIO
           return const InventarioScreen(); // Navigate to your main app screen
+          //return const AuthTester(); //se usa para probar o modificar funcionalidades con auth.
         } else {
           // If there is no user data, the user is signed out
           //return const SignInScreen(); // Navigate to your sign-in screen
