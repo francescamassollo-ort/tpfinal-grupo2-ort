@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/alerta.dart';
+import '../models/filtro_alertas.dart';
 import '../services/alerta_service.dart';
 import '../services/alertas_vistas_service.dart';
 import 'insumo_providers.dart';
@@ -55,6 +56,35 @@ final alertasSinVerProvider = Provider<List<Alerta>>((ref) {
     for (final alerta in alertas)
       if (!vistas.contains(alerta.id)) alerta,
   ];
+});
+
+// Guarda lo que la persona eligió en el panel de filtros de Alertas. Mismo
+// patrón que el filtro del Historial. Vive mientras la app está abierta.
+class FiltroAlertasNotifier extends Notifier<FiltroAlertas> {
+  // Valor inicial: sin filtros, se ven todas las alertas.
+  @override
+  FiltroAlertas build() => const FiltroAlertas();
+
+  // Lo llama el panel con el filtro completo que se eligió.
+  void cambiar(FiltroAlertas filtro) => state = filtro;
+
+  void limpiar() => state = const FiltroAlertas();
+}
+
+final filtroAlertasProvider =
+    NotifierProvider<FiltroAlertasNotifier, FiltroAlertas>(
+  FiltroAlertasNotifier.new,
+);
+
+// Lo que muestra la lista de Alertas: las alertas que cumplen el filtro. La
+// campana no usa esto: cuenta todas las alertas sin ver, estén o no filtradas.
+final alertasFiltradasProvider = Provider<AsyncValue<List<Alerta>>>((ref) {
+  final filtro = ref.watch(filtroAlertasProvider);
+  final vistas = ref.watch(alertasVistasIdsProvider);
+
+  return ref
+      .watch(alertasProvider)
+      .whenData((alertas) => filtro.aplicar(alertas, vistas));
 });
 
 /// Acciones de la pantalla de Alertas sobre las marcas de "vista". Escriben en
