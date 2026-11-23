@@ -119,6 +119,52 @@ void main() {
     expect(find.text('Contraseñas no coinciden!!!'), findsOneWidget);
   });
 
+  testWidgets('con un mail que no es institucional avisa', (tester) async {
+    await _abrir(tester);
+    await tester.enterText(_campo('Email'), 'ana@gmail.com');
+    await tester.enterText(_campo('Contraseña'), 'Abcdef1!');
+    await tester.enterText(_campo('Confirmar contraseña'), 'Abcdef1!');
+
+    await tester.tap(find.text('Registrarse'));
+    await tester.pump();
+
+    expect(
+      find.text('Usá tu mail institucional de ORT (@comunidadort.edu.ar o @ort.edu.ar)'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('con una contraseña débil avisa aunque coincida', (tester) async {
+    await _abrir(tester);
+    await tester.enterText(_campo('Email'), 'ana@comunidadort.edu.ar');
+    await tester.enterText(_campo('Contraseña'), 'abc123');
+    await tester.enterText(_campo('Confirmar contraseña'), 'abc123');
+
+    await tester.tap(find.text('Registrarse'));
+    await tester.pump();
+
+    expect(find.textContaining('al menos 8 caracteres, una mayúscula'), findsOneWidget);
+  });
+
+  testWidgets('la lista de requisitos se tilda mientras se escribe', (tester) async {
+    await _abrir(tester);
+
+    // Al empezar no se cumple ninguno.
+    expect(find.byIcon(Icons.radio_button_unchecked), findsNWidgets(5));
+    expect(find.byIcon(Icons.check_circle), findsNothing);
+
+    // Solo minúsculas: se cumple uno.
+    await tester.enterText(_campo('Contraseña'), 'abc');
+    await tester.pump();
+    expect(find.byIcon(Icons.check_circle), findsOneWidget);
+
+    // Una contraseña completa los cumple todos.
+    await tester.enterText(_campo('Contraseña'), 'Abcdef1!');
+    await tester.pump();
+    expect(find.byIcon(Icons.check_circle), findsNWidgets(5));
+    expect(find.byIcon(Icons.radio_button_unchecked), findsNothing);
+  });
+
   testWidgets('"Ya tengo una cuenta" lleva al ingreso', (tester) async {
     await _abrir(tester);
 

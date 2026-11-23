@@ -6,6 +6,7 @@ import '../../services/auth_logic/registration_check.dart';
 import '../../widgets/handy_button_style_one.dart';
 import '../../widgets/handy_input_decoration.dart';
 import '../../widgets/handy_text_button_black.dart';
+import '../../widgets/requisitos_contrasena.dart';
 
 /// Crear una cuenta con mail y contraseña. Las contraseñas se escriben ocultas,
 /// con un ojo para verlas, igual que en el ingreso.
@@ -64,6 +65,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 TextField(
                   controller: password,
                   obscureText: ocultarContrasena,
+                  // Redibuja la lista de requisitos a medida que se escribe.
+                  onChanged: (_) => setState(() {}),
                   decoration: getInputDecoration('Contraseña').copyWith(
                     suffixIcon: _Ojo(
                       oculto: ocultarContrasena,
@@ -73,6 +76,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                   ),
                 ),
+                RequisitosContrasena(contrasena: password.text),
                 TextField(
                   controller: confirmPassword,
                   obscureText: ocultarConfirmacion,
