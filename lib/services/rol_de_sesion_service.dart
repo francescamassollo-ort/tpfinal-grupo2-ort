@@ -44,6 +44,16 @@ class RolDeSesionService {
     yield* _vigilar(persona.uid).map(rolDelUsuario);
   }
 
+  /// Si la cuenta de la persona sigue activa, y cada vez que cambia. Una cuenta
+  /// dada de baja (`activo: false`) queda bloqueada: la app no la deja usar. No
+  /// crea el documento (eso lo hace [rolDe]); sin documento la cuenta cuenta como
+  /// activa, porque todavía nadie la dio de baja.
+  Stream<bool> activaDe(PersonaConSesion persona) =>
+      _vigilar(persona.uid).map(estaActiva);
+
+  /// Si un documento corresponde a una cuenta activa. Sin documento, sí.
+  static bool estaActiva(Usuario? usuario) => usuario?.activo ?? true;
+
   /// El documento que se crea la primera vez que una persona entra.
   static Usuario usuarioNuevo(PersonaConSesion persona) => Usuario(
         id: persona.uid,
