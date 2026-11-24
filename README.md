@@ -65,7 +65,7 @@ flutter pub get
 ```
 flutter run -d <identificador-del-emulador>
 ```
-La app pide **iniciar sesión** (o crear una cuenta) antes de mostrar nada: ver "Inicio de sesión". La primera vez hay que registrarse con un mail y una contraseña de al menos 6 caracteres.
+La app pide **iniciar sesión** (o crear una cuenta) antes de mostrar nada: ver "Inicio de sesión". La primera vez hay que registrarse con un mail institucional de ORT y una contraseña segura (8 caracteres, mayúscula, minúscula, número y símbolo), y después verificar el mail con el enlace que llega por correo.
 
 Firebase ya viene configurado en el repositorio (`android/app/google-services.json` y
 `lib/firebase_options.dart`), no hace falta crear nada.
@@ -469,11 +469,54 @@ La app usa **Firebase Authentication** con mail y contraseña (`AuthService`, en
   Ingresar o Registrarse. Con sesión iniciada, esas tres pantallas redirigen a Inventario. El router se entera de los cambios de
   sesión con `GoRouterRefreshStream` (en `lib/core/`), por eso al ingresar o cerrar sesión va solo a donde corresponde.
 - **Cerrar sesión** está al final del menú lateral.
-- **Los errores se explican en español** con el motivo que devuelve Firebase (mail mal escrito, contraseña de menos de 6
-  caracteres, cuenta repetida, contraseña incorrecta, demasiados intentos) en un cartel rojo que sale de `AuthService`. Las
-  comprobaciones previas (campos vacíos, contraseñas distintas) están en `ValidacionesAuth` y se prueban solas.
+- **Los errores se explican en español** con el motivo que devuelve Firebase (mail mal escrito, cuenta repetida, contraseña
+  incorrecta, demasiados intentos) en un cartel rojo que sale de `AuthService`. Las comprobaciones previas (campos vacíos,
+  mail institucional, contraseña segura) están en `ValidacionesAuth` y se prueban solas.
 - **No se limita el largo del mail:** los institucionales (`usuario@comunidadort.edu.ar`) tienen más de 20 caracteres.
 - **El rol de cada persona** sale de su documento en `usuarios/{uid}` (ver "Roles").
+
+### Seguridad del acceso
+- **Nombre y apellido:** el registro lo pide (obligatorio, con alguna letra, hasta 60 caracteres) y lo guarda como nombre de la
+  cuenta de Firebase. Con ese nombre se ve a la persona en Usuarios, en el Historial y como docente de un trabajo práctico.
+  Con Google se usa el de la cuenta de Google. Las cuentas creadas antes de este campo quedan con lo que va antes de la `@` del
+  mail (un número, en los mails de alumnos) hasta que se pueda editar el nombre desde Perfil, que todavía no está hecho.
+- **Mail institucional (R14):** para **registrarse** hace falta un mail de `@comunidadort.edu.ar` o `@ort.edu.ar` (el dominio
+  tiene que ser exactamente uno de esos: `ana@miort.edu.ar` o `ana@alumnos.ort.edu.ar` no valen). Los dominios están en
+  `ValidacionesAuth.dominiosInstitucionales`. **Ingresar** no exige el dominio, porque hay cuentas creadas antes de esta regla.
+- **Contraseña segura:** al registrarse tiene que tener **al menos 8 caracteres, una mayúscula, una minúscula, un número y un
+  símbolo**. La pantalla muestra la lista de requisitos y los va tildando mientras se escribe. Ingresar no la vuelve a exigir.
+- **Verificar el mail:** al registrarse se manda un correo con un enlace, y hasta que se verifica el router solo deja ver la
+  pantalla "Verificá tu mail" (con "Ya verifiqué", "Reenviar el correo" y "Usar otra cuenta"). **También le pasa a cualquier
+  cuenta anterior que nunca verificó su mail:** al ingresar la pantalla le pide verificar. El rol y el documento
+  `usuarios/{uid}` solo se crean para cuentas con el mail verificado.
+- **Continuar con Google:** botón en el ingreso y en el registro. Abre la hoja de Google en el navegador (no hace falta tener
+  la cuenta cargada en el celular) y usa `firebase_auth` (`signInWithProvider`), sin dependencias nuevas. Solo valen cuentas con
+  mail institucional de ORT: si entra otra, la app cierra la sesión en el acto (y borra la cuenta si se acababa de crear), y esa
+  sesión no llega a tener rol ni documento en `usuarios`. Con Google el mail ya viene verificado, así que no pasa por "Verificá
+  tu mail". Si se cancela la hoja de Google no se muestra ningún error.
+- **Olvidé mi contraseña:** el botón del ingreso manda un correo para elegir una contraseña nueva, con el mail que ya se
+  escribió. El aviso es el mismo exista o no una cuenta con ese mail, para que nadie averigüe qué mails están registrados.
+
+**Qué todavía hace cumplir solo la app, no el servidor:** el dominio del mail y las reglas de la contraseña se comprueban en el
+celular, así que alguien que hable directo con Firebase se las salta. Para que también las haga cumplir el servidor:
+1. En la consola de Firebase, Authentication > Configuración > **Política de contraseñas**: activar la exigencia con los mismos
+   requisitos (8 caracteres, mayúscula, minúscula, número y símbolo).
+2. Restringir el dominio del mail con una función de bloqueo (Authentication > Configuración > Funciones de bloqueo) o con las
+   reglas de Firestore por rol (issue #46).
+
+**Para que Google funcione en cada compu** hay que cargar la huella SHA-1 de **su** `debug.keystore` en la consola de Firebase
+(Configuración del proyecto > Tus apps > la app Android > Agregar huella digital); si no, el botón falla en esa máquina. Se
+obtiene con:
+
+```powershell
+& "<carpeta del JDK>\bin\keytool.exe" -list -v -alias androiddebugkey -keystore "$env:USERPROFILE\.android\debug.keystore" -storepass android -keypass android | Select-String "SHA1|SHA256"
+```
+
+La app todavía no tiene firma de publicación propia: cuando se genere, hay que cargar también su huella y bajar de nuevo
+`android/app/google-services.json`.
+
+**Pendiente:** el **cierre de sesión por inactividad**, que figuraba entre las mitigaciones del plan de riesgos, y que el
+servidor (y no solo la app) rechace las cuentas de Google que no son de ORT, con una función de bloqueo.
 - Antes de mostrarla al profesor conviene crear una cuenta de prueba: el registro escribe en Firebase de verdad.
 
 ## Roles

@@ -1,4 +1,5 @@
 import '../models/usuario.dart';
+import 'auth_logic/validaciones_auth.dart';
 
 /// Quién inició sesión, según Firebase Authentication.
 typedef PersonaConSesion = ({String uid, String? nombre, String? email});
@@ -42,6 +43,28 @@ class RolDeSesionService {
       // Se sigue: puede que el documento ya exista y solo falle la escritura.
     }
     yield* _vigilar(persona.uid).map(rolDelUsuario);
+  }
+
+  /// Quién cuenta como persona con sesión para tener un rol: alguien con la
+  /// sesión iniciada **y el mail verificado**. Una cuenta recién registrada, que
+  /// todavía no confirmó su mail, no tiene documento ni rol: si no, cualquiera
+  /// podría aparecer en la lista de usuarios con un mail que no es suyo.
+  ///
+  /// Con [exigeMailInstitucional] (las cuentas de Google, que solo valen si son
+  /// de ORT) tampoco tiene rol si el mail no es institucional: mientras la app
+  /// cierra esa sesión no se llega a crear el documento de una persona ajena.
+  static PersonaConSesion? personaDeSesion({
+    required String? uid,
+    required String? nombre,
+    required String? email,
+    required bool mailVerificado,
+    bool exigeMailInstitucional = false,
+  }) {
+    if (uid == null || !mailVerificado) return null;
+    if (exigeMailInstitucional && !ValidacionesAuth.esMailInstitucional(email ?? '')) {
+      return null;
+    }
+    return (uid: uid, nombre: nombre, email: email);
   }
 
   /// Si la cuenta de la persona sigue activa, y cada vez que cambia. Una cuenta
