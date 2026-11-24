@@ -312,7 +312,7 @@ Solo para el administrador (ver "Roles"). Desde el Detalle de un insumo:
 - **Dar de baja** (tacho) pide confirmar y es una **baja lógica**: el insumo queda con `activo: false` y deja de aparecer en el
   inventario, las alertas, las compras, los trabajos prácticos y el buscador. **No se borra**, porque sus movimientos del
   Historial tienen que seguir mostrando de qué insumo eran (el Historial usa `insumosConBajasProvider`). Los insumos anteriores a
-  este campo cuentan como activos. Para reactivar uno hay que poner `activo` en `true` desde la consola (todavía no hay botón).
+  este campo cuentan como activos. Para reactivarlo, **Menú > Insumos dados de baja** (ver abajo).
 - **Historial** abre la pantalla de movimientos ya filtrada por ese insumo (R13) y, al volver, limpia el filtro.
 
 ## Importar el inventario desde Excel
@@ -349,6 +349,13 @@ archivo y se carga solo lo que falta. Las ubicaciones se escriben como ya están
 
 Cada insumo con stock deja su **entrada en el Historial** ("Alta de insumo"), igual que al darlo de alta a mano. Se guarda por
 tandas de hasta 200 insumos, con una barra de avance.
+
+## Reactivar lo dado de baja
+Dar de baja no borra nada (el Historial conserva quién hizo cada movimiento), así que se puede deshacer. Solo el administrador:
+- **Usuarios:** en la pantalla Usuarios, el interruptor **"Ver los usuarios dados de baja"** cambia la lista por los dados de baja,
+  cada uno con **Reactivar**. La persona vuelve a poder usar la app.
+- **Insumos:** **Menú > Insumos dados de baja** lista los insumos dados de baja, cada uno con **Reactivar**. Vuelve al inventario, las
+  alertas, las compras y los TPs, con su stock y su historial.
 
 ## Duplicados al dar de alta
 
@@ -562,8 +569,11 @@ obtiene con:
 La app todavía no tiene firma de publicación propia: cuando se genere, hay que cargar también su huella y bajar de nuevo
 `android/app/google-services.json`.
 
-**Pendiente:** el **cierre de sesión por inactividad**, que figuraba entre las mitigaciones del plan de riesgos, y que el
-servidor (y no solo la app) rechace las cuentas de Google que no son de ORT, con una función de bloqueo.
+**Cierre de sesión por inactividad** (mitigación del plan de riesgos del SQAP): si la persona deja la app **30 minutos sin tocar
+nada**, la sesión se cierra y se le avisa. Cuenta como actividad cualquier toque o desplazamiento; solo corre mientras hay sesión
+(`CierrePorInactividad`, en `lib/widgets/`). El tiempo está en `CierrePorInactividad.tiempoSinActividad`.
+
+**Pendiente:** que el servidor (y no solo la app) rechace las cuentas de Google que no son de ORT, con una función de bloqueo.
 - Antes de mostrarla al profesor conviene crear una cuenta de prueba: el registro escribe en Firebase de verdad.
 
 ## Roles
@@ -616,7 +626,7 @@ activos con su rol y permite **cambiar el rol** y **dar de baja**:
 - **La baja bloquea, no borra.** El documento queda con `activo: false` y la persona **ya no puede usar la app**: si estaba
   adentro se le cierra la sesión en el momento y se le avisa ("Tu cuenta fue dada de baja"), y si intenta volver a ingresar se le
   cierra de nuevo (`GuardiaDeCuenta`). No se borra nada porque el Historial guarda quién hizo cada movimiento y esos datos tienen
-  que seguir existiendo. Para volver a darle acceso hay que poner `activo` en `true` desde la consola (todavía no hay botón).
+  que seguir existiendo. Para volver a darle acceso, en la pantalla Usuarios se activa **"Ver los usuarios dados de baja"** y se toca **Reactivar** (ver "Reactivar lo dado de baja").
 - **Si no se puede saber** (sin conexión), no se bloquea a nadie: dejar sin acceso a todos por un corte de internet sería peor.
 - **El id de la persona sigue a la sesión** (`usuarioActualIdProvider`): si alguien cierra sesión y entra otra persona sin cerrar la
   app, las alertas vistas y las protecciones de arriba pasan a ser las de la nueva persona.
