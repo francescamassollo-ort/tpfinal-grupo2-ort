@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import './styles/handy_welcome_button_styles.dart';
 import '../../core/app_colors.dart';
+import '../../widgets/logo_ort.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
@@ -15,10 +16,7 @@ class WelcomeScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            Image(
-              image: AssetImage('assets/images/imagenLogoOrt1.png'),
-              height: 400,
-            ),
+            const LogoOrt(ancho: 300),
             
             Column(
               children: [
