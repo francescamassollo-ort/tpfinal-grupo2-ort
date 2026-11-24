@@ -295,6 +295,15 @@ class AppStrings {
   static const String tpStockInsuficiente = 'Stock insuficiente';
   static String tpStockUnidades(int stock) => 'Stock: $stock u.';
 
+  // Datos del insumo que vienen de las planillas del laboratorio.
+  static const String codigoInterno = 'Código interno';
+  static const String codigoInternoPista = 'Por ejemplo Al-01';
+  static const String otrosNombres = 'Otros nombres';
+  static const String otrosNombresPista = 'Separados por coma';
+  static const String controlado = 'Sustancia controlada (Sedronar)';
+  static const String controladoAyuda =
+      'Marcalo si el laboratorio tiene que llevar un control especial';
+
   // Editar y dar de baja un insumo.
   static const String editarInsumoTitulo = 'Editar insumo';
   static const String editarInsumoGuardado = 'Insumo actualizado correctamente';

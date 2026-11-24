@@ -28,6 +28,9 @@ final _etanol = Insumo(
   cantidadPorEnvase: 500,
   alarmaVencimiento: true,
   fechaVencimiento: DateTime(2027, 5, 1),
+  codigoInterno: 'I3',
+  otrosNombres: ['Alcohol etílico'],
+  controlado: true,
 );
 
 /// El servicio de insumos sin Firestore: anota lo que se le pide.
@@ -118,6 +121,9 @@ void main() {
       expect(_valorDe(tester, 'Nombre'), 'Etanol absoluto');
       expect(_valorDe(tester, 'Categoría'), 'Alcoholes y solventes');
       expect(_valorDe(tester, 'Ubicación'), 'Estante A');
+      expect(_valorDe(tester, AppStrings.codigoInterno), 'I3');
+      expect(_valorDe(tester, AppStrings.otrosNombres), 'Alcohol etílico');
+      expect(tester.widget<SwitchListTile>(find.byType(SwitchListTile)).value, isTrue);
       expect(_valorDe(tester, 'Stock mínimo'), '2.5');
       expect(_valorDe(tester, 'Marca'), 'Cicarelli');
       expect(_valorDe(tester, 'Fórmula'), 'C2H6O');
@@ -170,6 +176,9 @@ void main() {
       expect(guardado.origen, 'Donación');
       expect(guardado.cantidadPorEnvase, 500);
       expect(guardado.alarmaVencimiento, isTrue);
+      expect(guardado.codigoInterno, 'I3');
+      expect(guardado.otrosNombres, ['Alcohol etílico']);
+      expect(guardado.controlado, isTrue);
       expect(guardado.fechaVencimiento, DateTime(2027, 5, 1));
       // Vuelve a la pantalla anterior y lo avisa.
       expect(find.text('PANTALLA INVENTARIO'), findsOneWidget);

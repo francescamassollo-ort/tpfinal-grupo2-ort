@@ -20,6 +20,28 @@ void main() {
       expect(Insumo.fromMap('i1', _datos(activo: false)).activo, isFalse);
     });
 
+    test('los datos de las planillas se guardan y se leen', () {
+      final datos = _datos()
+        ..['codigoInterno'] = 'I3'
+        ..['otrosNombres'] = ['Alcohol etílico', 'Etanol']
+        ..['controlado'] = true;
+
+      final insumo = Insumo.fromMap('i1', datos);
+
+      expect(insumo.codigoInterno, 'I3');
+      expect(insumo.otrosNombres, ['Alcohol etílico', 'Etanol']);
+      expect(insumo.controlado, isTrue);
+      expect(insumo.toMap()['otrosNombres'], ['Alcohol etílico', 'Etanol']);
+    });
+
+    test('un insumo anterior a esos datos no tiene código ni otros nombres ni control', () {
+      final insumo = Insumo.fromMap('i1', _datos());
+
+      expect(insumo.codigoInterno, isNull);
+      expect(insumo.otrosNombres, isEmpty);
+      expect(insumo.controlado, isFalse);
+    });
+
     test('un insumo nuevo está activo', () {
       final insumo = Insumo(
         id: '',

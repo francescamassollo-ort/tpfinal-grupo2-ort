@@ -26,6 +26,9 @@ class Insumo {
     this.materia,
     this.preparadoPor,
     this.activo = true,
+    this.codigoInterno,
+    this.otrosNombres = const [],
+    this.controlado = false,
   });
 
   // Obligatorios.
@@ -60,6 +63,19 @@ class Insumo {
   // aparecer en el inventario, las alertas, las compras y los TPs. Los insumos
   // anteriores a este campo no lo tienen guardado y cuentan como activos.
   final bool activo;
+
+  // El código que el laboratorio le puso al insumo en sus planillas ("Al-01",
+  // "S2"). No es el código de barras.
+  final String? codigoInterno;
+
+  // Otros nombres con los que se conoce al insumo ("Fenilmetanol" para el
+  // alcohol bencílico). Sirven para encontrarlo en el buscador y para detectar
+  // duplicados.
+  final List<String> otrosNombres;
+
+  // Sustancia controlada por la Sedronar: el laboratorio tiene que llevar un
+  // control especial de estos insumos.
+  final bool controlado;
 
   // Regla de negocio (CLAUDE.md sección 9.8): si el stock está en o por
   // debajo del umbral, el insumo tiene que aparecer en Alertas/Compras.
@@ -98,6 +114,12 @@ class Insumo {
       materia: data['materia'] as String?,
       preparadoPor: data['preparadoPor'] as String?,
       activo: data['activo'] as bool? ?? true,
+      codigoInterno: data['codigoInterno'] as String?,
+      otrosNombres: [
+        for (final nombre in (data['otrosNombres'] as List?) ?? const [])
+          nombre as String,
+      ],
+      controlado: data['controlado'] as bool? ?? false,
     );
   }
 
@@ -127,6 +149,9 @@ class Insumo {
       'materia': materia,
       'preparadoPor': preparadoPor,
       'activo': activo,
+      'codigoInterno': codigoInterno,
+      'otrosNombres': otrosNombres,
+      'controlado': controlado,
     };
   }
 }

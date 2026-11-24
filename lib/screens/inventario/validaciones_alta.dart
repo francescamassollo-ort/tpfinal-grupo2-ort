@@ -18,6 +18,18 @@ class ValidacionesAlta {
   static const String avisoFechas =
       'La fecha de vencimiento no puede ser anterior a la de elaboración';
 
+  /// Los otros nombres de un insumo, escritos separados por coma o punto y coma
+  /// ("Fenilmetanol, Alcohol bencílico"). Sin espacios de más, sin vacíos y sin
+  /// repetidos (no distingue mayúsculas).
+  static List<String> otrosNombres(String? texto) {
+    final vistos = <String>{};
+    return [
+      for (final parte in (texto ?? '').split(RegExp(r'[,;]')))
+        if (parte.trim().isNotEmpty && vistos.add(parte.trim().toLowerCase()))
+          parte.trim(),
+    ];
+  }
+
   /// Un número escrito a mano, con coma o con punto como separador decimal
   /// ("0,5" y "0.5" son lo mismo: en el teclado del celular sale la coma). Null
   /// si no es un número.

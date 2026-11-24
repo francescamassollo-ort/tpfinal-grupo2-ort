@@ -289,13 +289,22 @@ class _FichaCard extends StatelessWidget {
             ('Vencimiento', _fecha(insumo.fechaVencimiento)),
           ];
 
+    // Los datos que no todos los insumos tienen: solo se muestran si están.
+    final extras = <(String, String?)>[
+      if (insumo.codigoInterno != null)
+        (AppStrings.codigoInterno, insumo.codigoInterno),
+      if (insumo.otrosNombres.isNotEmpty)
+        (AppStrings.otrosNombres, insumo.otrosNombres.join(', ')),
+      if (insumo.controlado) (AppStrings.controlado, 'Sí'),
+    ];
+
     return Card(
       margin: EdgeInsets.zero,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         child: Column(
           // map: convierte cada par (título, valor) en una fila de la tarjeta.
-          children: filas
+          children: [...filas, ...extras]
               .map((fila) => _FilaDato(titulo: fila.$1, valor: fila.$2))
               .toList(),
         ),

@@ -42,6 +42,9 @@ class _InsumoAltaScreenState extends ConsumerState<InsumoAltaScreen> {
   final _nombreController = TextEditingController();
   final _categoriaController = TextEditingController();
   final _ubicacionController = TextEditingController();
+  final _codigoInternoController = TextEditingController();
+  final _otrosNombresController = TextEditingController();
+  bool _controlado = false;
   final _stockController = TextEditingController();
   final _unidadController = TextEditingController();
   final _codigoBarrasController = TextEditingController();
@@ -71,6 +74,9 @@ class _InsumoAltaScreenState extends ConsumerState<InsumoAltaScreen> {
     _nombreController.text = insumo.nombre;
     _categoriaController.text = insumo.categoria ?? '';
     _ubicacionController.text = insumo.ubicacion;
+    _codigoInternoController.text = insumo.codigoInterno ?? '';
+    _otrosNombresController.text = insumo.otrosNombres.join(', ');
+    _controlado = insumo.controlado;
     _stockController.text = '${insumo.stock}';
     _unidadController.text = insumo.unidad ?? '';
     _codigoBarrasController.text = insumo.codigoBarras ?? '';
@@ -179,6 +185,26 @@ SugerenciaDeCategoria(
 const SizedBox(height: 12),
 
 TextFormField(
+  controller: _codigoInternoController,
+  decoration: const InputDecoration(
+    labelText: AppStrings.codigoInterno,
+    hintText: AppStrings.codigoInternoPista,
+  ),
+),
+
+const SizedBox(height: 12),
+
+TextFormField(
+  controller: _otrosNombresController,
+  decoration: const InputDecoration(
+    labelText: AppStrings.otrosNombres,
+    hintText: AppStrings.otrosNombresPista,
+  ),
+),
+
+const SizedBox(height: 12),
+
+TextFormField(
   controller: _ubicacionController,
   decoration: const InputDecoration(
     labelText: 'Ubicación',
@@ -259,6 +285,14 @@ OutlinedButton.icon(
         ? AppStrings.altaLeyendoEtiqueta
         : AppStrings.altaLeerEtiqueta,
   ),
+),
+
+SwitchListTile(
+  contentPadding: EdgeInsets.zero,
+  title: const Text(AppStrings.controlado),
+  subtitle: const Text(AppStrings.controladoAyuda),
+  value: _controlado,
+  onChanged: (valor) => setState(() => _controlado = valor),
 ),
 
 const SizedBox(height: 16),
@@ -667,6 +701,12 @@ ElevatedButton(
 
       fechaElaboracion: _fechaElaboracion,
       fechaVencimiento: _fechaVencimiento,
+
+      codigoInterno: _codigoInternoController.text.trim().isEmpty
+          ? null
+          : _codigoInternoController.text.trim(),
+      otrosNombres: ValidacionesAlta.otrosNombres(_otrosNombresController.text),
+      controlado: _controlado,
 
       // Datos que el formulario no muestra: al editar se conservan tal cual.
       cantidadPorEnvase: original?.cantidadPorEnvase,
