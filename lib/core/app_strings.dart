@@ -53,6 +53,21 @@ class AppStrings {
   static const String comprasMarcarComprado = 'Marcar como comprado';
   static const String comprasDescartar = 'Descartar';
   static const String comprasDeshacer = 'Deshacer';
+  static const String comprasSeleccionar = 'Seleccionar para eliminar';
+  static const String comprasCancelarSeleccion = 'Cancelar selección';
+  static const String comprasSeleccionarTodos = 'Todos';
+  static const String comprasEliminarSeleccionados = 'Eliminar seleccionados';
+  static const String comprasEliminarTitulo = '¿Eliminar de la lista?';
+  static const String comprasEliminarConfirmar = 'Eliminar';
+  static const String comprasErrorEliminar = 'No se pudo eliminar de la lista';
+  static String comprasSeleccionados(int n) =>
+      n == 1 ? '1 seleccionado' : '$n seleccionados';
+  static String comprasEliminarMensaje(int n) => n == 1
+      ? 'Se saca 1 producto de la lista de compras.'
+      : 'Se sacan $n productos de la lista de compras.';
+  static String comprasEliminados(int n) => n == 1
+      ? '1 producto eliminado de la lista'
+      : '$n productos eliminados de la lista';
   static const String comprasErrorEstado = 'No se pudo cambiar el estado';
   static const String cancelar = 'Cancelar';
   static const String comprasAgregarTitulo = 'Agregar a la lista';

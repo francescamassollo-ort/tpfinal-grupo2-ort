@@ -59,6 +59,9 @@ class _AccionesFalsas implements ComprasAcciones {
   Future<void> decrementar(String id) async {}
 
   @override
+  Future<void> eliminar(Iterable<String> ids) async {}
+
+  @override
   Future<int> agregarSugerencias() async => 0;
 }
 
@@ -83,6 +86,9 @@ class _ServicioFalso implements ListaCompraService {
 
   @override
   Future<void> actualizarEstado(String id, EstadoCompra estado) async {}
+
+  @override
+  Future<void> eliminar(Iterable<String> ids) async {}
 
   @override
   Future<int> importarSugerencias(Iterable<Insumo> insumos) async => 0;

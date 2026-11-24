@@ -69,6 +69,16 @@ class ListaCompraService {
     return _ref.doc(id).update({'estado': estado.name});
   }
 
+  /// Borra de la lista los productos con estos [ids]. A diferencia de marcar
+  /// como descartado, no queda registro del ítem.
+  Future<void> eliminar(Iterable<String> ids) async {
+    final batch = _ref.firestore.batch();
+    for (final id in ids) {
+      batch.delete(_ref.doc(id));
+    }
+    await batch.commit();
+  }
+
   /// Agrega a la lista los insumos con stock bajo que todavía no están
   /// pendientes. Devuelve cuántos agregó.
   Future<int> importarSugerencias(Iterable<Insumo> insumos) async {

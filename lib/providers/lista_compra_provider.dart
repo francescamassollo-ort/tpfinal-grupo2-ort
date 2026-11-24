@@ -72,6 +72,12 @@ class ComprasAcciones {
     return _ref.read(listaCompraServiceProvider).actualizarEstado(id, estado);
   }
 
+  /// Borra de la lista los ítems con estos [ids].
+  Future<void> eliminar(Iterable<String> ids) {
+    if (ids.isEmpty) return Future.value();
+    return _ref.read(listaCompraServiceProvider).eliminar(ids);
+  }
+
   /// Agrega un insumo a la lista con la [cantidad] que se eligió. Si el insumo
   /// ya está pendiente no crea otro ítem: queda el que había.
   ///
