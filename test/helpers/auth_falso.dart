@@ -10,16 +10,19 @@ class AuthFalso extends Fake implements AuthService {
   bool recuperar = true;
   bool verificarMail = true;
   bool entrarConGoogle = true;
+  bool cambiarNombre = true;
 
   /// Si el mail ya está verificado cuando se lo comprueba.
   bool mailYaVerificado = false;
 
   String? email = 'ana@comunidadort.edu.ar';
+  String? uid = 'u1';
 
   final registros = <String>[];
   final nombresRegistrados = <String?>[];
   final ingresos = <String>[];
   final recuperaciones = <String>[];
+  final nombresActualizados = <String>[];
   int verificacionesEnviadas = 0;
   int comprobaciones = 0;
   int cierresDeSesion = 0;
@@ -27,6 +30,9 @@ class AuthFalso extends Fake implements AuthService {
 
   @override
   String? get emailActual => email;
+
+  @override
+  String? get uidActual => uid;
 
   @override
   Future<bool> registerWithEmailAndPassword(
@@ -67,6 +73,12 @@ class AuthFalso extends Fake implements AuthService {
   Future<bool> mailVerificado() async {
     comprobaciones++;
     return mailYaVerificado;
+  }
+
+  @override
+  Future<bool> updateNombre(String nombre) async {
+    nombresActualizados.add(nombre);
+    return cambiarNombre;
   }
 
   @override
