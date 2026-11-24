@@ -268,7 +268,10 @@ class _StockCard extends StatelessWidget {
   Widget build(BuildContext context) {
     Color color = AppColors.stockOk;
     String etiqueta = 'Stock OK';
-    if (insumo.stockBajo) {
+    if (insumo.stock <= 0) {
+      color = AppColors.stockAgotado;
+      etiqueta = 'Sin stock';
+    } else if (insumo.stockBajo) {
       color = AppColors.stockDanger;
       etiqueta = 'Stock bajo';
     } else if (insumo.porVencer) {
@@ -277,6 +280,7 @@ class _StockCard extends StatelessWidget {
     }
 
     return Card(
+      color: insumo.stock <= 0 ? const Color(0xFFF1F2F4) : null,
       margin: EdgeInsets.zero,
       child: Padding(
         padding: const EdgeInsets.all(16),

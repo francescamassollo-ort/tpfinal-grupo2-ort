@@ -48,7 +48,7 @@ class _VerificarEmailScreenState extends ConsumerState<VerificarEmailScreen> {
 
     // El rol se calcula solo para cuentas verificadas: se vuelve a pedir ahora.
     ref.invalidate(sesionProvider);
-    context.go('/inventario');
+    context.go('/home');
   }
 
   Future<void> _reenviar() async {

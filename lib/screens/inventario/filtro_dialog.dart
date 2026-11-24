@@ -56,6 +56,7 @@ class _FiltroDialogState extends State<FiltroDialog> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             DropdownButtonFormField<InventarioSort>(
+              isExpanded: true,
               initialValue: _sort,
               decoration: const InputDecoration(labelText: 'Ordenar por'),
               items: const [
@@ -77,6 +78,7 @@ class _FiltroDialogState extends State<FiltroDialog> {
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<String?>(
+              isExpanded: true,
               initialValue: _categoria,
               decoration: const InputDecoration(labelText: 'Categoría'),
               items: [
@@ -90,6 +92,7 @@ class _FiltroDialogState extends State<FiltroDialog> {
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<InsumoTipo?>(
+              isExpanded: true,
               initialValue: _tipo,
               decoration: const InputDecoration(labelText: 'Tipo de material'),
               items: const [
@@ -107,18 +110,25 @@ class _FiltroDialogState extends State<FiltroDialog> {
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<String?>(
+              // Las ubicaciones largas ("Laboratorio 403 - Armario N°1")
+              // se cortan con puntos suspensivos en vez de desbordar.
+              isExpanded: true,
               initialValue: _ubicacion,
               decoration: const InputDecoration(labelText: 'Ubicación'),
               items: [
                 const DropdownMenuItem(value: null, child: Text('Todas')),
                 ...ubicaciones.map(
-                  (u) => DropdownMenuItem(value: u, child: Text(u)),
+                  (u) => DropdownMenuItem(
+                    value: u,
+                    child: Text(u, overflow: TextOverflow.ellipsis),
+                  ),
                 ),
               ],
               onChanged: (value) => setState(() => _ubicacion = value),
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<EstadoStock?>(
+              isExpanded: true,
               initialValue: _estado,
               decoration: const InputDecoration(labelText: 'Estado del stock'),
               items: [
@@ -142,6 +152,18 @@ class _FiltroDialogState extends State<FiltroDialog> {
                 ),
               ),
               child: const Text('Filtrar'),
+            ),
+            // Deja todo como al principio; después se toca "Filtrar" para
+            // aplicarlo (igual que cualquier otro cambio del panel).
+            TextButton(
+              onPressed: () => setState(() {
+                _sort = InventarioSort.nombre;
+                _categoria = null;
+                _tipo = null;
+                _ubicacion = null;
+                _estado = null;
+              }),
+              child: const Text('Borrar filtros'),
             ),
           ],
         ),

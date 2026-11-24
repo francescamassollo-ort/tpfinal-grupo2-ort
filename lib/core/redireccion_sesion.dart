@@ -11,7 +11,7 @@ const String rutaVerificarMail = '/verificar-email';
 /// - **Con sesión pero sin verificar el mail:** solo la pantalla de verificación.
 ///   Así nadie usa la app con un mail que no demostró que es suyo.
 /// - **Con sesión y mail verificado:** las pantallas de acceso y la de
-///   verificación ya no sirven, va a Inventario.
+///   verificación ya no sirven, va a Inicio.
 ///
 /// Es una función pura para poder probar todas las combinaciones sin Firebase.
 String? redirigirSegunSesion({
@@ -26,7 +26,7 @@ String? redirigirSegunSesion({
     return ruta == rutaVerificarMail ? null : rutaVerificarMail;
   }
   if (rutasDeAcceso.contains(ruta) || ruta == rutaVerificarMail) {
-    return '/inventario';
+    return '/home';
   }
   return null;
 }

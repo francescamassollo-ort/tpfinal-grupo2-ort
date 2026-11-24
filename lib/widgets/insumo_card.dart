@@ -20,7 +20,11 @@ class InsumoCard extends StatelessWidget {
     // y además está por vencer, gana el rojo porque es más urgente.
     Color color = AppColors.stockOk;
     String? etiqueta;
-    if (insumo.stockBajo) {
+    final agotado = insumo.stock <= 0;
+    if (agotado) {
+      color = AppColors.stockAgotado;
+      etiqueta = 'Sin stock';
+    } else if (insumo.stockBajo) {
       color = AppColors.stockDanger;
       etiqueta = 'Stock bajo';
     } else if (insumo.porVencer) {
@@ -28,7 +32,11 @@ class InsumoCard extends StatelessWidget {
       etiqueta = 'Por vencer';
     }
 
+    // Un insumo agotado se ve apagado: tarjeta gris y textos atenuados.
+    const apagado = TextStyle(color: AppColors.stockAgotado);
+
     return Card(
+      color: agotado ? const Color(0xFFF1F2F4) : null,
       margin: const EdgeInsets.only(bottom: 8),
       // Recorta el efecto de "toque" para que respete las esquinas redondeadas.
       clipBehavior: Clip.antiAlias,
@@ -50,10 +58,12 @@ class InsumoCard extends StatelessWidget {
                   children: [
                     Text(
                       insumo.nombre,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                      style: agotado
+                          ? apagado.copyWith(fontWeight: FontWeight.bold)
+                          : const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 2),
-                    Text(insumo.ubicacion),
+                    Text(insumo.ubicacion, style: agotado ? apagado : null),
                   ],
                 ),
               ),
@@ -63,7 +73,9 @@ class InsumoCard extends StatelessWidget {
                 children: [
                   Text(
                     '${insumo.stock} u.',
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+                    style: agotado
+                        ? apagado.copyWith(fontWeight: FontWeight.bold)
+                        : const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   if (etiqueta != null) ...[
                     const SizedBox(height: 2),
@@ -73,9 +85,10 @@ class InsumoCard extends StatelessWidget {
                         const SizedBox(width: 4),
                         Text(
                           etiqueta,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
+                            color: agotado ? AppColors.stockAgotado : null,
                           ),
                         ),
                       ],

@@ -27,10 +27,10 @@ import '../widgets/solo_con_permiso.dart';
 import 'app_shell.dart';
 import 'permisos.dart';
 
-// Se arranca en /inventario, pero sin sesión iniciada el redirect de abajo manda
-// a /welcome; con sesión, las pantallas de ingreso mandan a /inventario.
+// Se arranca en /home, pero sin sesión iniciada el redirect de abajo manda
+// a /welcome; con sesión, las pantallas de ingreso mandan a /home.
 final GoRouter appRouter = GoRouter(
-  initialLocation: 'inventario',
+  initialLocation: '/home',
   
   refreshListenable: GoRouterRefreshStream(FirebaseAuth.instance.authStateChanges()), 
   // Sin sesión solo se ven las pantallas de acceso; con sesión pero sin el mail
@@ -94,8 +94,8 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state, child) =>
           AppShell(location: state.uri.path, child: child),
       routes: [
-        // Inicio: tablero con atajos. Lo ven todos los roles. Después de iniciar
-        // sesión la app sigue yendo a /inventario: Inicio se abre desde la barra.
+        // Inicio: tablero con atajos. Lo ven todos los roles. Es lo primero que se
+        // ve después de iniciar sesión o registrarse.
         GoRoute(path: '/home', builder: (context, state) => const HomeScreen()),
         GoRoute(path: '/inventario', builder: (context, state) => const InventarioScreen()),
         // /insumo/alta va antes que /insumo/:id; si no, go_router tomaría

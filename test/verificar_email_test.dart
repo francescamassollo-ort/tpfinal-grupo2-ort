@@ -23,9 +23,9 @@ Future<void> _abrir(WidgetTester tester, AuthFalso auth) async {
         builder: (context, state) => const VerificarEmailScreen(),
       ),
       GoRoute(
-        path: '/inventario',
+        path: '/home',
         builder: (context, state) =>
-            const Scaffold(body: Text('PANTALLA INVENTARIO')),
+            const Scaffold(body: Text('PANTALLA INICIO')),
       ),
     ],
   );
@@ -86,11 +86,11 @@ void main() {
       expect(ir(conSesion: true, verificado: true, ruta: '/insumo/alta'), isNull);
     });
 
-    test('con el mail verificado, acceso y verificación mandan a Inventario', () {
+    test('con el mail verificado, acceso y verificación mandan a Inicio', () {
       for (final ruta in ['/welcome', '/login', '/register', rutaVerificarMail]) {
         expect(
           ir(conSesion: true, verificado: true, ruta: ruta),
-          '/inventario',
+          '/home',
           reason: ruta,
         );
       }
@@ -162,10 +162,10 @@ void main() {
 
       expect(auth.comprobaciones, 1);
       expect(find.textContaining('Todavía no figura como verificado'), findsOneWidget);
-      expect(find.text('PANTALLA INVENTARIO'), findsNothing);
+      expect(find.text('PANTALLA INICIO'), findsNothing);
     });
 
-    testWidgets('"Ya verifiqué" con el mail verificado entra a Inventario',
+    testWidgets('"Ya verifiqué" con el mail verificado entra a Inicio',
         (tester) async {
       final auth = AuthFalso()..mailYaVerificado = true;
       await _abrir(tester, auth);
@@ -173,7 +173,7 @@ void main() {
       await tester.tap(find.text('Ya verifiqué'));
       await tester.pumpAndSettle();
 
-      expect(find.text('PANTALLA INVENTARIO'), findsOneWidget);
+      expect(find.text('PANTALLA INICIO'), findsOneWidget);
     });
 
     testWidgets('"Reenviar el correo" lo manda de nuevo y lo avisa', (tester) async {

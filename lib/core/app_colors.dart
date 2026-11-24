@@ -24,4 +24,6 @@ class AppColors {
   static const Color stockOk = Color(0xFF2F7D5A);
   static const Color stockWarning = Color(0xFFD08A1E);
   static const Color stockDanger = Color(0xFFC23B2E);
+  // Insumo agotado (stock en cero): apagado, ya no es una urgencia visual.
+  static const Color stockAgotado = Color(0xFF9AA0A6);
 }
