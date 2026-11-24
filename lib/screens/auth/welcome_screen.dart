@@ -40,38 +40,47 @@ class WelcomeScreen extends StatelessWidget {
               ],
             ),
             
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                SizedBox(
-                  width: 150,
-                  height: 52,
-                  child: ElevatedButton(
-                    style: HandyWelcomeButtonStyles(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: AppColors.cardBackground,
-                    ).getStyle(),
-                    onPressed: (){
-                      (context).push('/login');
-                    }, 
-                    child: Text('Ingresar')
+            // Los botones llenan el ancho disponible hasta un máximo: en el
+            // celular ocupan casi toda la fila y en la web no quedan perdidos
+            // en los extremos de una pantalla ancha.
+            Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 520),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: SizedBox(
+                          height: 60,
+                          child: ElevatedButton(
+                            style: HandyWelcomeButtonStyles(
+                              backgroundColor: AppColors.primary,
+                              foregroundColor: AppColors.cardBackground,
+                            ).getStyle(),
+                            onPressed: () => context.push('/login'),
+                            child: const Text('Ingresar'),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: SizedBox(
+                          height: 60,
+                          child: ElevatedButton(
+                            style: HandyWelcomeButtonStyles(
+                              backgroundColor: AppColors.cardBackground,
+                              foregroundColor: const Color.fromARGB(255, 1, 1, 1),
+                            ).getStyle(),
+                            onPressed: () => context.push('/register'),
+                            child: const Text('Registrarse'),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                SizedBox(
-                  width: 150,
-                  height: 52,
-                  child: ElevatedButton(
-                    style: HandyWelcomeButtonStyles(
-                      backgroundColor: AppColors.cardBackground,
-                      foregroundColor: Color.fromARGB(255, 1, 1, 1),
-                    ).getStyle(),
-                    onPressed: (){
-                      (context).push('/register');
-                    },
-                    child: Text('Registrarse')
-                  ),
-                ),
-              ],
+              ),
             ),
           ],
         ),
