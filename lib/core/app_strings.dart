@@ -309,6 +309,9 @@ class AppStrings {
   static String bajaInsumoHecha(String nombre) => '$nombre fue dado de baja';
   static const String bajaInsumoError = 'No se pudo dar de baja el insumo';
 
+  // Logo de ORT (texto para lectores de pantalla).
+  static const String logoOrt = 'ORT Argentina, Educando para la vida';
+
   // Cuenta dada de baja: se le cierra la sesión y no puede volver a usar la app.
   static const String cuentaDadaDeBaja =
       'Tu cuenta fue dada de baja. Hablá con un administrador.';
