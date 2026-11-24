@@ -1,13 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
+
+import 'package:http/http.dart' as http;
 
 import '../core/gemini_config.dart';
 import 'modelo_de_lenguaje.dart';
 
-/// Cliente de Gemini (API REST de Google AI Studio). Usa dart:io en vez de un
-/// paquete de HTTP para no sumar dependencias al proyecto, igual que
-/// GroqClient.
+/// Cliente de Gemini (API REST de Google AI Studio). Usa package:http, que
+/// también anda en la web.
 ///
 /// La clave viaja en el encabezado `x-goog-api-key`, nunca en la URL, y nunca
 /// se escribe en ningún mensaje ni excepción.
@@ -42,21 +42,19 @@ class GeminiClient implements ModeloDeLenguaje {
       );
     }
 
-    final cliente = HttpClient()..connectionTimeout = _tiempoMaximo;
+    final cliente = http.Client();
     try {
-      final pedido = await cliente
-          .postUrl(Uri.parse('$_urlBase/models/$_modelo:generateContent'))
+      final respuesta = await cliente
+          .post(
+            Uri.parse('$_urlBase/models/$_modelo:generateContent'),
+            headers: {
+              'Content-Type': 'application/json',
+              'x-goog-api-key': _apiKey,
+            },
+            body: jsonEncode(_cuerpo(instrucciones, consulta)),
+          )
           .timeout(_tiempoMaximo);
-      pedido.headers
-        ..contentType = ContentType.json
-        ..set('x-goog-api-key', _apiKey);
-      pedido.add(utf8.encode(jsonEncode(_cuerpo(instrucciones, consulta))));
-
-      final respuesta = await pedido.close().timeout(_tiempoMaximo);
-      final texto = await respuesta
-          .transform(utf8.decoder)
-          .join()
-          .timeout(_tiempoMaximo);
+      final texto = utf8.decode(respuesta.bodyBytes);
 
       if (respuesta.statusCode != 200) {
         throw ModeloDeLenguajeException(
@@ -71,12 +69,10 @@ class GeminiClient implements ModeloDeLenguaje {
       throw const ModeloDeLenguajeException(
         'Gemini tardó demasiado en responder',
       );
-    } on SocketException {
+    } on http.ClientException {
       throw const ModeloDeLenguajeException('No hay conexión con Gemini');
-    } on HttpException {
-      throw const ModeloDeLenguajeException('No se pudo hablar con Gemini');
     } finally {
-      cliente.close(force: true);
+      cliente.close();
     }
   }
 

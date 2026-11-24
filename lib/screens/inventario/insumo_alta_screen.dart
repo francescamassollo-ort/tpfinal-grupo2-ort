@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -265,6 +266,9 @@ TextFormField(
   ),
 ),
 
+// La cámara (escáner y lectura de etiqueta) solo existe en el celular: en
+// la web el código de barras se escribe a mano en el campo de arriba.
+if (!kIsWeb) ...[
 const SizedBox(height: 8),
 
 // Abre la cámara y completa el formulario con lo que se lea del código.
@@ -293,6 +297,7 @@ OutlinedButton.icon(
         : AppStrings.altaLeerEtiqueta,
   ),
 ),
+],
 
 SwitchListTile(
   contentPadding: EdgeInsets.zero,
