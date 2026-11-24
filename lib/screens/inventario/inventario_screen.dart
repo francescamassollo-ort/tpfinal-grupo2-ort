@@ -114,6 +114,7 @@ class InventarioScreen extends ConsumerWidget {
           categoria: elegido.categoria,
           tipo: elegido.tipo,
           ubicacion: elegido.ubicacion,
+          estado: elegido.estado,
         );
   }
 }

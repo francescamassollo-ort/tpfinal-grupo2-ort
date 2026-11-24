@@ -7,8 +7,28 @@ import 'insumo_providers.dart';
 // Las 3 formas de ordenar la lista que ofrece el panel de filtros.
 enum InventarioSort { nombre, stockMenor, stockMayor }
 
+// En qué situación está el stock de un insumo. Son tres estados que no se
+// pisan: con stock de sobra, bajo (en el mínimo o por debajo, pero no en cero)
+// y sin stock (cero). Es el mismo criterio de los colores del Inventario.
+enum EstadoStock {
+  enStock('En stock'),
+  stockBajo('Stock bajo'),
+  sinStock('Sin stock');
+
+  const EstadoStock(this.etiqueta);
+
+  /// Lo que dice el panel de filtros.
+  final String etiqueta;
+
+  /// El estado de [insumo].
+  static EstadoStock de(Insumo insumo) {
+    if (insumo.stock <= 0) return sinStock;
+    return insumo.stockBajo ? stockBajo : enStock;
+  }
+}
+
 // "Foto" de lo que el usuario eligió para filtrar el inventario.
-// null en categoria/tipo/ubicacion significa "todas" (sin filtrar).
+// null en categoria/tipo/ubicacion/estado significa "todas" (sin filtrar).
 class InventarioFilter {
   const InventarioFilter({
     this.searchText = '',
@@ -16,6 +36,7 @@ class InventarioFilter {
     this.categoria,
     this.tipo,
     this.ubicacion,
+    this.estado,
   });
 
   final String searchText;
@@ -23,6 +44,7 @@ class InventarioFilter {
   final String? categoria;
   final InsumoTipo? tipo;
   final String? ubicacion;
+  final EstadoStock? estado;
 }
 
 // Mismo patrón que RoleNotifier: guarda un valor (el filtro actual) y
@@ -42,6 +64,7 @@ class InventarioFilterNotifier extends Notifier<InventarioFilter> {
       categoria: state.categoria,
       tipo: state.tipo,
       ubicacion: state.ubicacion,
+      estado: state.estado,
     );
   }
 
@@ -52,6 +75,7 @@ class InventarioFilterNotifier extends Notifier<InventarioFilter> {
     String? categoria,
     InsumoTipo? tipo,
     String? ubicacion,
+    EstadoStock? estado,
   }) {
     state = InventarioFilter(
       searchText: state.searchText,
@@ -59,6 +83,7 @@ class InventarioFilterNotifier extends Notifier<InventarioFilter> {
       categoria: categoria,
       tipo: tipo,
       ubicacion: ubicacion,
+      estado: estado,
     );
   }
 }
@@ -86,6 +111,7 @@ List<Insumo> _filtrarYOrdenar(List<Insumo> todos, InventarioFilter filter) {
       .where((i) => filter.categoria == null || i.categoria == filter.categoria)
       .where((i) => filter.tipo == null || i.tipo == filter.tipo)
       .where((i) => filter.ubicacion == null || i.ubicacion == filter.ubicacion)
+      .where((i) => filter.estado == null || EstadoStock.de(i) == filter.estado)
       .toList();
 
   // sort compara de a dos insumos (a y b) y los acomoda según el resultado.
