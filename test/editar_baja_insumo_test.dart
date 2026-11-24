@@ -4,13 +4,16 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:tpfinal_grupo2/core/app_strings.dart';
 import 'package:tpfinal_grupo2/models/insumo.dart';
+import 'package:tpfinal_grupo2/models/ubicacion.dart';
 import 'package:tpfinal_grupo2/models/usuario.dart';
 import 'package:tpfinal_grupo2/providers/historial_provider.dart';
 import 'package:tpfinal_grupo2/providers/insumo_providers.dart';
 import 'package:tpfinal_grupo2/providers/role_provider.dart';
+import 'package:tpfinal_grupo2/providers/ubicacion_providers.dart';
 import 'package:tpfinal_grupo2/screens/inventario/insumo_detalle_screen.dart';
 import 'package:tpfinal_grupo2/screens/inventario/insumo_editar_screen.dart';
 import 'package:tpfinal_grupo2/services/insumo_service.dart';
+import 'package:tpfinal_grupo2/services/ubicacion_service.dart';
 
 final _etanol = Insumo(
   id: 'i1',
@@ -52,11 +55,27 @@ class _InsumoServiceFalso extends Fake implements InsumoService {
   }
 }
 
+/// El servicio de ubicaciones sin Firestore: anota las que se agregan.
+class _UbicacionServiceFalso extends Fake implements UbicacionService {
+  final creadas = <String>[];
+
+  @override
+  Future<void> crearSiNoExiste(String nombre) async => creadas.add(nombre);
+}
+
+class _UbicacionServiceFalsoQueFalla extends _UbicacionServiceFalso {
+  @override
+  Future<void> crearSiNoExiste(String nombre) async =>
+      throw Exception('sin conexión');
+}
+
 Future<GoRouter> _abrir(
   WidgetTester tester,
   _InsumoServiceFalso servicio, {
   required String ruta,
   UserRole rol = UserRole.administrador,
+  List<String> ubicaciones = const [],
+  _UbicacionServiceFalso? ubicacionServicio,
 }) async {
   tester.view.physicalSize = const Size(1080, 7000);
   tester.view.devicePixelRatio = 3;
@@ -94,6 +113,14 @@ Future<GoRouter> _abrir(
     ProviderScope(
       overrides: [
         insumoServiceProvider.overrideWithValue(servicio),
+        ubicacionServiceProvider.overrideWithValue(
+          ubicacionServicio ?? _UbicacionServiceFalso(),
+        ),
+        ubicacionesProvider.overrideWith(
+          (ref) => Stream.value([
+            for (final n in ubicaciones) Ubicacion(id: n.toLowerCase(), nombre: n),
+          ]),
+        ),
         insumosProvider.overrideWith((ref) => Stream.value([_etanol])),
         rolDeSesionProvider.overrideWith((ref) => Stream.value(rol)),
       ],
@@ -182,6 +209,70 @@ void main() {
       expect(guardado.fechaVencimiento, DateTime(2027, 5, 1));
       // Vuelve a la pantalla anterior y lo avisa.
       expect(find.text('PANTALLA INVENTARIO'), findsOneWidget);
+      expect(find.text(AppStrings.editarInsumoGuardado), findsOneWidget);
+    });
+
+    testWidgets('una ubicación que ya está se guarda con su escritura de la lista',
+        (tester) async {
+      final servicio = _InsumoServiceFalso();
+      await _abrir(
+        tester,
+        servicio,
+        ruta: '/insumo/editar/i1',
+        ubicaciones: ['Heladera Pañol'],
+      );
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Ubicación'),
+        ' heladera  panol ',
+      );
+
+      await tester.ensureVisible(find.text('Guardar'));
+      await tester.tap(find.text('Guardar'));
+      await tester.pumpAndSettle();
+
+      expect(servicio.actualizados.single.ubicacion, 'Heladera Pañol');
+    });
+
+    testWidgets('una ubicación nueva se guarda y se suma a la lista',
+        (tester) async {
+      final servicio = _InsumoServiceFalso();
+      final ubicaciones = _UbicacionServiceFalso();
+      await _abrir(
+        tester,
+        servicio,
+        ruta: '/insumo/editar/i1',
+        ubicaciones: ['Heladera Pañol'],
+        ubicacionServicio: ubicaciones,
+      );
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Ubicación'),
+        'Armario  7',
+      );
+
+      await tester.ensureVisible(find.text('Guardar'));
+      await tester.tap(find.text('Guardar'));
+      await tester.pumpAndSettle();
+
+      expect(servicio.actualizados.single.ubicacion, 'Armario 7');
+      expect(ubicaciones.creadas, ['Armario 7']);
+    });
+
+    testWidgets(
+        'si no se puede sumar la ubicación a la lista, el insumo igual se guarda',
+        (tester) async {
+      final servicio = _InsumoServiceFalso();
+      await _abrir(
+        tester,
+        servicio,
+        ruta: '/insumo/editar/i1',
+        ubicacionServicio: _UbicacionServiceFalsoQueFalla(),
+      );
+
+      await tester.ensureVisible(find.text('Guardar'));
+      await tester.tap(find.text('Guardar'));
+      await tester.pumpAndSettle();
+
+      expect(servicio.actualizados, hasLength(1));
       expect(find.text(AppStrings.editarInsumoGuardado), findsOneWidget);
     });
 

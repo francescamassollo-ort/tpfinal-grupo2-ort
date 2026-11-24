@@ -9,6 +9,8 @@ import '../../models/insumo.dart';
 import '../../providers/insumo_providers.dart';
 import '../../providers/ocr_provider.dart';
 import '../../providers/sinonimos_provider.dart';
+import '../../providers/ubicacion_providers.dart';
+import '../../services/ubicaciones_logica.dart';
 import '../../services/duplicate_detection_service.dart';
 import '../../services/ocr_service.dart';
 import '../../services/stock_service.dart';
@@ -16,6 +18,7 @@ import '../../services/synonym_detection_service.dart';
 import 'duplicados_dialog.dart';
 import 'sugerencia_de_categoria.dart';
 import 'sugerencias_nombre.dart';
+import 'sugerencias_ubicacion.dart';
 import 'validaciones_alta.dart';
 
 /// Formulario de insumo: sirve para dar de alta uno nuevo y, con [insumo], para
@@ -211,6 +214,10 @@ TextFormField(
   ),
   validator: ValidacionesAlta.ubicacion,
 ),
+
+// Evita que un mismo lugar quede escrito de varias formas: confirma si ya
+// existe, ofrece las parecidas y avisa si es una ubicación nueva.
+SugerenciasUbicacion(controller: _ubicacionController),
 
 const SizedBox(height: 12),
 
@@ -652,13 +659,21 @@ ElevatedButton(
 
   try {
     final original = widget.insumo;
+    // Si el lugar ya está en la lista (aunque se haya escrito con otras
+    // mayúsculas o espacios) se usa su escritura; si no, se agrega después.
+    final ubicacion = UbicacionesLogica.canonica(
+      _ubicacionController.text,
+      [
+        for (final u in ref.read(ubicacionesProvider).value ?? const []) u.nombre,
+      ],
+    );
     final insumo = Insumo(
       id: original?.id ?? '',
       nombre: _nombreController.text,
       tipo: _tipo,
       // Al editar el stock queda como está: cambia solo con movimientos.
       stock: original?.stock ?? ValidacionesAlta.entero(_stockController.text)!,
-      ubicacion: _ubicacionController.text,
+      ubicacion: ubicacion,
       umbralMinimo: ValidacionesAlta.numero(_umbralMinimoController.text)!,
 
       categoria: _categoriaController.text.isEmpty
@@ -721,6 +736,12 @@ ElevatedButton(
       // Guarda el insumo y, si trae stock, su entrada en el historial.
       await StockService().registrarAlta(insumo);
     }
+
+    // Suma el lugar a la lista si era nuevo. Si no se puede (sin conexión) el
+    // insumo ya quedó guardado: no es motivo para mostrar un error.
+    try {
+      await ref.read(ubicacionServiceProvider).crearSiNoExiste(ubicacion);
+    } catch (_) {}
 
     if (!mounted) return;
 

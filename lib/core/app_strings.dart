@@ -295,6 +295,12 @@ class AppStrings {
   static const String tpStockInsuficiente = 'Stock insuficiente';
   static String tpStockUnidades(int stock) => 'Stock: $stock u.';
 
+  // Lista de ubicaciones (debajo del campo Ubicación del formulario).
+  static const String ubicacionExistente = 'Ubicación de la lista';
+  static const String ubicacionQuisisteDecir = '¿Quisiste decir…?';
+  static const String ubicacionNueva =
+      'Ubicación nueva: se va a agregar a la lista al guardar';
+
   // Datos del insumo que vienen de las planillas del laboratorio.
   static const String codigoInterno = 'Código interno';
   static const String codigoInternoPista = 'Por ejemplo Al-01';
