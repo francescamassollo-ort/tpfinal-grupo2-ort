@@ -10,25 +10,178 @@ rules_version = '2';
 //
 // Si se cambian en la consola, copiar el cambio acá para que no se pierda.
 //
-// Colecciones que usa la app: insumos, movimientosStock, listaCompras,
-// listasTP, usuarios y alertasVistas (ver el README).
+// Las reglas se prueban con el emulador de Firebase: ver la carpeta
+// firestore_tests/ y la sección "Reglas de Firestore" del README.
+//
+// Colecciones que usa la app: insumos, movimientosStock, listaCompras, listasTP,
+// usuarios, alertasVistas y ubicaciones. Todo lo demás está prohibido.
+//
+// QUIÉN PUEDE QUÉ (requerimientos R15, R16 y R17):
+//   administrador  acceso total a lo del negocio.
+//   ayudante       ve todo y modifica el stock (consumos y entradas); maneja la
+//                  lista de compras.
+//   docente        solo lectura, y arma los trabajos prácticos.
+// Toda persona con sesión (mail verificado) lee insumos, movimientos, TPs y
+// ubicaciones. Una cuenta dada de baja (activo: false) no puede nada.
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /{document=**} {
-      // HOY: abierto a cualquiera hasta el 31/01/2027. Es el "modo de prueba" de
-      // Firebase, renovado el 23/11/2026 cuando venció el anterior (el original,
-      // del 21/10/2026, duraba 30 días). Cuando la fecha pasa, la app deja de leer
-      // y escribir en todas las pantallas a la vez ("permission-denied"): hay
-      // que renovarla antes.
-      allow read, write: if request.time < timestamp.date(2027, 1, 31);
 
-      // PRÓXIMO PASO (cuando el login esté conectado): pedir una sesión iniciada.
-      //
-      //   allow read, write: if request.auth != null;
-      //
-      // Después, reglas por rol (administrador, ayudante, docente) leyendo el
-      // rol de usuarios/{uid}. Para eso el registro tiene que crear ese
-      // documento. Issue #46.
+    // ---- Quién es la persona ------------------------------------------------
+
+    // Interruptor del dominio institucional. En true, solo entran cuentas con
+    // mail de @comunidadort.edu.ar o @ort.edu.ar (R14), aunque alguien se salte
+    // la app. Está apagado para no dejar afuera, de golpe, a cuentas de prueba
+    // que se hayan creado antes de esa regla: revisar en Authentication > Usuarios
+    // que todas sean de ORT y recién ahí poner true.
+    function exigeDominioInstitucional() {
+      return false;
+    }
+
+    function dominioPermitido() {
+      return !exigeDominioInstitucional() ||
+        (request.auth.token.email != null &&
+         request.auth.token.email.lower().matches('.*@(comunidadort|ort)[.]edu[.]ar'));
+    }
+
+    // Sesión iniciada, con el mail verificado (con Google ya viene verificado).
+    function conSesion() {
+      return request.auth != null &&
+        request.auth.token.email_verified == true &&
+        dominioPermitido();
+    }
+
+    function miDocumento() {
+      return /databases/$(database)/documents/usuarios/$(request.auth.uid);
+    }
+
+    function tengoDocumento() {
+      return exists(miDocumento());
+    }
+
+    // Una cuenta nueva todavía no tiene documento (la app lo crea al ingresar):
+    // cuenta como activa. Solo una baja explícita la bloquea.
+    function cuentaActiva() {
+      return !tengoDocumento() || get(miDocumento()).data.get('activo', true) == true;
+    }
+
+    function puedeLeer() {
+      return conSesion() && cuentaActiva();
+    }
+
+    // Tener uno de los roles. Exige documento: el rol sale de ahí.
+    function tieneRol(roles) {
+      return conSesion() && tengoDocumento() && cuentaActiva() &&
+        get(miDocumento()).data.rol in roles;
+    }
+
+    function esAdmin() {
+      return tieneRol(['administrador']);
+    }
+
+    // El documento nuevo cambió solo estos campos (y ninguno más).
+    function soloCambia(campos) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(campos);
+    }
+
+    // ---- Insumos ------------------------------------------------------------
+    // Alta, edición, baja y reactivación: administrador. Cambiar solo el stock
+    // (consumo, entrada, ajuste): también el ayudante. Nunca se borra un insumo:
+    // la baja es lógica (activo: false) para conservar el historial.
+    function insumoValido(d) {
+      return d.nombre is string && d.nombre.size() > 0 && d.nombre.size() <= 200 &&
+        d.ubicacion is string && d.ubicacion.size() > 0 &&
+        d.stock is int && d.stock >= 0 &&
+        d.umbralMinimo is number && d.umbralMinimo >= 0;
+    }
+
+    match /insumos/{insumoId} {
+      allow read: if puedeLeer();
+      allow create: if esAdmin() && insumoValido(request.resource.data);
+      allow update: if esAdmin() && insumoValido(request.resource.data) ||
+        tieneRol(['ayudante']) && soloCambia(['stock']) &&
+          request.resource.data.stock is int && request.resource.data.stock >= 0;
+      allow delete: if false;
+    }
+
+    // ---- Movimientos de stock -----------------------------------------------
+    // Son el registro histórico: se crean, nunca se editan ni se borran. Quien
+    // los crea no puede firmar con el nombre de otra persona.
+    match /movimientosStock/{movimientoId} {
+      allow read: if puedeLeer();
+      allow create: if tieneRol(['administrador', 'ayudante']) &&
+        request.resource.data.usuarioId == request.auth.uid &&
+        request.resource.data.tipo in ['entrada', 'salida', 'ajuste'] &&
+        request.resource.data.cantidad is int;
+      allow update, delete: if false;
+    }
+
+    // ---- Lista de compras ---------------------------------------------------
+    // El docente no tiene acceso (R17).
+    match /listaCompras/{itemId} {
+      allow read, write: if tieneRol(['administrador', 'ayudante']);
+    }
+
+    // ---- Trabajos prácticos -------------------------------------------------
+    // Los crean y editan el administrador y el docente; el ayudante los ve. La
+    // baja es lógica (activo: false), por eso no se borran.
+    match /listasTP/{tpId} {
+      allow read: if puedeLeer();
+      allow create, update: if tieneRol(['administrador', 'docente']);
+      allow delete: if false;
+    }
+
+    // ---- Ubicaciones --------------------------------------------------------
+    // Las agrega el administrador (al dar de alta un insumo o al importar) y
+    // nadie las edita ni las borra.
+    match /ubicaciones/{ubicacionId} {
+      allow read: if puedeLeer();
+      allow create: if esAdmin() &&
+        request.resource.data.nombre is string &&
+        request.resource.data.nombre.size() > 0;
+      allow update, delete: if false;
+    }
+
+    // ---- Usuarios -----------------------------------------------------------
+    // Cada persona lee su propio documento (de ahí sale su rol); el
+    // administrador lee y gestiona los de todos.
+    match /usuarios/{usuarioId} {
+      allow read: if puedeLeer() && (request.auth.uid == usuarioId || esAdmin());
+
+      // La app crea el documento al ingresar por primera vez: solo el propio, y
+      // siempre como docente, activo y sin permiso de Sedronar. Nadie puede
+      // darse un rol más alto (el primer administrador se cambia a mano en la
+      // consola).
+      allow create: if conSesion() && request.auth.uid == usuarioId &&
+        request.resource.data.keys().hasOnly(
+          ['nombre', 'email', 'rol', 'activo', 'puedeVerSedronar']) &&
+        request.resource.data.rol == 'docente' &&
+        request.resource.data.activo == true &&
+        request.resource.data.get('puedeVerSedronar', false) == false &&
+        request.resource.data.email == request.auth.token.email &&
+        request.resource.data.nombre is string &&
+        request.resource.data.nombre.size() > 0;
+
+      // El administrador cambia roles y da de baja o reactiva; cada persona
+      // puede cambiar solo su nombre (Perfil).
+      allow update: if esAdmin() ||
+        (puedeLeer() && request.auth.uid == usuarioId && soloCambia(['nombre']) &&
+         request.resource.data.nombre is string &&
+         request.resource.data.nombre.size() > 0 &&
+         request.resource.data.nombre.size() <= 60);
+
+      // La baja es lógica: no se borra a nadie.
+      allow delete: if false;
+    }
+
+    // ---- Alertas vistas -----------------------------------------------------
+    // Una marca por persona y alerta, con id "{uid}_{alertaId}". Cada persona
+    // maneja solo las suyas.
+    match /alertasVistas/{marcaId} {
+      allow read: if puedeLeer() && resource.data.usuarioId == request.auth.uid;
+      allow create, update: if puedeLeer() &&
+        request.resource.data.usuarioId == request.auth.uid &&
+        marcaId.matches(request.auth.uid + '_.*');
+      allow delete: if puedeLeer() && resource.data.usuarioId == request.auth.uid;
     }
   }
 }
