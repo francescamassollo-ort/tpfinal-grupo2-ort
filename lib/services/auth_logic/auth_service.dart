@@ -33,6 +33,9 @@ class AuthService {
   /// El mail de la cuenta con la sesión iniciada, o null si no hay sesión.
   String? get emailActual => _auth.currentUser?.email;
 
+  /// El id de la cuenta con la sesión iniciada, o null si no hay sesión.
+  String? get uidActual => _auth.currentUser?.uid;
+
   // Register with Email and Password. Devuelve true si se creó la cuenta; si no,
   // el motivo ya se mostró en un cartel.
   //
@@ -224,6 +227,36 @@ class AuthService {
       return false;
     }
     return _auth.currentUser?.emailVerified ?? false;
+  }
+
+  /// Cambia el nombre de la cuenta con la sesión iniciada (displayName). Devuelve
+  /// true si se guardó; si no, el motivo ya se mostró en un cartel.
+  ///
+  /// No valida el nombre: eso lo hace quien llama (ver
+  /// [ValidacionesAuth.esNombreValido]). Se guarda sin los espacios de los
+  /// extremos.
+  Future<bool> updateNombre(String nombre) async {
+    try {
+      final usuario = _auth.currentUser;
+      if (usuario == null) {
+        showGlobalErrorSnackBar('No hay una sesión iniciada.');
+        return false;
+      }
+      await usuario.updateDisplayName(nombre.trim());
+      return true;
+    } on FirebaseAuthException catch (e) {
+      debugPrint("FirebaseAuthException during name update: ${e.code} - ${e.message}");
+      final message = switch (e.code) {
+        'network-request-failed' => 'No se pudo conectar. Revisá tu conexión.',
+        _ => 'No se pudo guardar el nombre (${e.code}).',
+      };
+      showGlobalErrorSnackBar(message);
+      return false;
+    } catch (e) {
+      debugPrint("General error during name update: $e");
+      showGlobalErrorSnackBar('Ocurrió un error inesperado. Revisá tu conexión.');
+      return false;
+    }
   }
 
   // Sign out

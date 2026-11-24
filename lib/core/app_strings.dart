@@ -432,4 +432,30 @@ class AppStrings {
         UserRole.ayudante => usuariosRolAyudante,
         UserRole.docente => usuariosRolDocente,
       };
+
+  // Perfil
+  static const String perfilTitulo = 'Perfil';
+  static const String perfilNombre = 'Nombre';
+  static const String perfilEmail = 'Email';
+  static const String perfilRol = 'Rol';
+  static const String perfilGuardarNombre = 'Guardar';
+  static const String perfilNombreActualizado = 'Nombre actualizado';
+  static const String perfilErrorNombre = 'No se pudo guardar el nombre';
+  static const String perfilCerrarSesion = 'Cerrar sesión';
+  static const String perfilError = 'No se pudo cargar tu perfil';
+  static const String perfilSinNombre = 'Sin nombre';
+
+  // Inicio (tablero)
+  static const String homeTitulo = 'Inicio';
+  static const String homeStockBajo = 'Stock bajo';
+  static const String homeStockBajoDetalle = 'insumos por reponer';
+  static const String homeAlertas = 'Alertas activas';
+  static const String homeAlertasDetalle = 'sin ver';
+  static const String homeUltimoMovimiento = 'Último movimiento';
+  static const String homeSinMovimientos = 'Todavía no hay movimientos';
+  static const String homeErrorDato = 'No se pudo cargar';
+  static const String homeAtajos = 'Atajos';
+  static const String homeIrInventario = 'Inventario';
+  static const String homeIrAlertas = 'Alertas';
+  static const String homeIrHistorial = 'Historial';
 }

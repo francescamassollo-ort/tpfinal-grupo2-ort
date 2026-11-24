@@ -17,6 +17,7 @@ import '../screens/inventario/insumo_editar_screen.dart';
 import '../screens/inventario/insumos_de_baja_screen.dart';
 import '../screens/inventario/inventario_screen.dart';
 import '../screens/inventario/scanner_screen.dart';
+import '../screens/home/home_screen.dart';
 import '../screens/perfil/perfil_screen.dart';
 import '../screens/tp/tp_detalle_screen.dart';
 import '../screens/tp/tp_editar_screen.dart';
@@ -87,6 +88,9 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state, child) =>
           AppShell(location: state.uri.path, child: child),
       routes: [
+        // Inicio: tablero con atajos. Lo ven todos los roles. Después de iniciar
+        // sesión la app sigue yendo a /inventario: Inicio se abre desde la barra.
+        GoRoute(path: '/home', builder: (context, state) => const HomeScreen()),
         GoRoute(path: '/inventario', builder: (context, state) => const InventarioScreen()),
         // /insumo/alta va antes que /insumo/:id; si no, go_router tomaría
         // "alta" como si fuera el id de un insumo.

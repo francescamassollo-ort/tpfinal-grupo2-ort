@@ -55,6 +55,11 @@ class AppShell extends ConsumerWidget {
               ),
             ),
             IconButton(
+              tooltip: AppStrings.homeTitulo,
+              icon: const Icon(Icons.home_outlined),
+              onPressed: () => context.go('/home'),
+            ),
+            IconButton(
               icon: const Icon(Icons.inventory_2_outlined),
               onPressed: () => context.go('/inventario'),
             ),
@@ -118,9 +123,11 @@ String? _rutaBotonAgregar(String location, UserRole role) {
   // El diseño de Alertas no lleva el botón flotante.
   if (location == '/alertas') return null;
 
-  // Perfil, Usuarios e Importar no dan de alta nada: un "+" ahí llevaría al
-  // Alta sin que tenga que ver con lo que se está viendo.
-  if (location == '/perfil' ||
+  // Inicio, Perfil, Usuarios, Importar e Insumos dados de baja no dan de alta
+  // nada: un "+" ahí llevaría al Alta sin que tenga que ver con lo que se está
+  // viendo.
+  if (location == '/home' ||
+      location == '/perfil' ||
       location == '/usuarios' ||
       location == '/importar' ||
       location == '/bajas') {

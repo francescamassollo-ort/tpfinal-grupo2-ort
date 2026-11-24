@@ -81,6 +81,12 @@ class UserService {
     return _ref.doc(usuarioId).update({'rol': nuevoRol.name});
   }
 
+  /// Cambia solo el nombre del usuario, sin tocar el resto de sus campos. Lo usa
+  /// Perfil: cada persona edita su propio nombre.
+  Future<void> updateNombre(String usuarioId, String nuevoNombre) {
+    return _ref.doc(usuarioId).update({'nombre': nuevoNombre});
+  }
+
   /// Deshace una baja: el usuario vuelve a poder usar la app.
   Future<void> reactivar(String usuarioId) {
     return _ref.doc(usuarioId).update({'activo': true});

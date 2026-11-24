@@ -166,7 +166,25 @@ Las pruebas unitarias están en `test/` (fuera de `lib/`).
 |---|---|---|
 | Usuarios | `/usuarios` | ✅ Funcional (solo administrador), ver "Gestión de usuarios" |
 | Importar desde Excel | `/importar` | ✅ Funcional (solo administrador), ver "Importar el inventario desde Excel" |
-| Perfil | `/perfil` | ⏳ Placeholder |
+| Inicio | `/home` | 🔍 En revisión (tablero con insumos con stock bajo, alertas activas y último movimiento, y atajos a Inventario, Alertas e Historial; lo ven todos los roles; se abre desde la barra inferior, la app sigue arrancando en Inventario), ver "Perfil y Home" |
+| Perfil | `/perfil` | 🔍 En revisión (nombre editable, mail y rol; Cerrar sesión; lo ven todos los roles), ver "Perfil y Home" |
+
+## Perfil y Home
+Las dos pantallas están dentro del `AppShell` y las pueden ver todos los roles. En ninguna aparece el botón flotante "+".
+
+- **Perfil (`/perfil`).** Muestra el nombre y el rol de la persona (de su documento en la colección `usuarios`) y el mail
+  de su cuenta de Firebase. Solo se edita el nombre: el mail es el de la cuenta y el rol lo cambia un administrador desde
+  Usuarios. Al guardar se valida el nombre (el mismo criterio que el registro: con letras y no demasiado largo) y se
+  guarda primero en la cuenta (`displayName`, de donde salen el nombre del Historial y de los TPs) y, solo si eso salió
+  bien, en el documento de `usuarios`, para que los dos lugares no queden con nombres distintos. El botón "Cerrar sesión"
+  hace lo mismo que el del menú lateral. Para que se pueda guardar, las reglas de Firestore tienen que dejar que cada
+  persona modifique el campo `nombre` de su propio documento.
+- **Inicio (`/home`).** Un tablero con tres datos: cuántos insumos tienen el stock en el mínimo o por debajo (los que
+  Inventario marca en rojo), cuántas alertas hay activas (y cuántas de esas todavía no vio la persona) y el último
+  movimiento de stock, con el nombre del insumo. Mientras un dato carga muestra "..." y, si falla, lo dice: no muestra un
+  0 que podría ser falso. El último movimiento no depende de los filtros del Historial. Cada tarjeta y los tres atajos
+  (Inventario, Alertas e Historial) llevan a esa pantalla. Después de iniciar sesión la app sigue yendo a Inventario: a
+  Inicio se llega con el ícono de la casa de la barra inferior.
 
 ## Exportar la lista de un TP
 En el detalle de un trabajo práctico, **Compartir** y **Descargar** arman la lista para prepararlo, con el mismo panel de formato (PDF o Excel/CSV) y los mismos avisos que la Lista de compras y el Historial.
