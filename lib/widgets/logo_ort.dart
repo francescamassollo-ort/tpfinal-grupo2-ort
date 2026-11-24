@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../core/app_strings.dart';
 
@@ -51,7 +52,10 @@ class PantallaConLogo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (sinLogoChico.contains(ruta)) return child;
+    // Ruta vacía: el router todavía no resolvió a dónde va (pasa en el primer
+    // cuadro al abrir la app, antes de la redirección a Bienvenida o a
+    // Inventario). Mejor no mostrar el logo un instante que mostrarlo de más.
+    if (ruta.isEmpty || sinLogoChico.contains(ruta)) return child;
 
     return Column(
       children: [
@@ -77,6 +81,52 @@ class PantallaConLogo extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Sigue la ruta del [router] y le pasa a [PantallaConLogo] la que se está
+/// mostrando, para saber cuándo poner el logo chico y cuándo no.
+///
+/// El router avisa que cambió la ruta **en medio de su propia construcción** (la
+/// redirección del arranque es inmediata), y en ese momento no se puede pedir
+/// que otro widget se vuelva a dibujar. Por eso el aviso se atiende un instante
+/// después, cuando el cuadro ya terminó.
+class LogoSegunRuta extends StatefulWidget {
+  const LogoSegunRuta({required this.router, required this.child, super.key});
+
+  final GoRouter router;
+  final Widget child;
+
+  @override
+  State<LogoSegunRuta> createState() => _LogoSegunRutaState();
+}
+
+class _LogoSegunRutaState extends State<LogoSegunRuta> {
+  @override
+  void initState() {
+    super.initState();
+    widget.router.routerDelegate.addListener(_cambioLaRuta);
+  }
+
+  @override
+  void dispose() {
+    widget.router.routerDelegate.removeListener(_cambioLaRuta);
+    super.dispose();
+  }
+
+  void _cambioLaRuta() {
+    Future.microtask(() {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final configuracion = widget.router.routerDelegate.currentConfiguration;
+    return PantallaConLogo(
+      ruta: configuracion.isEmpty ? '' : configuracion.uri.path,
+      child: widget.child,
     );
   }
 }

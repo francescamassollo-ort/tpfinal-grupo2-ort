@@ -30,12 +30,9 @@ class MainApp extends ConsumerWidget {
         // Cierra la sesión si la persona deja la app un rato sin usarla.
         child: GuardiaDeCuenta(
           // El logo va arriba de cada pantalla; se actualiza con la ruta.
-          child: ListenableBuilder(
-            listenable: appRouter.routerDelegate,
-            builder: (context, _) => PantallaConLogo(
-              ruta: appRouter.routerDelegate.currentConfiguration.uri.path,
-              child: child ?? const SizedBox(),
-            ),
+          child: LogoSegunRuta(
+            router: appRouter,
+            child: child ?? const SizedBox(),
           ),
         ),
       ),
