@@ -267,6 +267,8 @@ class AppStrings {
   static const String tpSinInsumos =
       'Este trabajo práctico no tiene insumos cargados';
   static const String tpInsumoNoEncontrado = 'Insumo no encontrado';
+  static const String tpExportarVacio =
+      'Este trabajo práctico no tiene insumos, no hay nada para exportar';
   static const String tpColumnaNombre = 'Nombre';
   static const String tpColumnaUbicacion = 'Ubicación';
   // Pantallas que el rol de la persona no puede usar.
