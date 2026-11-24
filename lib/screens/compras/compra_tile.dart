@@ -17,6 +17,9 @@ class CompraTile extends StatelessWidget {
     this.onDecrement,
     this.onIncrement,
     this.onCambiarEstado,
+    this.seleccionando = false,
+    this.seleccionado = false,
+    this.onSeleccion,
     super.key,
   });
 
@@ -27,9 +30,16 @@ class CompraTile extends StatelessWidget {
   /// Se llama con el estado elegido en el menú. Si es null, no hay menú.
   final ValueChanged<EstadoCompra>? onCambiarEstado;
 
+  /// Modo "eliminar": la fila muestra una casilla en vez del menú y el selector
+  /// de cantidad, y tocarla la marca o desmarca con [onSeleccion].
+  final bool seleccionando;
+  final bool seleccionado;
+  final VoidCallback? onSeleccion;
+
   @override
   Widget build(BuildContext context) {
     return OutlinedListCard(
+      onTap: seleccionando ? onSeleccion : null,
       // El selector ya trae su propia zona táctil, por eso el margen derecho
       // es chico: el signo más queda a 19 del borde, como en Figma.
       padding: const EdgeInsets.fromLTRB(20, 12, 6, 12),
@@ -49,6 +59,12 @@ class CompraTile extends StatelessWidget {
               ],
             ),
           ),
+          if (seleccionando)
+            Checkbox(
+              value: seleccionado,
+              onChanged: (_) => onSeleccion?.call(),
+            )
+          else ...[
           if (onCambiarEstado != null)
             PopupMenuButton<EstadoCompra>(
               tooltip: AppStrings.comprasCambiarEstado,
@@ -74,6 +90,7 @@ class CompraTile extends StatelessWidget {
             onDecrement: onDecrement,
             onIncrement: onIncrement,
           ),
+          ],
         ],
       ),
     );

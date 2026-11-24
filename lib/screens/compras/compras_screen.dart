@@ -20,20 +20,40 @@ import 'item_compra.dart';
 
 /// Lista de compras. Según el diseño no lleva la barra inferior del shell y
 /// tiene su propio botón flotante, por eso su ruta está fuera del ShellRoute.
-class ComprasScreen extends ConsumerWidget {
+class ComprasScreen extends ConsumerStatefulWidget {
   const ComprasScreen({super.key});
 
-  // Estas acciones todavía no existen: buscar y papelera quedan sin función
-  // hasta que se definan.
-  static const VoidCallback? _onBuscar = null;
-  static const VoidCallback? _onPapelera = null;
+  @override
+  ConsumerState<ComprasScreen> createState() => _ComprasScreenState();
+}
+
+class _ComprasScreenState extends ConsumerState<ComprasScreen> {
+  // Modo "eliminar": se tocó el tacho y se eligen los ítems a sacar.
+  bool _seleccionando = false;
+  final Set<String> _elegidos = {};
+
+  void _salirDeSeleccion() => setState(() {
+        _seleccionando = false;
+        _elegidos.clear();
+      });
+
+  void _alternar(String id) => setState(() {
+        if (!_elegidos.remove(id)) _elegidos.add(id);
+      });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final items = ref.watch(itemsCompraProvider);
     final acciones = ref.read(comprasAccionesProvider);
+    final todos = items.value ?? const <ItemCompra>[];
 
-    return Scaffold(
+    return PopScope(
+      // En modo eliminar, "atrás" solo cancela la selección.
+      canPop: !_seleccionando,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _salirDeSeleccion();
+      },
+      child: Scaffold(
       backgroundColor: AppColors.screenBackground,
       body: AppDecorativeBackground(
         child: SafeArea(
@@ -45,8 +65,17 @@ class ComprasScreen extends ConsumerWidget {
               ),
               _AccionesSuperiores(
                 onSugerencias: () => _agregarSugerencias(context, ref),
-                onBuscar: _onBuscar,
-                onPapelera: _onPapelera,
+                seleccionando: _seleccionando,
+                cantidadElegidos: _elegidos.length,
+                hayItems: todos.isNotEmpty,
+                onPapelera: () => setState(() => _seleccionando = true),
+                onCancelar: _salirDeSeleccion,
+                onTodos: () => setState(() {
+                  _elegidos
+                    ..clear()
+                    ..addAll(todos.map((i) => i.id));
+                }),
+                onEliminar: () => _eliminar(context, ref),
               ),
               Expanded(
                 child: items.when(
@@ -78,6 +107,9 @@ class ComprasScreen extends ConsumerWidget {
                               onIncrement: () => acciones.incrementar(item.id),
                               onCambiarEstado: (estado) =>
                                   _cambiarEstado(context, ref, item, estado),
+                              seleccionando: _seleccionando,
+                              seleccionado: _elegidos.contains(item.id),
+                              onSeleccion: () => _alternar(item.id),
                             );
                           },
                         ),
@@ -105,7 +137,46 @@ class ComprasScreen extends ConsumerWidget {
           ),
         ),
       ),
+      ),
     );
+  }
+
+  // Pide confirmar y saca de la lista los ítems elegidos.
+  Future<void> _eliminar(BuildContext context, WidgetRef ref) async {
+    final ids = _elegidos.toList();
+    if (ids.isEmpty) return;
+    final messenger = ScaffoldMessenger.of(context);
+
+    final confirmado = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text(AppStrings.comprasEliminarTitulo),
+        content: Text(AppStrings.comprasEliminarMensaje(ids.length)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text(AppStrings.cancelar),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text(AppStrings.comprasEliminarConfirmar),
+          ),
+        ],
+      ),
+    );
+    if (confirmado != true || !mounted) return;
+
+    try {
+      await ref.read(comprasAccionesProvider).eliminar(ids);
+      _salirDeSeleccion();
+      messenger.showSnackBar(
+        SnackBar(content: Text(AppStrings.comprasEliminados(ids.length))),
+      );
+    } catch (_) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text(AppStrings.comprasErrorEliminar)),
+      );
+    }
   }
 
   // Agrega a la lista los insumos con stock bajo y avisa cuántos se sumaron.
@@ -231,21 +302,68 @@ class ComprasScreen extends ConsumerWidget {
   }
 }
 
-/// Fila bajo el encabezado: enlace de sugerencias a la izquierda, y buscar y
-/// papelera a la derecha. El diseño muestra solo íconos, sin campo de búsqueda.
+/// Fila bajo el encabezado. Normal: enlace de sugerencias y el tacho, que abre
+/// el modo "eliminar". En ese modo: cuántos hay elegidos, "Todos", cancelar y el
+/// tacho que borra los elegidos.
 class _AccionesSuperiores extends StatelessWidget {
   const _AccionesSuperiores({
     required this.onSugerencias,
-    required this.onBuscar,
+    required this.seleccionando,
+    required this.cantidadElegidos,
+    required this.hayItems,
     required this.onPapelera,
+    required this.onCancelar,
+    required this.onTodos,
+    required this.onEliminar,
   });
 
   final VoidCallback? onSugerencias;
-  final VoidCallback? onBuscar;
-  final VoidCallback? onPapelera;
+  final bool seleccionando;
+  final int cantidadElegidos;
+  final bool hayItems;
+  final VoidCallback onPapelera;
+  final VoidCallback onCancelar;
+  final VoidCallback onTodos;
+  final VoidCallback onEliminar;
 
   @override
   Widget build(BuildContext context) {
+    if (seleccionando) {
+      return Padding(
+        padding: const EdgeInsets.only(left: 36, right: 12),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                AppStrings.comprasSeleccionados(cantidadElegidos),
+                style: AppTextStyles.link,
+              ),
+            ),
+            TextButton(
+              onPressed: hayItems ? onTodos : null,
+              child: const Text(AppStrings.comprasSeleccionarTodos),
+            ),
+            IconButton(
+              onPressed: onCancelar,
+              tooltip: AppStrings.comprasCancelarSeleccion,
+              icon: const Icon(Icons.close, size: 22, color: AppColors.bodyColor),
+            ),
+            IconButton(
+              onPressed: cantidadElegidos > 0 ? onEliminar : null,
+              tooltip: AppStrings.comprasEliminarSeleccionados,
+              icon: Icon(
+                Icons.delete,
+                size: 22,
+                color: cantidadElegidos > 0
+                    ? AppColors.stockDanger
+                    : AppColors.backIconColor,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Padding(
       padding: const EdgeInsets.only(left: 36, right: 24),
       child: Row(
@@ -266,13 +384,8 @@ class _AccionesSuperiores extends StatelessWidget {
             ),
           ),
           IconButton(
-            onPressed: onBuscar,
-            tooltip: AppStrings.buscar,
-            icon: const Icon(Icons.search, size: 23, color: AppColors.bodyColor),
-          ),
-          IconButton(
-            onPressed: onPapelera,
-            tooltip: AppStrings.papelera,
+            onPressed: hayItems ? onPapelera : null,
+            tooltip: AppStrings.comprasSeleccionar,
             icon: const Icon(
               Icons.delete_outline,
               size: 21,
