@@ -29,6 +29,7 @@ class _FiltroDialogState extends State<FiltroDialog> {
   late String? _categoria = widget.filtroActual.categoria;
   late InsumoTipo? _tipo = widget.filtroActual.tipo;
   late String? _ubicacion = widget.filtroActual.ubicacion;
+  late EstadoStock? _estado = widget.filtroActual.estado;
 
   @override
   Widget build(BuildContext context) {
@@ -116,6 +117,17 @@ class _FiltroDialogState extends State<FiltroDialog> {
               ],
               onChanged: (value) => setState(() => _ubicacion = value),
             ),
+            const SizedBox(height: 12),
+            DropdownButtonFormField<EstadoStock?>(
+              initialValue: _estado,
+              decoration: const InputDecoration(labelText: 'Estado del stock'),
+              items: [
+                const DropdownMenuItem(value: null, child: Text('Todos')),
+                for (final estado in EstadoStock.values)
+                  DropdownMenuItem(value: estado, child: Text(estado.etiqueta)),
+              ],
+              onChanged: (value) => setState(() => _estado = value),
+            ),
             const SizedBox(height: 24),
             ElevatedButton(
               // Cierra el diálogo y "devuelve" el filtro elegido a quien
@@ -126,6 +138,7 @@ class _FiltroDialogState extends State<FiltroDialog> {
                   categoria: _categoria,
                   tipo: _tipo,
                   ubicacion: _ubicacion,
+                  estado: _estado,
                 ),
               ),
               child: const Text('Filtrar'),

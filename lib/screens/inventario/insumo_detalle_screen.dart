@@ -272,6 +272,7 @@ class _FichaCard extends StatelessWidget {
     final List<(String, String?)> filas = esSolucion
         ? [
             ('Tipo de material', 'Solución preparada'),
+            ('Categoría', insumo.categoria),
             ('Concentración', insumo.concentracion),
             ('Fecha de elaboración', _fecha(insumo.fechaElaboracion)),
             ('Materia', insumo.materia),
@@ -281,7 +282,9 @@ class _FichaCard extends StatelessWidget {
           ]
         : [
             ('Marca', insumo.marca),
+            ('Proveedor', insumo.proveedor),
             ('Tipo de material', 'Producto comprado'),
+            ('Categoría', insumo.categoria),
             ('Cant. por envase', _cantidadPorEnvase()),
             ('Ubicación', insumo.ubicacion),
             ('Fórmula', insumo.formula),
@@ -340,11 +343,20 @@ class _FilaDato extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(child: Text(titulo)),
-          Text(
-            valor ?? '—',
-            style: const TextStyle(fontWeight: FontWeight.w600),
+          // Título y valor se reparten el ancho y hacen salto de línea si son
+          // largos ("Sustancia controlada (Sedronar)", una ubicación con varios
+          // niveles, letra grande).
+          Expanded(flex: 2, child: Text(titulo)),
+          const SizedBox(width: 16),
+          Expanded(
+            flex: 3,
+            child: Text(
+              valor ?? '—',
+              textAlign: TextAlign.right,
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
           ),
         ],
       ),
