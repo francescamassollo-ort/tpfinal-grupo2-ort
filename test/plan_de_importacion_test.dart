@@ -13,7 +13,6 @@ InsumoImportado _importado(
       nombre: nombre,
       cantidad: cantidad,
       ubicacion: ubicacion,
-      hoja: 'Hoja',
       fila: 2,
       codigoInterno: 'X1',
       formula: 'C2H6O',
