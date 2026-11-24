@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:tpfinal_grupo2/core/app_strings.dart';
 import 'package:tpfinal_grupo2/models/alerta.dart';
 import 'package:tpfinal_grupo2/providers/alerta_provider.dart';
 import 'package:tpfinal_grupo2/screens/alertas/alertas_screen.dart';
@@ -27,6 +28,15 @@ class _AccionesFalsas implements AlertasAcciones {
   Future<void> marcarNoVista(Alerta alerta) async {
     if (falla) throw Exception('sin conexión');
     desmarcadas.add(alerta.id);
+  }
+
+  var todasMarcadas = 0;
+
+  @override
+  Future<int> marcarTodasVistas() async {
+    if (falla) throw Exception('sin conexión');
+    todasMarcadas++;
+    return 2;
   }
 
   @override
@@ -76,6 +86,27 @@ double _opacidadDeLaFila(WidgetTester tester, String nombre) {
 }
 
 void main() {
+  testWidgets('"Marcar todas como vistas" marca y avisa cuántas fueron', (tester) async {
+    final acciones = _AccionesFalsas();
+    await _abrirPantalla(tester, acciones: acciones);
+
+    await tester.tap(find.text(AppStrings.alertasMarcarTodas));
+    await tester.pump();
+
+    expect(acciones.todasMarcadas, 1);
+    expect(find.text(AppStrings.alertasTodasMarcadas(2)), findsOneWidget);
+  });
+
+  testWidgets('con todas vistas no se ofrece "Marcar todas como vistas"', (tester) async {
+    await _abrirPantalla(
+      tester,
+      acciones: _AccionesFalsas(),
+      vistas: {for (final a in _alertas) a.id},
+    );
+
+    expect(find.text(AppStrings.alertasMarcarTodas), findsNothing);
+  });
+
   testWidgets('cada alerta trae su botón para marcarla como vista', (tester) async {
     await _abrirPantalla(tester, acciones: _AccionesFalsas());
 

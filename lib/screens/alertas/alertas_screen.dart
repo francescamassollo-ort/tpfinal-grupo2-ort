@@ -57,6 +57,7 @@ class _AlertasScreenState extends ConsumerState<AlertasScreen> {
     final alertas = ref.watch(alertasFiltradasProvider);
     final vistas = ref.watch(alertasVistasIdsProvider);
     final filtro = ref.watch(filtroAlertasProvider);
+    final hayAlertasSinVer = ref.watch(alertasSinVerProvider).isNotEmpty;
     // Si no hay ninguna alerta, con o sin filtro, no tiene sentido ofrecer
     // "limpiar filtros": no hay nada que el filtro esté escondiendo.
     final hayAlertas =
@@ -75,11 +76,27 @@ class _AlertasScreenState extends ConsumerState<AlertasScreen> {
                 title: AppStrings.alertasTitulo,
                 onBack: () => _volver(context),
               ),
-              Align(
-                alignment: Alignment.centerRight,
-                child: Padding(
-                  padding: const EdgeInsets.only(right: 26),
-                  child: IconButton(
+              Padding(
+                padding: const EdgeInsets.only(left: 24, right: 26),
+                child: Row(
+                  children: [
+                    // Solo si hay algo sin ver: marca todas de una vez, no solo
+                    // las que deja pasar el filtro.
+                    Expanded(
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: hayAlertasSinVer
+                            ? TextButton(
+                                onPressed: _marcarTodas,
+                                child: const Text(
+                                  AppStrings.alertasMarcarTodas,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              )
+                            : null,
+                      ),
+                    ),
+                    IconButton(
                     onPressed: _abrirFiltros,
                     tooltip: AppStrings.filtros,
                     // El punto avisa que hay un filtro puesto: sin él, una
@@ -95,6 +112,7 @@ class _AlertasScreenState extends ConsumerState<AlertasScreen> {
                       ),
                     ),
                   ),
+                  ],
                 ),
               ),
               Expanded(
@@ -150,6 +168,22 @@ class _AlertasScreenState extends ConsumerState<AlertasScreen> {
     );
     if (elegido == null || !mounted) return;
     ref.read(filtroAlertasProvider.notifier).cambiar(elegido);
+  }
+
+  // Marca como vistas todas las alertas nuevas y avisa cuántas fueron.
+  Future<void> _marcarTodas() async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final cantidad =
+          await ref.read(alertasAccionesProvider).marcarTodasVistas();
+      messenger.showSnackBar(
+        SnackBar(content: Text(AppStrings.alertasTodasMarcadas(cantidad))),
+      );
+    } catch (_) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text(AppStrings.alertasErrorMarcar)),
+      );
+    }
   }
 
   // Marca la alerta como vista o, si ya lo estaba, la vuelve a dejar como

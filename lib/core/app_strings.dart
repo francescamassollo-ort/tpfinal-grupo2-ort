@@ -279,6 +279,9 @@ class AppStrings {
   static const String alertaMarcarVista = 'Marcar como vista';
   static const String alertaMarcarNoVista = 'Marcar como no vista';
   static const String alertasErrorMarcar = 'No se pudo actualizar la alerta';
+  static const String alertasMarcarTodas = 'Marcar todas como vistas';
+  static String alertasTodasMarcadas(int n) =>
+      n == 1 ? '1 alerta marcada como vista' : '$n alertas marcadas como vistas';
   //Detalle Trabajos Practicos
     static const String tpNoEncontrado = 'No se encontró el trabajo práctico';
   static const String tpErrorDetalle = 'No se pudo cargar el trabajo práctico';

@@ -15,6 +15,9 @@ class _AccionesFalsas implements AlertasAcciones {
   Future<void> marcarNoVista(Alerta alerta) async {}
 
   @override
+  Future<int> marcarTodasVistas() async => 0;
+
+  @override
   Future<void> limpiarObsoletas() async {}
 }
 
