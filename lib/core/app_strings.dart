@@ -412,4 +412,16 @@ class AppStrings {
         UserRole.ayudante => usuariosRolAyudante,
         UserRole.docente => usuariosRolDocente,
       };
+
+  // Perfil
+  static const String perfilTitulo = 'Perfil';
+  static const String perfilNombre = 'Nombre';
+  static const String perfilEmail = 'Email';
+  static const String perfilRol = 'Rol';
+  static const String perfilGuardarNombre = 'Guardar';
+  static const String perfilNombreActualizado = 'Nombre actualizado';
+  static const String perfilErrorNombre = 'No se pudo guardar el nombre';
+  static const String perfilCerrarSesion = 'Cerrar sesión';
+  static const String perfilError = 'No se pudo cargar tu perfil';
+  static const String perfilSinNombre = 'Sin nombre';
 }
