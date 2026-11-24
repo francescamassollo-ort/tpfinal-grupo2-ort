@@ -27,7 +27,7 @@ class UsuariosScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final rol = ref.watch(roleProvider);
 
-    return ColoredBox(
+    return Material(
       color: AppColors.screenBackground,
       child: AppDecorativeBackground(
         // La barra inferior es la del shell, por eso el área segura es solo
@@ -63,11 +63,70 @@ class UsuariosScreen extends ConsumerWidget {
   }
 }
 
-class _ListaUsuarios extends ConsumerWidget {
+class _ListaUsuarios extends ConsumerStatefulWidget {
   const _ListaUsuarios();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_ListaUsuarios> createState() => _ListaUsuariosState();
+}
+
+class _ListaUsuariosState extends ConsumerState<_ListaUsuarios> {
+  // Mostrar los dados de baja en vez de los activos, para poder reactivarlos.
+  bool _verBajas = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        SwitchListTile(
+          contentPadding: const EdgeInsets.symmetric(horizontal: 32),
+          title: const Text(AppStrings.usuariosVerBajas),
+          value: _verBajas,
+          onChanged: (valor) => setState(() => _verBajas = valor),
+        ),
+        Expanded(child: _verBajas ? _bajas() : _activos()),
+      ],
+    );
+  }
+
+  // Los usuarios dados de baja, cada uno con "Reactivar".
+  Widget _bajas() {
+    final todos = ref.watch(usuariosConBajasProvider);
+
+    return todos.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, stack) => const _Mensaje(AppStrings.usuariosError),
+      data: (lista) {
+        final bajas = [for (final u in lista) if (!u.activo) u];
+        if (bajas.isEmpty) return const _Mensaje(AppStrings.usuariosSinBajas);
+
+        return ListView.separated(
+          padding: const EdgeInsets.fromLTRB(32, 8, 32, 20),
+          itemCount: bajas.length,
+          separatorBuilder: (context, index) => const Divider(height: 1),
+          itemBuilder: (context, index) {
+            final usuario = bajas[index];
+            return ListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(usuario.nombre, style: AppTextStyles.itemName),
+              subtitle: Text(usuario.email, style: AppTextStyles.itemDetail),
+              trailing: TextButton(
+                onPressed: () => _ejecutar(
+                  context,
+                  () => ref.read(usuariosAccionesProvider).reactivar(usuario),
+                  exito: AppStrings.usuariosReactivado(usuario.nombre),
+                  errorGenerico: AppStrings.usuariosErrorReactivar,
+                ),
+                child: const Text(AppStrings.usuariosReactivar),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _activos() {
     final usuarios = ref.watch(usuariosProvider);
     final miId = ref.watch(usuarioActualIdProvider);
 

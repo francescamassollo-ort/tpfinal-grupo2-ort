@@ -372,6 +372,24 @@ class AppStrings {
   // Logo de ORT (texto para lectores de pantalla).
   static const String logoOrt = 'ORT Argentina, Educando para la vida';
 
+  // Reactivar usuarios e insumos dados de baja.
+  static const String usuariosVerBajas = 'Ver los usuarios dados de baja';
+  static const String usuariosSinBajas = 'No hay usuarios dados de baja';
+  static const String usuariosReactivar = 'Reactivar';
+  static const String usuariosErrorReactivar = 'No se pudo reactivar al usuario';
+  static String usuariosReactivado(String nombre) => '$nombre fue reactivado';
+  static const String insumosBajaTitulo = 'Insumos dados de baja';
+  static const String insumosBajaVacio = 'No hay insumos dados de baja';
+  static const String insumosBajaError = 'No se pudieron cargar los insumos';
+  static const String insumosReactivar = 'Reactivar';
+  static const String insumosReactivarError = 'No se pudo reactivar el insumo';
+  static String insumosReactivado(String nombre) => '$nombre volvió al inventario';
+  static const String insumosDeBajaMenu = 'Insumos dados de baja';
+
+  // Cierre de sesión por inactividad.
+  static const String sesionCerradaPorInactividad =
+      'Cerramos tu sesión porque estuvo un rato sin uso. Volvé a ingresar.';
+
   // Cuenta dada de baja: se le cierra la sesión y no puede volver a usar la app.
   static const String cuentaDadaDeBaja =
       'Tu cuenta fue dada de baja. Hablá con un administrador.';

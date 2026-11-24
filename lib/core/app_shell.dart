@@ -112,6 +112,7 @@ List<_DrawerItem> _itemsForRole(UserRole role) {
   if (role == UserRole.administrador) {
     items.add(const _DrawerItem('Usuarios', '/usuarios'));
     items.add(const _DrawerItem('Importar desde Excel', '/importar'));
+    items.add(const _DrawerItem(AppStrings.insumosDeBajaMenu, '/bajas'));
   }
   return items;
 }
@@ -122,14 +123,14 @@ String? _rutaBotonAgregar(String location, UserRole role) {
   // El diseño de Alertas no lleva el botón flotante.
   if (location == '/alertas') return null;
 
-  // Inicio, Perfil, Usuarios y la pantalla de búsqueda y filtros no dan de alta
+  // Inicio, Perfil, Usuarios, Importar e Insumos dados de baja no dan de alta
   // nada: un "+" ahí llevaría al Alta sin que tenga que ver con lo que se está
   // viendo.
   if (location == '/home' ||
       location == '/perfil' ||
       location == '/usuarios' ||
       location == '/importar' ||
-      location == '/inventario/filtro') {
+      location == '/bajas') {
     return null;
   }
 
