@@ -25,6 +25,7 @@ class Insumo {
     this.fechaElaboracion,
     this.materia,
     this.preparadoPor,
+    this.activo = true,
   });
 
   // Obligatorios.
@@ -53,6 +54,12 @@ class Insumo {
   final DateTime? fechaElaboracion;
   final String? materia;
   final String? preparadoPor;
+
+  // Baja lógica: un insumo dado de baja (false) no se borra, porque su historial
+  // de movimientos tiene que seguir mostrando de qué insumo eran. Deja de
+  // aparecer en el inventario, las alertas, las compras y los TPs. Los insumos
+  // anteriores a este campo no lo tienen guardado y cuentan como activos.
+  final bool activo;
 
   // Regla de negocio (CLAUDE.md sección 9.8): si el stock está en o por
   // debajo del umbral, el insumo tiene que aparecer en Alertas/Compras.
@@ -90,6 +97,7 @@ class Insumo {
       fechaElaboracion: (data['fechaElaboracion'] as Timestamp?)?.toDate(),
       materia: data['materia'] as String?,
       preparadoPor: data['preparadoPor'] as String?,
+      activo: data['activo'] as bool? ?? true,
     );
   }
 
@@ -118,6 +126,7 @@ class Insumo {
           fechaElaboracion == null ? null : Timestamp.fromDate(fechaElaboracion!),
       'materia': materia,
       'preparadoPor': preparadoPor,
+      'activo': activo,
     };
   }
 }

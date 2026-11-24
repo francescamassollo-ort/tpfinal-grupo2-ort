@@ -42,7 +42,9 @@ final filtroHistorialProvider =
 // movimientos viejos.
 final historialProvider = Provider<AsyncValue<List<MovimientoItem>>>((ref) {
   final movimientos = ref.watch(movimientosStockProvider);
-  final insumos = ref.watch(insumosProvider);
+  // Con los dados de baja: un movimiento viejo tiene que seguir mostrando de
+  // qué insumo era.
+  final insumos = ref.watch(insumosConBajasProvider);
   final filtro = ref.watch(filtroHistorialProvider);
 
   return movimientos.when(

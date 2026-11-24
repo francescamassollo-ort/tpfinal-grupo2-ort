@@ -295,6 +295,20 @@ class AppStrings {
   static const String tpStockInsuficiente = 'Stock insuficiente';
   static String tpStockUnidades(int stock) => 'Stock: $stock u.';
 
+  // Editar y dar de baja un insumo.
+  static const String editarInsumoTitulo = 'Editar insumo';
+  static const String editarInsumoGuardado = 'Insumo actualizado correctamente';
+  static const String editarInsumoNoExiste = 'El insumo no existe';
+  static String editarInsumoStock(int stock) =>
+      'Stock actual: $stock. Para cambiarlo registrá un consumo o una entrada.';
+  static const String bajaInsumoTitulo = '¿Dar de baja el insumo?';
+  static const String bajaInsumoConfirmar = 'Dar de baja';
+  static String bajaInsumoMensaje(String nombre) =>
+      '$nombre va a dejar de aparecer en el inventario, las alertas y las '
+      'compras. Sus movimientos del Historial se conservan.';
+  static String bajaInsumoHecha(String nombre) => '$nombre fue dado de baja';
+  static const String bajaInsumoError = 'No se pudo dar de baja el insumo';
+
   // Cuenta dada de baja: se le cierra la sesión y no puede volver a usar la app.
   static const String cuentaDadaDeBaja =
       'Tu cuenta fue dada de baja. Hablá con un administrador.';
