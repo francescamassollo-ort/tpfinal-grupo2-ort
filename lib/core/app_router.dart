@@ -13,6 +13,7 @@ import '../screens/historial/historial_screen.dart';
 import '../screens/inventario/buscar_filtro_screen.dart';
 import '../screens/inventario/insumo_alta_screen.dart';
 import '../screens/inventario/insumo_detalle_screen.dart';
+import '../screens/inventario/insumo_editar_screen.dart';
 import '../screens/inventario/inventario_screen.dart';
 import '../screens/inventario/scanner_screen.dart';
 import '../screens/perfil/perfil_screen.dart';
@@ -94,6 +95,15 @@ final GoRouter appRouter = GoRouter(
           builder: (context, state) => const SoloConPermiso(
             permitido: Permisos.puedeDarDeAlta,
             child: InsumoAltaScreen(),
+          ),
+        ),
+        // Editar un insumo: solo el administrador (R06). Va antes de
+        // /insumo/:id por la misma razón que /insumo/alta.
+        GoRoute(
+          path: '/insumo/editar/:id',
+          builder: (context, state) => SoloConPermiso(
+            permitido: Permisos.puedeEditarOBaja,
+            child: InsumoEditarScreen(insumoId: state.pathParameters['id']!),
           ),
         ),
         GoRoute(

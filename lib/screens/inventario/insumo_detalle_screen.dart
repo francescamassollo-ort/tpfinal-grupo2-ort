@@ -3,8 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/app_colors.dart';
+import '../../core/app_strings.dart';
 import '../../core/permisos.dart';
+import '../../models/filtro_historial.dart';
 import '../../models/insumo.dart';
+import '../../providers/historial_provider.dart';
 import '../../providers/insumo_providers.dart';
 import '../../providers/role_provider.dart';
 
@@ -47,7 +50,7 @@ class InsumoDetalleScreen extends ConsumerWidget {
 
 // El contenido ya con el insumo cargado. Es un StatelessWidget aparte para
 // que el build de arriba quede corto (solo decide cargando/error/datos).
-class _DetalleContenido extends StatelessWidget {
+class _DetalleContenido extends ConsumerWidget {
   const _DetalleContenido({
     required this.insumo,
     required this.puedeEditar,
@@ -59,7 +62,7 @@ class _DetalleContenido extends StatelessWidget {
   final bool puedeConsumir;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -87,12 +90,12 @@ class _DetalleContenido extends StatelessWidget {
                 IconButton(
                   icon: const Icon(Icons.edit_outlined),
                   tooltip: 'Editar',
-                  onPressed: () => _proximamente(context),
+                  onPressed: () => context.push('/insumo/editar/${insumo.id}'),
                 ),
                 IconButton(
                   icon: const Icon(Icons.delete_outline),
                   tooltip: 'Dar de baja',
-                  onPressed: () => _proximamente(context),
+                  onPressed: () => _darDeBaja(context, ref),
                 ),
               ],
             ],
@@ -116,7 +119,9 @@ class _DetalleContenido extends StatelessWidget {
             children: [
               Expanded(
                 child: OutlinedButton(
-                  onPressed: () => context.push('/historial'),
+                  // Abre el Historial ya filtrado por este insumo (R13); al
+                  // volver se limpia el filtro para no dejarlo puesto.
+                  onPressed: () => _verHistorial(context, ref),
                   child: const Text('Historial'),
                 ),
               ),
@@ -137,11 +142,54 @@ class _DetalleContenido extends StatelessWidget {
     );
   }
 
-  // Editar y Baja todavía no están hechos: avisamos con un mensaje abajo.
-  void _proximamente(BuildContext context) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Próximamente')));
+  Future<void> _verHistorial(BuildContext context, WidgetRef ref) async {
+    final filtro = ref.read(filtroHistorialProvider.notifier);
+    filtro.cambiar(FiltroHistorial(productoId: insumo.id));
+    await context.push('/historial');
+    filtro.limpiar();
+  }
+
+  // Baja lógica con confirmación: el insumo deja de aparecer en la app, pero su
+  // historial se conserva.
+  Future<void> _darDeBaja(BuildContext context, WidgetRef ref) async {
+    final confirmado = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text(AppStrings.bajaInsumoTitulo),
+        content: Text(AppStrings.bajaInsumoMensaje(insumo.nombre)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text(AppStrings.cancelar),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text(AppStrings.bajaInsumoConfirmar),
+          ),
+        ],
+      ),
+    );
+    if (confirmado != true || !context.mounted) return;
+
+    // Se toman antes del await: después la pantalla puede ya no estar.
+    final avisos = ScaffoldMessenger.of(context);
+    final router = GoRouter.of(context);
+    try {
+      await ref.read(insumoServiceProvider).darDeBaja(insumo.id);
+    } catch (_) {
+      avisos.showSnackBar(
+        const SnackBar(content: Text(AppStrings.bajaInsumoError)),
+      );
+      return;
+    }
+    avisos.showSnackBar(
+      SnackBar(content: Text(AppStrings.bajaInsumoHecha(insumo.nombre))),
+    );
+    if (router.canPop()) {
+      router.pop();
+    } else {
+      router.go('/inventario');
+    }
   }
 }
 
