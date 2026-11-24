@@ -9,11 +9,15 @@ class AppScreenHeader extends StatelessWidget {
   const AppScreenHeader({
     required this.title,
     required this.onBack,
+    this.acciones = const [],
     super.key,
   });
 
   final String title;
   final VoidCallback onBack;
+
+  /// Botones a la derecha del título (por ejemplo, editar o dar de baja).
+  final List<Widget> acciones;
 
   // Separación entre la flecha y el título, según Figma.
   static const double _titleGap = 9;
@@ -37,6 +41,7 @@ class AppScreenHeader extends StatelessWidget {
           Expanded(
             child: Text(title, style: AppTextStyles.screenTitle),
           ),
+          ...acciones,
         ],
       ),
     );

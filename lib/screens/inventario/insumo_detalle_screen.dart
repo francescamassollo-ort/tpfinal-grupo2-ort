@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/app_colors.dart';
 import '../../core/app_strings.dart';
 import '../../core/permisos.dart';
+import '../../widgets/app_screen_header.dart';
 import '../../models/filtro_historial.dart';
 import '../../models/insumo.dart';
 import '../../providers/historial_provider.dart';
@@ -37,7 +38,7 @@ class InsumoDetalleScreen extends ConsumerWidget {
       child: insumoAsync.when(
         data: (insumo) {
           if (insumo == null) {
-            return const Center(child: Text('El insumo no existe'));
+            return const _SinInsumo(AppStrings.insumoNoExiste);
           }
           return _DetalleContenido(
             insumo: insumo,
@@ -47,9 +48,37 @@ class InsumoDetalleScreen extends ConsumerWidget {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(child: Text('Error: $error')),
+        error: (error, stack) => const _SinInsumo(AppStrings.insumoErrorCarga),
       ),
     );
+  }
+}
+
+// Cuando no hay insumo que mostrar (no existe o falló la carga): el mensaje y
+// la flecha para volver, para no dejar a la persona sin salida.
+class _SinInsumo extends StatelessWidget {
+  const _SinInsumo(this.mensaje);
+
+  final String mensaje;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        AppScreenHeader(title: '', onBack: () => _volver(context)),
+        Expanded(child: Center(child: Text(mensaje))),
+      ],
+    );
+  }
+}
+
+// Vuelve a donde se estaba; si no hay a dónde (se abrió la ruta directo),
+// va a Inventario.
+void _volver(BuildContext context) {
+  if (context.canPop()) {
+    context.pop();
+  } else {
+    context.go('/inventario');
   }
 }
 
@@ -70,44 +99,34 @@ class _DetalleContenido extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
+    return Column(
+      children: [
+        // Mismo encabezado que el resto de las pantallas: volver, nombre y (si
+        // el rol lo permite) editar y dar de baja.
+        AppScreenHeader(
+          title: insumo.nombre,
+          onBack: () => _volver(context),
+          acciones: [
+            if (puedeEditar) ...[
+              IconButton(
+                icon: const Icon(Icons.edit_outlined),
+                tooltip: 'Editar',
+                onPressed: () => context.push('/insumo/editar/${insumo.id}'),
+              ),
+              IconButton(
+                icon: const Icon(Icons.delete_outline),
+                tooltip: 'Dar de baja',
+                onPressed: () => _darDeBaja(context, ref),
+              ),
+            ],
+          ],
+        ),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+            child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Encabezado: volver, nombre y (si el rol lo permite) editar/baja.
-          Row(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.arrow_back),
-                tooltip: 'Volver',
-                // pop: saca el Detalle de la pila y vuelve a Inventario.
-                onPressed: () => context.pop(),
-              ),
-              Expanded(
-                child: Text(
-                  insumo.nombre,
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              if (puedeEditar) ...[
-                IconButton(
-                  icon: const Icon(Icons.edit_outlined),
-                  tooltip: 'Editar',
-                  onPressed: () => context.push('/insumo/editar/${insumo.id}'),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.delete_outline),
-                  tooltip: 'Dar de baja',
-                  onPressed: () => _darDeBaja(context, ref),
-                ),
-              ],
-            ],
-          ),
-          const SizedBox(height: 12),
           // Expanded + scroll: la ficha puede ser larga, y los botones de
           // abajo tienen que quedar siempre visibles.
           Expanded(
@@ -158,7 +177,10 @@ class _DetalleContenido extends ConsumerWidget {
             ),
           ],
         ],
-      ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
