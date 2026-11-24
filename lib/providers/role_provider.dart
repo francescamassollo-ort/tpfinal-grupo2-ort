@@ -47,6 +47,17 @@ final rolDeSesionProvider = StreamProvider<UserRole>((ref) async* {
   yield* ref.watch(rolDeSesionServiceProvider).rolDe(persona);
 });
 
+// Si la cuenta de la persona sigue activa (un administrador la puede dar de
+// baja), y cada vez que cambia. Sin sesión no hay nada que decir. Si no se puede
+// averiguar (por ejemplo sin conexión), la app sigue como si estuviera activa:
+// bloquear a todos por un corte de internet sería peor.
+final cuentaActivaProvider = StreamProvider<bool>((ref) async* {
+  final persona = await ref.watch(sesionProvider.future);
+  if (!ref.mounted || persona == null) return;
+
+  yield* ref.watch(rolDeSesionServiceProvider).activaDe(persona);
+});
+
 // El rol que usa la app para decidir qué se ve y qué se puede hacer.
 //
 // Mientras se averigua (o si no se puede, por ejemplo sin conexión) vale el rol

@@ -1,5 +1,6 @@
 /// Textos de la interfaz en un solo lugar. Cada pantalla agrega acá los suyos
 /// cuando se construye, para no repetirlos ni dejarlos sueltos en los widgets.
+import '../models/usuario.dart';
 class AppStrings {
   AppStrings._();
 
@@ -293,4 +294,45 @@ class AppStrings {
   static const String tpErrorGuardar = 'No se pudo guardar el trabajo práctico';
   static const String tpStockInsuficiente = 'Stock insuficiente';
   static String tpStockUnidades(int stock) => 'Stock: $stock u.';
+
+  // Cuenta dada de baja: se le cierra la sesión y no puede volver a usar la app.
+  static const String cuentaDadaDeBaja =
+      'Tu cuenta fue dada de baja. Hablá con un administrador.';
+
+  // Gestión de usuarios (solo administrador)
+  static const String usuariosTitulo = 'Usuarios';
+  static const String usuariosVacio = 'Todavía no hay usuarios cargados';
+  static const String usuariosError = 'No se pudieron cargar los usuarios';
+  static const String usuariosSinPermiso =
+      'Esta sección es solo para administradores';
+  static const String usuariosCambiarRol = 'Cambiar rol';
+  static const String usuariosEliminar = 'Dar de baja';
+  static const String usuariosTuCuenta = 'No podés modificar tu propia cuenta';
+  static const String usuariosCampoRol = 'Rol';
+  static const String usuariosGuardarRol = 'Guardar';
+  static const String usuariosEliminarTitulo = '¿Dar de baja al usuario?';
+  static const String usuariosEliminarConfirmar = 'Dar de baja';
+  static const String usuariosErrorRol = 'No se pudo cambiar el rol';
+  static const String usuariosErrorEliminar = 'No se pudo dar de baja al usuario';
+  static const String usuariosErrorPropio =
+      'No podés cambiar el rol ni eliminar tu propia cuenta';
+  static const String usuariosErrorUltimoAdmin =
+      'Tiene que quedar al menos un administrador';
+  static const String usuariosRolAdministrador = 'Administrador';
+  static const String usuariosRolAyudante = 'Ayudante';
+  static const String usuariosRolDocente = 'Docente';
+  static String usuariosRolDe(String nombre) => 'Rol de $nombre';
+  static String usuariosEliminarMensaje(String nombre) =>
+      '$nombre no va a poder usar más la app y va a dejar de aparecer en la '
+      'lista. Sus movimientos del Historial se conservan.';
+  static String usuariosRolActualizado(String nombre, UserRole rol) =>
+      'Ahora $nombre es ${usuariosRol(rol).toLowerCase()}';
+  static String usuariosEliminado(String nombre) => '$nombre fue dado de baja';
+
+  /// Nombre del rol para mostrar en pantalla.
+  static String usuariosRol(UserRole rol) => switch (rol) {
+        UserRole.administrador => usuariosRolAdministrador,
+        UserRole.ayudante => usuariosRolAyudante,
+        UserRole.docente => usuariosRolDocente,
+      };
 }
