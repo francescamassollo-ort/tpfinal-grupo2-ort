@@ -142,7 +142,7 @@ Las pruebas unitarias están en `test/` (fuera de `lib/`).
 |---|---|---|
 | Inventario | `/inventario` | ✅ Funcional (lee los insumos de Firestore, con buscador, filtros y tarjetas) |
 | Buscar y filtrar | `/inventario/filtro` | ⏳ Placeholder (hoy el filtro es un diálogo dentro de Inventario) |
-| Detalle de insumo | `/insumo/:id` | ✅ Funcional (lee el insumo de Firestore en tiempo real; Editar y Baja avisan "Próximamente"; Historial y Registrar consumo navegan a sus pantallas) |
+| Detalle de insumo | `/insumo/:id` | ✅ Funcional (lee el insumo de Firestore en tiempo real; Editar y Baja funcionan, ver "Editar y dar de baja un insumo"; Historial abre los movimientos de ese insumo y Registrar consumo navega a su pantalla) |
 | Alta de insumo | `/insumo/alta` | ✅ Funcional (formulario de alta que guarda en Firestore; "Escanear código de barras" completa los datos, ver "Escáner de código de barras"; el botón "Buscar duplicados" avisa si ya existe algo parecido, ver "Duplicados al dar de alta") |
 | Escáner | `/scanner` | ✅ Funcional, ver "Escáner de código de barras" (cámara a pantalla completa; busca el código en nuestros insumos y, si no está, en UPCitemdb y PubChem; "Sumar stock", "Usar estos datos" o "Cargar a mano") |
 | Registro de consumo | `/consumo` | ✅ Funcional, ver "Registro de consumo" (lista de insumos con cuánto retirar de cada uno y "Confirmar salida"; con `/consumo?insumo=ID` abre con ese insumo ya elegido) |
@@ -300,6 +300,19 @@ diseño). Al leer un código lo busca en capas y se queda con la primera que lo 
 - **Qué se probó y qué no:** las pruebas automáticas usan una cámara falsa y un servidor falso (así dan siempre lo mismo y no
   gastan las consultas diarias de UPCitemdb). Se comprobó una vez a mano contra las APIs reales que el formato de las
   respuestas coincide con lo que lee el servicio. Falta probar la lectura real con la cámara, que necesita un celular físico.
+
+## Editar y dar de baja un insumo
+Solo para el administrador (ver "Roles"). Desde el Detalle de un insumo:
+
+- **Editar** (lápiz) abre el mismo formulario del Alta, con los datos del insumo cargados (`/insumo/editar/:id`). **No se edita
+  el stock:** cambia solo con movimientos (consumos y entradas), para que el Historial siempre explique cada cambio; el formulario
+  lo dice. Tampoco se cambia el **tipo** (comprado o solución), porque cambiaría qué campos tiene. Los datos que el formulario no
+  muestra (origen, cantidad por envase, materia, alarma de vencimiento) se conservan tal cual.
+- **Dar de baja** (tacho) pide confirmar y es una **baja lógica**: el insumo queda con `activo: false` y deja de aparecer en el
+  inventario, las alertas, las compras, los trabajos prácticos y el buscador. **No se borra**, porque sus movimientos del
+  Historial tienen que seguir mostrando de qué insumo eran (el Historial usa `insumosConBajasProvider`). Los insumos anteriores a
+  este campo cuentan como activos. Para reactivar uno hay que poner `activo` en `true` desde la consola (todavía no hay botón).
+- **Historial** abre la pantalla de movimientos ya filtrada por ese insumo (R13) y, al volver, limpia el filtro.
 
 ## Duplicados al dar de alta
 
@@ -550,8 +563,7 @@ interpretación**: el ayudante mueve el stock, pero no cambia el catálogo. Si e
 `Permisos`. El docente puede además marcar insumos para un trabajo práctico (R17), eso se maneja en su propia pantalla.
 
 Los botones de lo que no se puede hacer se esconden, y las pantallas de Alta, Escáner y Consumo se protegen además con
-`SoloConPermiso`, que muestra "No tenés permiso para usar esta pantalla" si el rol no corresponde. **Editar y dar de baja
-todavía no están hechos** (el botón dice "Próximamente"), pero ya solo los ve el administrador.
+`SoloConPermiso`, que muestra "No tenés permiso para usar esta pantalla" si el rol no corresponde.
 
 **Cómo hacer al primer administrador** (hay que hacerlo una vez, a mano):
 1. Iniciar sesión en la app con esa cuenta, para que se cree su documento.
