@@ -6,20 +6,22 @@ import '../../core/app_colors.dart';
 import '../../core/app_strings.dart';
 import '../../core/app_text_styles.dart';
 import '../../models/importacion.dart';
+import '../../providers/archivo_provider.dart';
 import '../../providers/importacion_provider.dart';
 import '../../providers/insumo_providers.dart';
 import '../../providers/ubicacion_providers.dart';
-import '../../services/importador_de_insumos.dart';
+import '../../services/archivo_service.dart';
 import '../../services/lector_excel.dart';
 import '../../services/plan_de_importacion.dart';
+import '../../services/plantilla_de_insumos.dart';
 import '../../widgets/app_screen_header.dart';
 
 /// Importar el inventario desde un Excel (R19, carga inicial). Solo para el
 /// administrador.
 ///
-/// Tres pasos: elegir el archivo, ver qué se va a cargar (cuántos insumos, cuáles
-/// se saltan por estar repetidos, qué avisos hay) y confirmar. Nada se guarda
-/// hasta confirmar.
+/// Se descarga la **plantilla**, se completa y se elige el archivo. Antes de
+/// guardar se ve qué se va a cargar (cuántos insumos, cuáles se saltan por estar
+/// repetidos, qué filas tienen errores); nada se guarda hasta confirmar.
 class ImportarExcelScreen extends ConsumerStatefulWidget {
   const ImportarExcelScreen({super.key});
 
@@ -30,9 +32,16 @@ class ImportarExcelScreen extends ConsumerStatefulWidget {
 enum _Paso { inicio, leyendo, vistaPrevia, importando, listo }
 
 class _ImportarExcelScreenState extends ConsumerState<ImportarExcelScreen> {
+  static const String _mimeExcel =
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+  static const int _maxErrores = 40;
+
   _Paso _paso = _Paso.inicio;
   ResultadoLectura? _lectura;
   PlanDeImportacion? _plan;
+
+  /// Por qué no se pudo usar el archivo elegido (no es la plantilla, etc.).
+  String? _problema;
   int _cargados = 0;
   int _cargadosCuenta = 0;
 
@@ -58,6 +67,25 @@ class _ImportarExcelScreenState extends ConsumerState<ImportarExcelScreen> {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(texto)));
   }
 
+  Future<void> _descargarPlantilla() async {
+    final ubicaciones = ref.read(ubicacionesProvider).value ?? const [];
+    try {
+      final guardado = await ref.read(archivoServiceProvider).guardar(
+            ArchivoGenerado(
+              bytes: PlantillaDeInsumos.generar(
+                ubicaciones: [for (final u in ubicaciones) u.nombre],
+              ),
+              nombre: 'plantilla-de-insumos.xlsx',
+              mimeType: _mimeExcel,
+            ),
+          );
+      // Falso: se cerró el "Guardar como" sin elegir; no es un error.
+      if (guardado && mounted) _avisar(AppStrings.importarPlantillaGuardada);
+    } catch (_) {
+      if (mounted) _avisar(AppStrings.importarPlantillaError);
+    }
+  }
+
   Future<void> _elegirArchivo() async {
     // El plan compara contra lo que ya está cargado: hace falta tenerlo.
     final existentes = ref.read(insumosProvider).value;
@@ -70,18 +98,30 @@ class _ImportarExcelScreenState extends ConsumerState<ImportarExcelScreen> {
     final bytes = await ref.read(selectorDeExcelProvider)();
     if (bytes == null || !mounted) return;
 
-    setState(() => _paso = _Paso.leyendo);
+    setState(() {
+      _paso = _Paso.leyendo;
+      _problema = null;
+    });
     // Deja que se dibuje el "Leyendo…" antes del trabajo pesado.
     await Future<void>.delayed(const Duration(milliseconds: 50));
 
     try {
-      final lectura = ImportadorDeInsumos.leer(LectorExcel.leer(bytes));
+      final lectura = PlantillaDeInsumos.leer(LectorExcel.leer(bytes));
+      if (!mounted) return;
+
+      if (lectura.archivoInvalido) {
+        setState(() {
+          _paso = _Paso.inicio;
+          _problema = lectura.errores.first.mensaje;
+        });
+        return;
+      }
+
       final plan = PlanDeImportacion.armar(
         importados: lectura.insumos,
         existentes: existentes,
         ubicaciones: [for (final u in ubicaciones) u.nombre],
       );
-      if (!mounted) return;
       setState(() {
         _lectura = lectura;
         _plan = plan;
@@ -89,8 +129,10 @@ class _ImportarExcelScreenState extends ConsumerState<ImportarExcelScreen> {
       });
     } catch (_) {
       if (!mounted) return;
-      setState(() => _paso = _Paso.inicio);
-      _avisar(AppStrings.importarArchivoInvalido);
+      setState(() {
+        _paso = _Paso.inicio;
+        _problema = AppStrings.importarArchivoInvalido;
+      });
     }
   }
 
@@ -181,11 +223,24 @@ class _ImportarExcelScreenState extends ConsumerState<ImportarExcelScreen> {
   List<Widget> _inicio() => [
         Text(AppStrings.importarExplicacion, style: AppTextStyles.itemDetail),
         const SizedBox(height: 20),
+        OutlinedButton.icon(
+          onPressed: _descargarPlantilla,
+          icon: const Icon(Icons.download_outlined),
+          label: const Text(AppStrings.importarPlantilla),
+        ),
+        const SizedBox(height: 12),
         ElevatedButton.icon(
           onPressed: _elegirArchivo,
           icon: const Icon(Icons.upload_file),
           label: const Text(AppStrings.importarElegir),
         ),
+        if (_problema != null) ...[
+          const SizedBox(height: 16),
+          Text(
+            _problema!,
+            style: AppTextStyles.itemDetail.copyWith(color: AppColors.stockDanger),
+          ),
+        ],
       ];
 
   List<Widget> _vistaPrevia() {
@@ -204,33 +259,28 @@ class _ImportarExcelScreenState extends ConsumerState<ImportarExcelScreen> {
         ),
       if (sinStock > 0)
         _Dato(Icons.remove_shopping_cart_outlined, AppStrings.importarSinStock(sinStock)),
-      _Dato(
-        Icons.table_chart_outlined,
-        AppStrings.importarHojas(lectura.hojasLeidas.length),
-      ),
-      if (lectura.hojasIgnoradas.isNotEmpty)
+      if (lectura.errores.isNotEmpty) ...[
         _Dato(
-          Icons.warning_amber_outlined,
-          AppStrings.importarHojasIgnoradas(lectura.hojasIgnoradas.join(', ')),
+          Icons.error_outline,
+          AppStrings.importarErrores(lectura.errores.length),
+          color: AppColors.stockDanger,
         ),
-      if (lectura.avisos.isNotEmpty) ...[
-        const SizedBox(height: 8),
         ExpansionTile(
           tilePadding: EdgeInsets.zero,
-          title: Text(AppStrings.importarAvisos(lectura.avisos.length)),
-          subtitle: const Text(AppStrings.importarAvisosAyuda),
+          title: const Text(AppStrings.importarVerErrores),
+          subtitle: const Text(AppStrings.importarErroresAyuda),
           children: [
-            for (final aviso in lectura.avisos.take(_maxAvisos))
+            for (final error in lectura.errores.take(_maxErrores))
               ListTile(
                 dense: true,
                 contentPadding: EdgeInsets.zero,
-                title: Text('$aviso', style: AppTextStyles.listItemSubtitle),
+                title: Text('$error', style: AppTextStyles.listItemSubtitle),
               ),
-            if (lectura.avisos.length > _maxAvisos)
+            if (lectura.errores.length > _maxErrores)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 child: Text(
-                  AppStrings.importarAvisosMas(lectura.avisos.length - _maxAvisos),
+                  AppStrings.importarErroresMas(lectura.errores.length - _maxErrores),
                   style: AppTextStyles.listItemSubtitle,
                 ),
               ),
@@ -279,15 +329,14 @@ class _ImportarExcelScreenState extends ConsumerState<ImportarExcelScreen> {
           child: const Text(AppStrings.importarIrAlInventario),
         ),
       ];
-
-  static const int _maxAvisos = 40;
 }
 
 class _Dato extends StatelessWidget {
-  const _Dato(this.icono, this.texto);
+  const _Dato(this.icono, this.texto, {this.color = AppColors.movementBlue});
 
   final IconData icono;
   final String texto;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
@@ -296,7 +345,7 @@ class _Dato extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icono, size: 22, color: AppColors.movementBlue),
+          Icon(icono, size: 22, color: color),
           const SizedBox(width: 12),
           Expanded(child: Text(texto, style: AppTextStyles.itemName)),
         ],

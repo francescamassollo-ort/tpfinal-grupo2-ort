@@ -23,8 +23,8 @@ class PlanDeImportacion {
   /// Ubicaciones que todavía no están en la lista.
   final List<String> ubicacionesNuevas;
 
-  /// El stock mínimo con el que entra lo importado: ningún Excel lo trae, y con
-  /// 1 los que dicen "NO HAY" aparecen enseguida en las alertas.
+  /// El stock mínimo de los que no lo traen en la plantilla: con 1, los que
+  /// quedan en 0 aparecen enseguida en las alertas.
   static const int stockMinimoPorDefecto = 1;
 
   /// Arma el plan. Un insumo se considera repetido si ya hay otro activo con el
@@ -75,7 +75,10 @@ class PlanDeImportacion {
         tipo: InsumoTipo.comprado,
         stock: i.cantidad,
         ubicacion: ubicacion,
-        umbralMinimo: stockMinimoPorDefecto,
+        umbralMinimo: i.stockMinimo ?? stockMinimoPorDefecto,
+        unidad: i.unidad,
+        marca: i.marca,
+        pesoMolecular: i.pesoMolecular,
         categoria: i.categoria,
         formula: i.formula,
         codigoInterno: i.codigoInterno,

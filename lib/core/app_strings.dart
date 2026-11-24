@@ -298,22 +298,27 @@ class AppStrings {
   // Importar el inventario desde un Excel.
   static const String importarTitulo = 'Importar desde Excel';
   static const String importarExplicacion =
-      'Elegí un archivo de Excel (.xlsx) con el inventario del laboratorio. '
-      'Antes de guardar nada vas a ver cuántos insumos se van a cargar, cuáles '
-      'se saltan por estar repetidos y qué filas conviene revisar.';
-  static const String importarElegir = 'Elegir archivo Excel';
+      'Descargá la plantilla, completala con un insumo por fila y elegí el '
+      'archivo. Antes de guardar nada vas a ver cuántos insumos se van a '
+      'cargar, cuáles se saltan por estar repetidos y qué filas tienen errores.';
+  static const String importarPlantilla = 'Descargar plantilla';
+  static const String importarPlantillaGuardada = 'Plantilla guardada';
+  static const String importarPlantillaError = 'No se pudo guardar la plantilla';
+  static const String importarElegir = 'Elegir archivo completado';
   static const String importarLeyendo = 'Leyendo el archivo…';
   static const String importarCargandoDatos =
       'Todavía se están cargando los insumos. Probá de nuevo en un momento';
   static const String importarArchivoInvalido =
-      'No se pudo leer el archivo. Tiene que ser un Excel (.xlsx)';
+      'No se pudo leer el archivo. Tiene que ser un Excel (.xlsx) armado con la plantilla';
   static const String importarError =
       'No se pudo terminar la importación. Lo que ya se cargó queda guardado: '
       'elegí el archivo de nuevo y se cargará solo lo que falta';
   static const String importarConfirmarTitulo = '¿Cargar los insumos?';
   static const String importarConfirmar = 'Cargar';
   static const String importarOtroArchivo = 'Elegir otro archivo';
-  static const String importarAvisosAyuda = 'Filas que no se entendieron del todo';
+  static const String importarVerErrores = 'Ver las filas con errores';
+  static const String importarErroresAyuda =
+      'Corregilas en el Excel y subilo de nuevo: lo que ya se cargó se saltea';
   static const String importarIrAlInventario = 'Ir al inventario';
   static String importarConfirmarMensaje(int n) =>
       'Se van a cargar $n insumos con su stock inicial. Después se pueden editar o dar de baja de a uno.';
@@ -324,14 +329,10 @@ class AppStrings {
   static String importarUbicacionesNuevas(int n) =>
       n == 1 ? '1 ubicación nueva para la lista' : '$n ubicaciones nuevas para la lista';
   static String importarSinStock(int n) =>
-      n == 1 ? '1 sin stock ("NO HAY")' : '$n sin stock ("NO HAY")';
-  static String importarHojas(int n) =>
-      n == 1 ? 'Se leyó 1 hoja' : 'Se leyeron $n hojas';
-  static String importarHojasIgnoradas(String hojas) =>
-      'No se pudieron leer: $hojas';
-  static String importarAvisos(int n) =>
-      n == 1 ? '1 aviso para revisar' : '$n avisos para revisar';
-  static String importarAvisosMas(int n) => 'y $n avisos más';
+      n == 1 ? '1 sin stock (cantidad 0)' : '$n sin stock (cantidad 0)';
+  static String importarErrores(int n) =>
+      n == 1 ? '1 fila con errores: no se carga' : '$n filas con errores: no se cargan';
+  static String importarErroresMas(int n) => 'y $n errores más';
   static String importarBoton(int n) =>
       n == 1 ? 'Cargar 1 insumo' : 'Cargar $n insumos';
   static String importarProgreso(int hechos, int total) =>

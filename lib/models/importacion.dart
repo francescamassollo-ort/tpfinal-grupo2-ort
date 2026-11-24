@@ -1,6 +1,6 @@
 /// Una hoja de un Excel ya leída: su nombre y sus filas, con cada celda como
-/// texto, número, fecha o null si está vacía. Es lo que recibe el intérprete,
-/// así se prueba sin armar archivos de Excel.
+/// texto, número, fecha o null si está vacía. Es lo que recibe el lector de la
+/// plantilla, así se prueba sin armar archivos de Excel.
 class HojaPlana {
   const HojaPlana(this.nombre, this.filas);
 
@@ -8,70 +8,70 @@ class HojaPlana {
   final List<List<Object?>> filas;
 }
 
-/// Un insumo tal como se leyó de una planilla, todavía sin guardar.
+/// Un insumo tal como se leyó de la plantilla, todavía sin guardar.
 class InsumoImportado {
   const InsumoImportado({
     required this.nombre,
     required this.cantidad,
     required this.ubicacion,
-    required this.hoja,
     required this.fila,
+    this.stockMinimo,
+    this.unidad,
+    this.categoria,
     this.codigoInterno,
     this.formula,
-    this.categoria,
+    this.pesoMolecular,
+    this.marca,
     this.otrosNombres = const [],
     this.controlado = false,
   });
 
   final String nombre;
 
-  /// El stock. "NO HAY" se lee como 0.
+  /// El stock.
   final int cantidad;
 
-  /// El lugar armado con el nombre de la hoja y los títulos de estante, cajón,
-  /// armario, etc. que preceden al insumo ("404 - Armario N°1 - Soluciones").
   final String ubicacion;
 
-  /// De dónde salió, para poder avisar "hoja X, fila N".
-  final String hoja;
+  /// Número de fila en el Excel (la primera es la 1), para poder avisar "fila N".
   final int fila;
 
+  /// Si la plantilla no lo trae, se usa el que define el plan de importación.
+  final num? stockMinimo;
+  final String? unidad;
+  final String? categoria;
   final String? codigoInterno;
   final String? formula;
-  final String? categoria;
+  final double? pesoMolecular;
+  final String? marca;
   final List<String> otrosNombres;
   final bool controlado;
 }
 
-/// Algo que el intérprete no pudo entender del todo y que conviene revisar.
+/// Un problema de una fila (o de todo el archivo, con [fila] en 0).
 class AvisoImportacion {
-  const AvisoImportacion(this.hoja, this.fila, this.mensaje);
+  const AvisoImportacion(this.fila, this.mensaje);
 
-  final String hoja;
-
-  /// Número de fila en el Excel (la primera es la 1). 0 si es de toda la hoja.
+  /// Número de fila en el Excel (la primera es la 1). 0 si es de todo el archivo.
   final int fila;
   final String mensaje;
 
   @override
-  String toString() => fila == 0 ? '$hoja: $mensaje' : '$hoja, fila $fila: $mensaje';
+  String toString() => fila == 0 ? mensaje : 'Fila $fila: $mensaje';
 }
 
-/// Lo que salió de leer un Excel completo.
+/// Lo que salió de leer la plantilla.
 class ResultadoLectura {
-  const ResultadoLectura({
-    required this.insumos,
-    required this.avisos,
-    required this.hojasLeidas,
-    required this.hojasIgnoradas,
-  });
+  const ResultadoLectura({required this.insumos, required this.errores});
 
+  /// Las filas correctas, listas para cargar.
   final List<InsumoImportado> insumos;
-  final List<AvisoImportacion> avisos;
 
-  /// Hojas de las que se sacó al menos un insumo.
-  final List<String> hojasLeidas;
+  /// Las filas que no se pueden cargar y por qué. Las que tienen errores no se
+  /// cargan; el resto sí.
+  final List<AvisoImportacion> errores;
 
-  /// Hojas que no se pudieron interpretar (no tienen una columna de nombres).
-  final List<String> hojasIgnoradas;
+  /// El archivo en sí no sirve (no es la plantilla, o le falta una columna
+  /// obligatoria): no hay nada para cargar.
+  bool get archivoInvalido => insumos.isEmpty && errores.any((e) => e.fila == 0);
 }
