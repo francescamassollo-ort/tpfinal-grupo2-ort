@@ -476,6 +476,10 @@ La app usa **Firebase Authentication** con mail y contraseña (`AuthService`, en
 - **El rol de cada persona** sale de su documento en `usuarios/{uid}` (ver "Roles").
 
 ### Seguridad del acceso
+- **Nombre y apellido:** el registro lo pide (obligatorio, con alguna letra, hasta 60 caracteres) y lo guarda como nombre de la
+  cuenta de Firebase. Con ese nombre se ve a la persona en Usuarios, en el Historial y como docente de un trabajo práctico.
+  Con Google se usa el de la cuenta de Google. Las cuentas creadas antes de este campo quedan con lo que va antes de la `@` del
+  mail (un número, en los mails de alumnos) hasta que se pueda editar el nombre desde Perfil, que todavía no está hecho.
 - **Mail institucional (R14):** para **registrarse** hace falta un mail de `@comunidadort.edu.ar` o `@ort.edu.ar` (el dominio
   tiene que ser exactamente uno de esos: `ana@miort.edu.ar` o `ana@alumnos.ort.edu.ar` no valen). Los dominios están en
   `ValidacionesAuth.dominiosInstitucionales`. **Ingresar** no exige el dominio, porque hay cuentas creadas antes de esta regla.
