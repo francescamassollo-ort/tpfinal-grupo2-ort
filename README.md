@@ -141,8 +141,7 @@ Las pruebas unitarias están en `test/` (fuera de `lib/`).
 ### Inventario
 | Pantalla | Ruta | Estado |
 |---|---|---|
-| Inventario | `/inventario` | ✅ Funcional (lee los insumos de Firestore, con buscador, filtros y tarjetas) |
-| Buscar y filtrar | `/inventario/filtro` | ⏳ Placeholder (hoy el filtro es un diálogo dentro de Inventario) |
+| Inventario | `/inventario` | ✅ Funcional (lee los insumos de Firestore, con buscador, filtros y tarjetas; el buscador no mira mayúsculas ni tildes y busca en nombre, fórmula, código interno, otros nombres, categoría, marca, código de barras y ubicación; con varias palabras, todas tienen que aparecer; la lógica está en `BusquedaDeInsumos`; los filtros son un diálogo dentro de Inventario) |
 | Detalle de insumo | `/insumo/:id` | ✅ Funcional (lee el insumo de Firestore en tiempo real; Editar y Baja funcionan, ver "Editar y dar de baja un insumo"; Historial abre los movimientos de ese insumo y Registrar consumo navega a su pantalla) |
 | Alta de insumo | `/insumo/alta` | ✅ Funcional (formulario de alta que guarda en Firestore; "Escanear código de barras" completa los datos, ver "Escáner de código de barras"; el botón "Buscar duplicados" avisa si ya existe algo parecido, ver "Duplicados al dar de alta") |
 | Escáner | `/scanner` | ✅ Funcional, ver "Escáner de código de barras" (cámara a pantalla completa; busca el código en nuestros insumos y, si no está, en UPCitemdb y PubChem; "Sumar stock", "Usar estos datos" o "Cargar a mano") |

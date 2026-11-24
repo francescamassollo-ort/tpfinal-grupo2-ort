@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/insumo.dart';
+import '../services/busqueda_de_insumos.dart';
 import 'insumo_providers.dart';
 
 // Las 3 formas de ordenar la lista que ofrece el panel de filtros.
@@ -80,9 +81,8 @@ final inventarioFiltradoProvider = Provider<AsyncValue<List<Insumo>>>((ref) {
 // Un insumo queda en la lista solo si cumple TODAS las condiciones.
 // Si un filtro es null significa "todas", así que no descarta nada.
 List<Insumo> _filtrarYOrdenar(List<Insumo> todos, InventarioFilter filter) {
-  final texto = filter.searchText.toLowerCase();
   final resultado = todos
-      .where((i) => i.nombre.toLowerCase().contains(texto))
+      .where((i) => BusquedaDeInsumos.coincide(i, filter.searchText))
       .where((i) => filter.categoria == null || i.categoria == filter.categoria)
       .where((i) => filter.tipo == null || i.tipo == filter.tipo)
       .where((i) => filter.ubicacion == null || i.ubicacion == filter.ubicacion)

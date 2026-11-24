@@ -59,7 +59,7 @@ void main() {
       expect(find.byType(FloatingActionButton), findsOneWidget);
     });
 
-    for (final ruta in ['/perfil', '/usuarios', '/inventario/filtro']) {
+    for (final ruta in ['/perfil', '/usuarios']) {
       testWidgets('en $ruta no está', (tester) async {
         await _mostrar(tester, ruta);
 

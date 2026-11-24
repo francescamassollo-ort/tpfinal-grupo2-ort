@@ -106,7 +106,11 @@ class TpInsumoFila extends StatelessWidget {
             ),
             Expanded(
               flex: _flexUbicacion,
-              child: Text(insumo?.ubicacion ?? '-', style: estiloTexto),
+              // Sirve de lista de ubicaciones para preparar el TP. Si el insumo
+              // ya no existe no se inventa una: la columna queda vacía.
+              child: insumo == null
+                  ? const SizedBox.shrink()
+                  : Text(insumo!.ubicacion, style: estiloTexto),
             ),
           ],
         ),
