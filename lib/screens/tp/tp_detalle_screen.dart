@@ -13,6 +13,7 @@ import '../../providers/role_provider.dart';
 import '../../providers/trabajopractico_provider.dart';
 import '../../widgets/indicador_disponibilidad_tp.dart';
 import '../../widgets/tp_insumo_fila.dart';
+import 'tp_exportacion.dart';
 
 // ConsumerWidget: lee el TP, el rol y el stock desde providers.
 // La regla "alcanza / no alcanza" no se calcula acá: viene de TpService
@@ -227,15 +228,21 @@ class _DetalleTp extends ConsumerWidget {
                 const Center(child: Text(AppStrings.tpErrorDisponibilidad)),
           ),
         ),
-        const _BotonesFijos(),
+        _BotonesFijos(
+          onCompartir: () => exportarTp(context, ref, tp, descargar: false),
+          onDescargar: () => exportarTp(context, ref, tp, descargar: true),
+        ),
       ],
     );
   }
 }
 
-// Compartir y Descargar: fijos abajo, todavía sin funcionalidad.
+// Compartir y Descargar la lista del TP: fijos abajo.
 class _BotonesFijos extends StatelessWidget {
-  const _BotonesFijos();
+  const _BotonesFijos({required this.onCompartir, required this.onDescargar});
+
+  final VoidCallback onCompartir;
+  final VoidCallback onDescargar;
 
   @override
   Widget build(BuildContext context) {
@@ -245,8 +252,7 @@ class _BotonesFijos extends StatelessWidget {
         children: [
           Expanded(
             child: OutlinedButton(
-              // TODO: compartir la lista de insumos (R12).
-              onPressed: () {},
+              onPressed: onCompartir,
               style: OutlinedButton.styleFrom(
                 minimumSize: const Size(0, 44),
                 backgroundColor: AppColors.cardBackground,
@@ -264,8 +270,7 @@ class _BotonesFijos extends StatelessWidget {
           const SizedBox(width: 16),
           Expanded(
             child: ElevatedButton(
-              // TODO: descargar la lista de insumos (R12).
-              onPressed: () {},
+              onPressed: onDescargar,
               child: Text(
                 AppStrings.descargar,
                 style: AppTextStyles.button(Colors.white),

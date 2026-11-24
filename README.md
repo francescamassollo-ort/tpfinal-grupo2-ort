@@ -158,7 +158,7 @@ Las pruebas unitarias están en `test/` (fuera de `lib/`).
 | Pantalla | Ruta | Estado |
 |---|---|---|
 | Lista de trabajos prácticos | `/tp` | ✅ Funcional (colección `listasTP` de Firestore en tiempo real, con buscador y modo selección para dar de baja varios) |
-| Detalle de trabajo práctico | `/tp/detalle/:id` | ✅ Funcional (datos e insumos del TP con su disponibilidad en el inventario; baja del TP). Los botones Compartir y Descargar de la lista de insumos todavía no tienen acción (R12) |
+| Detalle de trabajo práctico | `/tp/detalle/:id` | ✅ Funcional (insumos requeridos con su ubicación y si alcanza el stock; editar y eliminar para admin y docente; Compartir y Descargar la lista para preparar el TP en PDF o CSV, ver "Exportar la lista de un TP") |
 | Nuevo y editar trabajo práctico | `/tp/nuevo`, `/tp/editar/:id` | ✅ Funcional (formulario con la lista de insumos; crea y actualiza en Firestore) |
 
 ### Administración
@@ -167,6 +167,15 @@ Las pruebas unitarias están en `test/` (fuera de `lib/`).
 | Usuarios | `/usuarios` | ✅ Funcional (solo administrador), ver "Gestión de usuarios" |
 | Importar desde Excel | `/importar` | ✅ Funcional (solo administrador), ver "Importar el inventario desde Excel" |
 | Perfil | `/perfil` | ⏳ Placeholder |
+
+## Exportar la lista de un TP
+En el detalle de un trabajo práctico, **Compartir** y **Descargar** arman la lista para prepararlo, con el mismo panel de formato (PDF o Excel/CSV) y los mismos avisos que la Lista de compras y el Historial.
+
+- El archivo lleva el nombre del TP, su fecha y el docente. Por cada insumo requerido: ubicación, cantidad pedida, stock disponible y cuánto falta (un guion si alcanza).
+- Va ordenado por ubicación, así sirve de recorrido por el laboratorio; el PDF además agrupa los insumos por lugar. Un insumo que ya no existe va al final, sin ubicación inventada.
+- El nombre del archivo es `tp-<nombre-del-tp>-<aaaa-mm-dd>.pdf` (o `.csv`), con la fecha del TP y sin tildes ni símbolos.
+- Si el TP no tiene insumos, avisa y no arma ningún archivo.
+- La lógica está en `lib/services/tp_exportador.dart` (pura, probada en `test/tp_exportador_test.dart`) y el flujo de la pantalla en `lib/screens/tp/tp_exportacion.dart` (probado en `test/tp_exportacion_test.dart`).
 
 ## Predicción de stock
 Estima cuándo se agota cada insumo antes de la próxima compra institucional (requerimiento A02). Se ve en la
