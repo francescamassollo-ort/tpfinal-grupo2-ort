@@ -8,12 +8,31 @@ import '../../providers/inventario_filter_provider.dart';
 import '../../widgets/insumo_card.dart';
 import 'filtro_dialog.dart';
 
-// ConsumerWidget para poder usar ref.watch() y escuchar el provider de insumos.
-class InventarioScreen extends ConsumerWidget {
+// ConsumerStatefulWidget: ref.watch() para escuchar los insumos y un estado
+// propio para el controlador del buscador.
+class InventarioScreen extends ConsumerStatefulWidget {
   const InventarioScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<InventarioScreen> createState() => _InventarioScreenState();
+}
+
+class _InventarioScreenState extends ConsumerState<InventarioScreen> {
+  // La pantalla se vuelve a crear al ir a otra y volver, pero el filtro vive
+  // en el provider: el buscador arranca con el texto que ya estaba aplicado,
+  // así lo que se ve escrito siempre coincide con lo que se está filtrando.
+  late final TextEditingController _busqueda = TextEditingController(
+    text: ref.read(inventarioFilterProvider).searchText,
+  );
+
+  @override
+  void dispose() {
+    _busqueda.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final insumosAsync = ref.watch(insumosProvider);
     // La lista ya filtrada y ordenada: la pantalla solo la dibuja.
     final filtradosAsync = ref.watch(inventarioFiltradoProvider);
@@ -30,6 +49,7 @@ class InventarioScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             TextField(
+              controller: _busqueda,
               decoration: const InputDecoration(
                 hintText: 'Buscar insumo',
                 prefixIcon: Icon(Icons.search),
@@ -49,7 +69,6 @@ class InventarioScreen extends ConsumerWidget {
                 // .value: la lista si ya cargó, o null si todavía no.
                 onPressed: () => _abrirFiltros(
                   context,
-                  ref,
                   insumosAsync.value ?? [],
                 ),
               ),
@@ -98,7 +117,6 @@ class InventarioScreen extends ConsumerWidget {
   // pasamos al Notifier. Si se cerró tocando afuera, devuelve null.
   Future<void> _abrirFiltros(
     BuildContext context,
-    WidgetRef ref,
     List<Insumo> insumos,
   ) async {
     final elegido = await showDialog<InventarioFilter>(
