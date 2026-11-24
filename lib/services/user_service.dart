@@ -45,6 +45,14 @@ class UserService {
         );
   }
 
+  /// Todos los usuarios, también los dados de baja, en tiempo real. Sirve para
+  /// poder reactivarlos.
+  Stream<List<Usuario>> watchTodos() {
+    return _ref.orderBy('nombre').snapshots().map(
+          (snap) => snap.docs.map((d) => d.data()).toList(),
+        );
+  }
+
   /// Un usuario por su id, y cada vez que cambia. Emite null si no tiene
   /// documento.
   Stream<Usuario?> watchById(String usuarioId) {
@@ -71,6 +79,11 @@ class UserService {
   /// Cambia solo el rol del usuario, sin tocar el resto de sus campos.
   Future<void> updateRol(String usuarioId, UserRole nuevoRol) {
     return _ref.doc(usuarioId).update({'rol': nuevoRol.name});
+  }
+
+  /// Deshace una baja: el usuario vuelve a poder usar la app.
+  Future<void> reactivar(String usuarioId) {
+    return _ref.doc(usuarioId).update({'activo': true});
   }
 
   /// Baja lógica: marca al usuario como inactivo y no borra el documento.

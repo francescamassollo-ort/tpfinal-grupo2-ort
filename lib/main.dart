@@ -7,6 +7,7 @@ import 'core/app_locale.dart';
 import 'core/app_router.dart';
 import 'widgets/logo_ort.dart';
 import 'core/theme.dart';
+import 'widgets/cierre_por_inactividad.dart';
 import 'widgets/guardia_de_cuenta.dart';
 import 'firebase_options.dart';
 
@@ -25,13 +26,16 @@ class MainApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return MaterialApp.router(
       // Cierra la sesión de quien fue dado de baja, en cualquier pantalla.
-      builder: (context, child) => GuardiaDeCuenta(
-        // El logo va arriba de cada pantalla; se actualiza con la ruta.
-        child: ListenableBuilder(
-          listenable: appRouter.routerDelegate,
-          builder: (context, _) => PantallaConLogo(
-            ruta: appRouter.routerDelegate.currentConfiguration.uri.path,
-            child: child ?? const SizedBox(),
+      builder: (context, child) => CierrePorInactividad(
+        // Cierra la sesión si la persona deja la app un rato sin usarla.
+        child: GuardiaDeCuenta(
+          // El logo va arriba de cada pantalla; se actualiza con la ruta.
+          child: ListenableBuilder(
+            listenable: appRouter.routerDelegate,
+            builder: (context, _) => PantallaConLogo(
+              ruta: appRouter.routerDelegate.currentConfiguration.uri.path,
+              child: child ?? const SizedBox(),
+            ),
           ),
         ),
       ),

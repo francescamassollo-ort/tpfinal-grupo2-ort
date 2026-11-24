@@ -107,6 +107,7 @@ List<_DrawerItem> _itemsForRole(UserRole role) {
   if (role == UserRole.administrador) {
     items.add(const _DrawerItem('Usuarios', '/usuarios'));
     items.add(const _DrawerItem('Importar desde Excel', '/importar'));
+    items.add(const _DrawerItem(AppStrings.insumosDeBajaMenu, '/bajas'));
   }
   return items;
 }
@@ -121,7 +122,8 @@ String? _rutaBotonAgregar(String location, UserRole role) {
   // Alta sin que tenga que ver con lo que se está viendo.
   if (location == '/perfil' ||
       location == '/usuarios' ||
-      location == '/importar') {
+      location == '/importar' ||
+      location == '/bajas') {
     return null;
   }
 

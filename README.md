@@ -74,7 +74,7 @@ Firebase ya viene configurado en el repositorio (`android/app/google-services.js
 ```
 flutter test
 ```
-Las pruebas están en `test/` y cubren la lógica que no depende de Firebase (por ahora, la lista de compras, las alertas, el historial y la predicción de stock).
+Las pruebas están en `test/` (unos setenta archivos) y cubren la lógica que no depende de Firebase y varias pantallas con servicios y cámara falsos: alertas, historial, lista de compras, predicción de stock, consumo, escáner y lectura de etiquetas, duplicados y categoría sugerida con IA, importación desde Excel, roles y permisos, inicio de sesión y trabajos prácticos.
 
 ### Problemas conocidos
 | Síntoma | Causa y solución |
@@ -109,19 +109,19 @@ Todo el código está en `lib/`.
 
 | Carpeta | Contenido |
 |---|---|
-| `core/` | Tema, colores, textos (`AppStrings`), estilos de texto, rutas (`app_router.dart`) y el `AppShell` con la barra inferior y el menú lateral |
-| `widgets/` | Componentes reutilizables: fondo decorativo, encabezado de pantalla, tarjeta con contorno, botón de acción, fila de Compartir y Descargar, selector de formato (PDF o Excel), selector de cantidad, tarjeta de insumo, y los botones y campos de las pantallas de acceso |
-| `screens/<área>/` | Pantallas de cada flujo: `auth`, `inventario`, `consumo`, `historial`, `alertas`, `compras`, `tp`, `usuarios`, `perfil` |
+| `core/` | Tema, colores, textos (`AppStrings`), estilos de texto, rutas (`app_router.dart`), la redirección según la sesión, los permisos por rol (`Permisos`), la configuración de las claves de IA y el `AppShell` con la barra inferior y el menú lateral |
+| `widgets/` | Componentes reutilizables: fondo decorativo, encabezado de pantalla, tarjeta con contorno, botón de acción, fila de Compartir y Descargar, selector de formato (PDF o Excel), selector de cantidad, tarjetas de insumo y de trabajo práctico, cámara del escáner, `SoloConPermiso`, logo de ORT, y los botones y campos de las pantallas de acceso |
+| `screens/<área>/` | Pantallas de cada flujo: `auth`, `inventario`, `consumo`, `historial`, `alertas`, `compras`, `tp`, `usuarios`, `importar`, `perfil` |
 | `providers/` | Estado de la app con Riverpod |
-| `models/` | Modelos de dominio: `Insumo`, `TrabajoPractico`, `ListaCompra`, `Alerta`, `AlertaVista`, `MovimientoStock` y los de la predicción de stock (`PrediccionStock` y `VentanaPrediccion`) |
-| `services/` | Acceso a Firestore: `InsumoService` (colección `insumos`), `TpService` (colección `listasTP`), `ListaCompraService` (colección `listaCompras`) `HistorialService` (colección `movimientosStock`, solo lectura: los movimientos los escribe `StockService`, junto con el cambio de stock) y `AlertasVistasService` (colección `alertasVistas`: qué alertas ya vio cada persona). `AlertaService` y `StockPredictionService` no usan Firestore: generan las alertas y las predicciones de stock a partir de los insumos, los movimientos y los trabajos prácticos. `ListaCompraExportador` y `HistorialExportador` arman el PDF y el CSV de la lista de compras y del historial (con lo que comparten en `ExportacionComun`) y `ArchivoService` los comparte o los guarda en el teléfono |
+| `models/` | Modelos de dominio: `Insumo`, `Ubicacion`, `TrabajoPractico`, `Usuario`, `ListaCompra`, `Alerta`, `AlertaVista`, `MovimientoStock`, los de la predicción de stock (`PrediccionStock` y `VentanaPrediccion`), los de la importación desde Excel y los del escáner y la lectura de etiquetas |
+| `services/` | Acceso a Firestore: `InsumoService` (colección `insumos`), `UbicacionService` (colección `ubicaciones`), `TpService` (colección `listasTP`), `UserService` (colección `usuarios`), `ListaCompraService` (colección `listaCompras`), `HistorialService` (colección `movimientosStock`, solo lectura: los movimientos los escribe `StockService`, junto con el cambio de stock) y `AlertasVistasService` (colección `alertasVistas`: qué alertas ya vio cada persona). `StockService` cambia el stock y escribe el movimiento. `AlertaService` y `StockPredictionService` no usan Firestore: generan las alertas y las predicciones de stock a partir de los insumos, los movimientos y los trabajos prácticos. La sesión y el rol salen de `AuthService` (`auth_logic/`) y `RolDeSesionService`. La IA y los datos externos están en `ModeloDeLenguaje` (`GeminiClient`, `GroqClient` y `ModeloConRespaldo`), `DuplicateDetectionService`, `SynonymDetectionService`, `CategorySuggestionService`, `BarcodeService` y `OcrService` (con `LectorMlKit`). La importación usa `PlantillaDeInsumos`, `PlanDeImportacion` e `ImportacionService`. `ListaCompraExportador` y `HistorialExportador` arman el PDF y el CSV de la lista de compras y del historial (con lo que comparten en `ExportacionComun`) y `ArchivoService` los comparte o los guarda en el teléfono |
 
 Las pruebas unitarias están en `test/` (fuera de `lib/`).
 
 ## Navegación
 - La app arranca en **Bienvenida** si no hay una sesión iniciada, y en **Inventario** si la hay. Ver "Inicio de sesión".
-- **Dentro del `AppShell`** (barra inferior y menú lateral, que muestra opciones según el rol): Inventario, Detalle de insumo (`/insumo/:id`), Alta de insumo, Alertas, Trabajos prácticos, Usuarios y Perfil.
-- **Fuera del `AppShell`**, a pantalla completa: Welcome, Login, Register, **Historial**, **Lista de compras**, **Registro de consumo** y **Escáner**.
+- **Dentro del `AppShell`** (barra inferior y menú lateral, que muestra opciones según el rol): Inventario, Detalle, Alta y Edición de insumo, Alertas, Trabajos prácticos (lista, detalle, nuevo y edición), Usuarios, Importar desde Excel y Perfil.
+- **Fuera del `AppShell`**, a pantalla completa: Welcome, Login, Register, Verificar mail, **Historial**, **Lista de compras**, **Registro de consumo** y **Escáner**.
 
 ### Decisiones de navegación
 - **Historial, Lista de compras, Registro de consumo y Escáner** van fuera del `AppShell` porque en el diseño no llevan la barra inferior del shell. Lista de compras tiene además su propio botón flotante circular. La flecha de volver regresa a la pantalla anterior o, si no hay, a Inventario.
@@ -136,6 +136,7 @@ Las pruebas unitarias están en `test/` (fuera de `lib/`).
 | Bienvenida | `/welcome` | ✅ Funcional (lleva a ingresar o a registrarse) |
 | Iniciar sesión | `/login` | ✅ Funcional (mail y contraseña con Firebase Authentication) |
 | Registro | `/register` | ✅ Funcional (crea la cuenta; las contraseñas se escriben ocultas) |
+| Verificar mail | `/verificar-email` | ✅ Funcional (pide confirmar el mail con el enlace que llega por correo antes de entrar), ver "Inicio de sesión" |
 
 ### Inventario
 | Pantalla | Ruta | Estado |
@@ -156,15 +157,15 @@ Las pruebas unitarias están en `test/` (fuera de `lib/`).
 ### Trabajos prácticos
 | Pantalla | Ruta | Estado |
 |---|---|---|
-| Lista de trabajos prácticos | `/tp` | ⏳ Placeholder (el modelo, el servicio y el provider de `TrabajoPractico` ya están) |
-| Detalle de trabajo práctico | `/tp/detalle` | ✅ Funcional (insumos requeridos con su ubicación y si alcanza el stock; editar y eliminar para admin y docente; Compartir y Descargar la lista para preparar el TP en PDF o CSV, ver "Exportar la lista de un TP") |
-| Nuevo trabajo práctico | `/tp/nuevo` | ⏳ Placeholder |
+| Lista de trabajos prácticos | `/tp` | ✅ Funcional (colección `listasTP` de Firestore en tiempo real, con buscador y modo selección para dar de baja varios) |
+| Detalle de trabajo práctico | `/tp/detalle/:id` | ✅ Funcional (insumos requeridos con su ubicación y si alcanza el stock; editar y eliminar para admin y docente; Compartir y Descargar la lista para preparar el TP en PDF o CSV, ver "Exportar la lista de un TP") |
+| Nuevo y editar trabajo práctico | `/tp/nuevo`, `/tp/editar/:id` | ✅ Funcional (formulario con la lista de insumos; crea y actualiza en Firestore) |
 
 ### Administración
 | Pantalla | Ruta | Estado |
 |---|---|---|
-| Usuarios | `/usuarios` | ✅ Hecha (solo administrador) |
-| Importar desde Excel | `/importar` | ✅ Hecha (solo administrador), ver "Importar el inventario desde Excel" |
+| Usuarios | `/usuarios` | ✅ Funcional (solo administrador), ver "Gestión de usuarios" |
+| Importar desde Excel | `/importar` | ✅ Funcional (solo administrador), ver "Importar el inventario desde Excel" |
 | Perfil | `/perfil` | ⏳ Placeholder |
 
 ## Exportar la lista de un TP
@@ -320,7 +321,7 @@ Solo para el administrador (ver "Roles"). Desde el Detalle de un insumo:
 - **Dar de baja** (tacho) pide confirmar y es una **baja lógica**: el insumo queda con `activo: false` y deja de aparecer en el
   inventario, las alertas, las compras, los trabajos prácticos y el buscador. **No se borra**, porque sus movimientos del
   Historial tienen que seguir mostrando de qué insumo eran (el Historial usa `insumosConBajasProvider`). Los insumos anteriores a
-  este campo cuentan como activos. Para reactivar uno hay que poner `activo` en `true` desde la consola (todavía no hay botón).
+  este campo cuentan como activos. Para reactivarlo, **Menú > Insumos dados de baja** (ver abajo).
 - **Historial** abre la pantalla de movimientos ya filtrada por ese insumo (R13) y, al volver, limpia el filtro.
 
 ## Importar el inventario desde Excel
@@ -357,6 +358,13 @@ archivo y se carga solo lo que falta. Las ubicaciones se escriben como ya están
 
 Cada insumo con stock deja su **entrada en el Historial** ("Alta de insumo"), igual que al darlo de alta a mano. Se guarda por
 tandas de hasta 200 insumos, con una barra de avance.
+
+## Reactivar lo dado de baja
+Dar de baja no borra nada (el Historial conserva quién hizo cada movimiento), así que se puede deshacer. Solo el administrador:
+- **Usuarios:** en la pantalla Usuarios, el interruptor **"Ver los usuarios dados de baja"** cambia la lista por los dados de baja,
+  cada uno con **Reactivar**. La persona vuelve a poder usar la app.
+- **Insumos:** **Menú > Insumos dados de baja** lista los insumos dados de baja, cada uno con **Reactivar**. Vuelve al inventario, las
+  alertas, las compras y los TPs, con su stock y su historial.
 
 ## Duplicados al dar de alta
 
@@ -496,14 +504,12 @@ PubChem es una base de datos publica de compuestos quimicos. La app la usa para 
 - Los nombres de los compuestos vienen en ingles.
 - **No permite buscar por codigo de barras directamente.**
 
-### Codigo de barras (pendiente de implementacion)
+### Codigo de barras (UPCitemdb)
 
-La integracion de codigo de barras no esta implementada todavia. El flujo previsto cuando se desarrolle:
-
-1. Base propia (si el insumo ya figura en el inventario local).
-2. **UPCitemdb:** endpoint de prueba `https://api.upcitemdb.com/prod/trial/lookup?upc=...` sin clave, 100 consultas por dia. Para uso real puede requerir cuenta de pago (no verificado).
-3. **PubChem** (por nombre o numero CAS si UPCitemdb devuelve un nombre quimico).
-4. Carga manual si no se encuentra en ninguna fuente.
+El escáner del Alta consulta **UPCitemdb** (endpoint de prueba `https://api.upcitemdb.com/prod/trial/lookup?upc=...`, sin clave,
+unas 100 consultas por dia) cuando el código no esta en nuestros insumos, y despues PubChem con el nombre. Si no lo conoce
+ninguna fuente, se carga a mano. El flujo completo esta en "Escáner de código de barras" (`BarcodeService`). Para uso real
+UPCitemdb puede requerir cuenta de pago (no verificado).
 
 ### Seguridad
 
@@ -572,8 +578,11 @@ obtiene con:
 La app todavía no tiene firma de publicación propia: cuando se genere, hay que cargar también su huella y bajar de nuevo
 `android/app/google-services.json`.
 
-**Pendiente:** el **cierre de sesión por inactividad**, que figuraba entre las mitigaciones del plan de riesgos, y que el
-servidor (y no solo la app) rechace las cuentas de Google que no son de ORT, con una función de bloqueo.
+**Cierre de sesión por inactividad** (mitigación del plan de riesgos del SQAP): si la persona deja la app **30 minutos sin tocar
+nada**, la sesión se cierra y se le avisa. Cuenta como actividad cualquier toque o desplazamiento; solo corre mientras hay sesión
+(`CierrePorInactividad`, en `lib/widgets/`). El tiempo está en `CierrePorInactividad.tiempoSinActividad`.
+
+**Pendiente:** que el servidor (y no solo la app) rechace las cuentas de Google que no son de ORT, con una función de bloqueo.
 - Antes de mostrarla al profesor conviene crear una cuenta de prueba: el registro escribe en Firebase de verdad.
 
 ## Roles
@@ -626,7 +635,7 @@ activos con su rol y permite **cambiar el rol** y **dar de baja**:
 - **La baja bloquea, no borra.** El documento queda con `activo: false` y la persona **ya no puede usar la app**: si estaba
   adentro se le cierra la sesión en el momento y se le avisa ("Tu cuenta fue dada de baja"), y si intenta volver a ingresar se le
   cierra de nuevo (`GuardiaDeCuenta`). No se borra nada porque el Historial guarda quién hizo cada movimiento y esos datos tienen
-  que seguir existiendo. Para volver a darle acceso hay que poner `activo` en `true` desde la consola (todavía no hay botón).
+  que seguir existiendo. Para volver a darle acceso, en la pantalla Usuarios se activa **"Ver los usuarios dados de baja"** y se toca **Reactivar** (ver "Reactivar lo dado de baja").
 - **Si no se puede saber** (sin conexión), no se bloquea a nadie: dejar sin acceso a todos por un corte de internet sería peor.
 - **El id de la persona sigue a la sesión** (`usuarioActualIdProvider`): si alguien cierra sesión y entra otra persona sin cerrar la
   app, las alertas vistas y las protecciones de arriba pasan a ser las de la nueva persona.
@@ -663,11 +672,19 @@ Parte del desarrollo (las pantallas de Historial, Lista de compras y Alertas, su
 y los componentes compartidos) se hizo con Claude (Anthropic) como asistente. Lo que propuso se revisó, se compiló y se probó en el emulador antes
 de subirlo.
 
-- **IA dentro de la app:** la app usa un modelo de lenguaje (Gemini, con Groq de respaldo) para dos cosas, siempre como
-  **sugerencia** que la persona acepta o descarta: detectar insumos duplicados con otro nombre ("Duplicados al dar de alta") y
-  sugerir la categoría de un insumo nuevo ("Categoría sugerida al dar de alta"). Solo reciben nombres y fórmulas, nunca
-  stock, ubicaciones ni datos de personas, y sin clave de IA la app sigue andando con comparación de texto y reglas. La
-  **lectura de etiquetas con la cámara** usa ML Kit, que corre en el teléfono y no manda la foto a ningún servidor.
+- **IA dentro de la app:**
+  - **Modelo de lenguaje:** Gemini es el proveedor principal y Groq el de respaldo (`modelo_de_lenguaje.dart`,
+    `modelo_con_respaldo.dart`, `gemini_client.dart` y `groq_client.dart`). Se usa para dos cosas, siempre como
+    **sugerencia** que la persona acepta o descarta: detectar insumos duplicados o sinónimos ("Duplicados al dar de alta") y
+    sugerir la categoría de un insumo nuevo ("Categoría sugerida al dar de alta"). Solo reciben nombres y fórmulas, nunca
+    stock, ubicaciones ni datos de personas, y sin clave de IA la app sigue andando con comparación de texto y reglas.
+  - **Lectura de etiquetas con la cámara:** usa ML Kit (`lector_mlkit.dart` y `ocr_service.dart`), que corre en el teléfono
+    y no manda la foto a ningún servidor.
+  - **PubChem:** base pública de compuestos químicos (no es un modelo de IA). Si la etiqueta trae un número CAS, se le pide la
+    fórmula y el peso molecular que falten. Sale a internet solo el CAS o el nombre.
+  - **Predicción de stock:** es un cálculo con el historial de movimientos y los trabajos prácticos, sin modelo de lenguaje.
+- **IA como asistente de desarrollo:** Claude (Anthropic) ayudó a escribir código, pruebas y documentación; las ideas, el
+  alcance y las decisiones de diseño las tomó el equipo.
 - **Por pasos chicos:** antes de escribir, se acordaba qué archivos cambiaban y en cuántos commits.
 - **Verificación:** después de cada paso se corría `flutter analyze` y se probaba la app en el emulador.
 - **Git lo manejamos nosotros:** ramas, commits, pushes y Pull Requests los hizo una persona del equipo.
