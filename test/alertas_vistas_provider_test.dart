@@ -38,6 +38,17 @@ class _ServicioFalso implements AlertasVistasService {
     marcadas.add((usuarioId, alertaId));
   }
 
+  final variasMarcadas = <(String, List<String>)>[];
+
+  @override
+  Future<void> marcarVarias(
+    String usuarioId,
+    Iterable<String> alertaIds, {
+    DateTime? ahora,
+  }) async {
+    variasMarcadas.add((usuarioId, alertaIds.toList()));
+  }
+
   @override
   Future<void> desmarcar(String usuarioId, String alertaId) async {
     desmarcadas.add((usuarioId, alertaId));
@@ -170,6 +181,36 @@ void main() {
           .marcarNoVista(_alerta('p1', TipoAlerta.stockBajo));
 
       expect(t.servicio.desmarcadas, [('u1', 'p1-stockBajo')]);
+    });
+  });
+
+  group('marcar todas como vistas', () {
+    test('marca de una vez las alertas que todavía no se vieron', () async {
+      final t = _armar(insumos: [
+        _insumo('p1', stock: 0),
+        _insumo('p2', stock: 0),
+      ]);
+      await _esperar();
+      t.servicio.hayVistas(['p1-sinStock']);
+      await _esperar();
+
+      final cantidad =
+          await t.container.read(alertasAccionesProvider).marcarTodasVistas();
+
+      expect(cantidad, 1);
+      expect(t.servicio.variasMarcadas.single.$1, 'u1');
+      expect(t.servicio.variasMarcadas.single.$2, ['p2-sinStock']);
+    });
+
+    test('sin alertas nuevas no escribe nada', () async {
+      final t = _armar();
+      await _esperar();
+
+      final cantidad =
+          await t.container.read(alertasAccionesProvider).marcarTodasVistas();
+
+      expect(cantidad, 0);
+      expect(t.servicio.variasMarcadas, isEmpty);
     });
   });
 

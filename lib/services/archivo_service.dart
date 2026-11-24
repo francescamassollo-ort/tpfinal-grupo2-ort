@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:file_saver/file_saver.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -31,7 +32,14 @@ class ArchivoService {
   ///
   /// No devuelve si se compartió o no: en Android el sistema no siempre lo
   /// informa, y alcanza con que el menú se haya abierto.
+  ///
+  /// En la web de escritorio el navegador no puede compartir archivos: ahí se
+  /// descarga, que es lo más parecido.
   Future<void> compartir(ArchivoGenerado archivo) async {
+    if (kIsWeb) {
+      await guardar(archivo);
+      return;
+    }
     await SharePlus.instance.share(
       ShareParams(
         files: [
@@ -56,6 +64,18 @@ class ArchivoService {
   /// escribe en una carpeta privada de la app, que la persona no ve desde
   /// Archivos ni Descargas.
   Future<bool> guardar(ArchivoGenerado archivo) async {
+    // En la web no hay "Guardar como" del sistema: el navegador descarga el
+    // archivo directo a su carpeta de Descargas.
+    if (kIsWeb) {
+      await FileSaver.instance.saveFile(
+        name: archivo.nombre,
+        bytes: archivo.bytes,
+        includeExtension: false,
+        mimeType: MimeType.custom,
+        customMimeType: archivo.mimeType,
+      );
+      return true;
+    }
     final destino = await FileSaver.instance.saveAs(
       name: archivo.nombre,
       bytes: archivo.bytes,

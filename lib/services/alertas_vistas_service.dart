@@ -53,6 +53,25 @@ class AlertasVistasService {
     return _ref.doc(idDocumento(usuarioId, alertaId)).set(marca.toMap());
   }
 
+  /// Marca de una vez todas las [alertaIds] como vistas por [usuarioId].
+  Future<void> marcarVarias(
+    String usuarioId,
+    Iterable<String> alertaIds, {
+    DateTime? ahora,
+  }) {
+    final fecha = ahora ?? DateTime.now();
+    final batch = _db.batch();
+    for (final alertaId in alertaIds) {
+      final marca = AlertaVista(
+        alertaId: alertaId,
+        usuarioId: usuarioId,
+        vistaEn: fecha,
+      );
+      batch.set(_ref.doc(idDocumento(usuarioId, alertaId)), marca.toMap());
+    }
+    return batch.commit();
+  }
+
   /// Saca la marca: la alerta vuelve a verse como nueva.
   Future<void> desmarcar(String usuarioId, String alertaId) {
     return _ref.doc(idDocumento(usuarioId, alertaId)).delete();

@@ -101,6 +101,17 @@ class AlertasAcciones {
         .marcar(_ref.read(usuarioActualIdProvider), alerta.id);
   }
 
+  /// Marca como vistas todas las alertas que todavía no se vieron. Devuelve
+  /// cuántas marcó.
+  Future<int> marcarTodasVistas() async {
+    final ids = [for (final a in _ref.read(alertasSinVerProvider)) a.id];
+    if (ids.isEmpty) return 0;
+    await _ref
+        .read(alertasVistasServiceProvider)
+        .marcarVarias(_ref.read(usuarioActualIdProvider), ids);
+    return ids.length;
+  }
+
   Future<void> marcarNoVista(Alerta alerta) {
     return _ref
         .read(alertasVistasServiceProvider)
