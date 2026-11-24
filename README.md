@@ -165,6 +165,7 @@ Las pruebas unitarias están en `test/` (fuera de `lib/`).
 | Pantalla | Ruta | Estado |
 |---|---|---|
 | Usuarios | `/usuarios` | ✅ Hecha (solo administrador) |
+| Importar desde Excel | `/importar` | ✅ Hecha (solo administrador), ver "Importar el inventario desde Excel" |
 | Perfil | `/perfil` | ⏳ Placeholder |
 
 ## Predicción de stock
@@ -313,6 +314,45 @@ Solo para el administrador (ver "Roles"). Desde el Detalle de un insumo:
   Historial tienen que seguir mostrando de qué insumo eran (el Historial usa `insumosConBajasProvider`). Los insumos anteriores a
   este campo cuentan como activos. Para reactivar uno hay que poner `activo` en `true` desde la consola (todavía no hay botón).
 - **Historial** abre la pantalla de movimientos ya filtrada por ese insumo (R13) y, al volver, limpia el filtro.
+
+## Importar el inventario desde Excel
+Solo para el administrador: **"Importar desde Excel"** en el menú lateral (R19, carga inicial). Son tres pasos y **nada se guarda
+hasta confirmar**:
+
+1. **Elegir el archivo** (.xlsx). La app lo lee en el teléfono (`LectorExcel`).
+2. **Ver qué se va a cargar:** cuántos insumos nuevos, cuáles se saltan por estar repetidos, cuántas ubicaciones nuevas, cuántos
+   sin stock, y los **avisos** de las filas que no se entendieron del todo.
+3. **Confirmar.** Se guarda por tandas (hasta 200 insumos cada una) con una barra de avance.
+
+**Qué formatos entiende** (`ImportadorDeInsumos`). Las planillas de Jana no tienen un formato único: cada hoja es de un lugar y está
+armada distinto, así que no se pide una plantilla fija sino que se reconocen las formas que aparecen:
+- **Tabla con encabezado:** una fila con "Nombre" o "Compuesto" y, alrededor, "Código", "Fórmula", "Cantidad", "Categoría" y "Otros
+  nombres posibles" (con o sin tilde). Si el encabezado se repite hacia la derecha (varios cajones lado a lado) o hacia abajo (uno
+  por estante), se leen todos los bloques.
+- **Título y "Stock":** una columna con el nombre del grupo ("Agar", "Caldos") seguida de "Stock - Armario 18". El título queda como
+  categoría.
+- **Lista simple:** una hoja sin encabezado, con el nombre en la columna A y, si hay, la cantidad en la B.
+
+**Cómo arma cada dato**
+- **Ubicación:** nombre de la hoja + los títulos de laboratorio, armario, estante y cajón que están arriba ("Laboratorio 404 - Armario
+  N°1 - Soluciones"). Una hoja que se llama solo "404" es el "Laboratorio 404".
+- **Cantidad:** el número; **"NO HAY" y "agotado" son 0**; "3 bolsas" es 3; "Etanol absoluto x5" es 5; vacía es 1 (se avisa cuántos).
+  Un texto que no se entiende ("Muchas") es 1 y "Solo en pañol" es 0, los dos con aviso.
+- **Stock mínimo:** 1 para todo lo importado. Ningún Excel lo trae y así los que quedan en 0 aparecen en las alertas.
+- **Categoría:** la de la planilla si la trae; si no, la de las reglas de nombre y fórmula (la misma de "Categoría sugerida").
+- **Sedronar:** todo lo que viene de una hoja que se llame "Sedronar" queda marcado como **sustancia controlada**.
+- **Código interno** y **otros nombres:** de sus columnas. Un código que Excel tomó por una fecha ("01-02" pasó a ser el 1 de
+  febrero) vuelve a ser "01-02".
+
+**Qué no duplica:** un insumo se salta si ya hay otro **activo** con el mismo nombre y la misma ubicación (sin mirar mayúsculas,
+tildes ni espacios), o si aparece antes en el mismo archivo. Por eso, si algo falla a mitad, se puede volver a elegir el mismo
+archivo y se carga solo lo que falta. Las ubicaciones se escriben como ya están en la lista y las que faltan se agregan.
+
+Cada insumo con stock deja su **entrada en el Historial** ("Alta de insumo"), igual que al darlo de alta a mano.
+
+**Probado con** las dos planillas de Jana: `STOCK 2026.xlsx` y `_Stock pañol.xlsx` dan **752 insumos** (482 y 270). Lo que no se
+puede leer bien son las hojas con **dos columnas de insumos lado a lado sin encabezado** (como la heladera y el armario terciario):
+se lee la columna A y las filas dudosas salen como avisos para revisar a mano.
 
 ## Duplicados al dar de alta
 
