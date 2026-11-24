@@ -8,8 +8,11 @@ import '../../core/permisos.dart';
 import '../../models/filtro_historial.dart';
 import '../../models/insumo.dart';
 import '../../providers/historial_provider.dart';
+import 'sumar_stock_dialog.dart';
 import '../../providers/insumo_providers.dart';
 import '../../providers/role_provider.dart';
+import '../../providers/stock_provider.dart';
+import '../../services/stock_logica.dart';
 
 
 // Detalle de un insumo. Recibe solo el id (viene en la ruta /insumo/:id)
@@ -27,6 +30,7 @@ class InsumoDetalleScreen extends ConsumerWidget {
     // del ayudante. El docente solo mira.
     final rol = ref.watch(roleProvider);
     final puedeEditar = Permisos.puedeEditarOBaja(rol);
+    final puedeSumar = Permisos.puedeSumarStock(rol);
     final puedeConsumir = Permisos.puedeRegistrarConsumo(rol);
 
     return SafeArea(
@@ -39,6 +43,7 @@ class InsumoDetalleScreen extends ConsumerWidget {
             insumo: insumo,
             puedeEditar: puedeEditar,
             puedeConsumir: puedeConsumir,
+            puedeSumar: puedeSumar,
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -55,11 +60,13 @@ class _DetalleContenido extends ConsumerWidget {
     required this.insumo,
     required this.puedeEditar,
     required this.puedeConsumir,
+    required this.puedeSumar,
   });
 
   final Insumo insumo;
   final bool puedeEditar;
   final bool puedeConsumir;
+  final bool puedeSumar;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -137,9 +144,44 @@ class _DetalleContenido extends ConsumerWidget {
               ],
             ],
           ),
+          // Sumar stock: llegó una compra o una donación de un insumo que ya
+          // existe. Deja una entrada de "Reposición" en el Historial.
+          if (puedeSumar) ...[
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () => _sumarStock(context, ref),
+                icon: const Icon(Icons.add),
+                label: const Text(AppStrings.detalleSumarStock),
+              ),
+            ),
+          ],
         ],
       ),
     );
+  }
+
+  Future<void> _sumarStock(BuildContext context, WidgetRef ref) async {
+    // Se toma antes de los await: después la pantalla puede ya no estar.
+    final avisos = ScaffoldMessenger.of(context);
+    final cantidad = await SumarStockDialog.mostrar(context, insumo);
+    if (cantidad == null || !context.mounted) return;
+
+    try {
+      await ref.read(stockServiceProvider).registrarEntrada(
+            insumo.id,
+            cantidad,
+            AppStrings.escanerMotivoReposicion,
+          );
+      avisos.showSnackBar(
+        SnackBar(content: Text(AppStrings.escanerStockSumado(cantidad, insumo.nombre))),
+      );
+    } on StockException catch (error) {
+      avisos.showSnackBar(SnackBar(content: Text(error.mensaje)));
+    } catch (_) {
+      avisos.showSnackBar(const SnackBar(content: Text(AppStrings.escanerErrorSumar)));
+    }
   }
 
   Future<void> _verHistorial(BuildContext context, WidgetRef ref) async {

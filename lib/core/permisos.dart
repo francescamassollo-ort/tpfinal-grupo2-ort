@@ -22,6 +22,12 @@ class Permisos {
   /// Importar el inventario desde un Excel (carga inicial).
   static bool puedeImportar(UserRole rol) => rol == UserRole.administrador;
 
+  /// Sumar stock a un insumo que ya existe (llegó una compra o una donación):
+  /// una entrada de stock. Es lo mismo que registrar un consumo: el
+  /// administrador y el ayudante modifican el stock, el docente solo mira.
+  static bool puedeSumarStock(UserRole rol) =>
+      rol == UserRole.administrador || rol == UserRole.ayudante;
+
   /// Registrar un consumo (salida de stock). El docente solo mira.
   static bool puedeRegistrarConsumo(UserRole rol) =>
       rol == UserRole.administrador || rol == UserRole.ayudante;

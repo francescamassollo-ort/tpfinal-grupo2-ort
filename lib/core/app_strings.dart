@@ -131,6 +131,7 @@ class AppStrings {
       'Datos de una base pública: revisalos antes de usarlos';
   static const String escanerEditar = 'Editar';
   static const String escanerSumarStock = 'Sumar stock';
+  static const String detalleSumarStock = 'Sumar stock';
   static const String escanerEscanearDeNuevo = 'Escanear de nuevo';
   static const String escanerUsarDatos = 'Usar estos datos';
   static const String escanerCargarAMano = 'Cargar a mano';

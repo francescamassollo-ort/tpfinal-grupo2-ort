@@ -341,6 +341,10 @@ Solo para el administrador (ver "Roles"). Desde el Detalle de un insumo:
   Historial tienen que seguir mostrando de qué insumo eran (el Historial usa `insumosConBajasProvider`). Los insumos anteriores a
   este campo cuentan como activos. Para reactivarlo, **Menú > Insumos dados de baja** (ver abajo).
 - **Historial** abre la pantalla de movimientos ya filtrada por ese insumo (R13) y, al volver, limpia el filtro.
+- **Sumar stock** (botón del Detalle, para administrador y ayudante): para cuando llega una compra o una donación de un insumo que
+  ya existe. Pide cuántas unidades y deja una **entrada de "Reposición"** en el Historial, con el nombre de quien la cargó. No hace
+  falta tener el código de barras (el escáner ofrece lo mismo, pero solo para insumos con código). Para sacar stock está "Registrar
+  consumo".
 
 ## Importar el inventario desde Excel
 Solo para el administrador: **"Importar desde Excel"** en el menú lateral (R19, carga inicial). Se trabaja con una **plantilla de
