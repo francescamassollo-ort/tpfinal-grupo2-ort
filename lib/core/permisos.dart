@@ -19,6 +19,9 @@ class Permisos {
   /// Editar los datos de un insumo o darlo de baja.
   static bool puedeEditarOBaja(UserRole rol) => rol == UserRole.administrador;
 
+  /// Importar el inventario desde un Excel (carga inicial).
+  static bool puedeImportar(UserRole rol) => rol == UserRole.administrador;
+
   /// Registrar un consumo (salida de stock). El docente solo mira.
   static bool puedeRegistrarConsumo(UserRole rol) =>
       rol == UserRole.administrador || rol == UserRole.ayudante;

@@ -295,6 +295,50 @@ class AppStrings {
   static const String tpStockInsuficiente = 'Stock insuficiente';
   static String tpStockUnidades(int stock) => 'Stock: $stock u.';
 
+  // Importar el inventario desde un Excel.
+  static const String importarTitulo = 'Importar desde Excel';
+  static const String importarExplicacion =
+      'Elegí un archivo de Excel (.xlsx) con el inventario del laboratorio. '
+      'Antes de guardar nada vas a ver cuántos insumos se van a cargar, cuáles '
+      'se saltan por estar repetidos y qué filas conviene revisar.';
+  static const String importarElegir = 'Elegir archivo Excel';
+  static const String importarLeyendo = 'Leyendo el archivo…';
+  static const String importarCargandoDatos =
+      'Todavía se están cargando los insumos. Probá de nuevo en un momento';
+  static const String importarArchivoInvalido =
+      'No se pudo leer el archivo. Tiene que ser un Excel (.xlsx)';
+  static const String importarError =
+      'No se pudo terminar la importación. Lo que ya se cargó queda guardado: '
+      'elegí el archivo de nuevo y se cargará solo lo que falta';
+  static const String importarConfirmarTitulo = '¿Cargar los insumos?';
+  static const String importarConfirmar = 'Cargar';
+  static const String importarOtroArchivo = 'Elegir otro archivo';
+  static const String importarAvisosAyuda = 'Filas que no se entendieron del todo';
+  static const String importarIrAlInventario = 'Ir al inventario';
+  static String importarConfirmarMensaje(int n) =>
+      'Se van a cargar $n insumos con su stock inicial. Después se pueden editar o dar de baja de a uno.';
+  static String importarNuevos(int n) =>
+      n == 1 ? '1 insumo nuevo para cargar' : '$n insumos nuevos para cargar';
+  static String importarRepetidos(int n) =>
+      n == 1 ? '1 ya estaba cargado y se salta' : '$n ya estaban cargados y se saltan';
+  static String importarUbicacionesNuevas(int n) =>
+      n == 1 ? '1 ubicación nueva para la lista' : '$n ubicaciones nuevas para la lista';
+  static String importarSinStock(int n) =>
+      n == 1 ? '1 sin stock ("NO HAY")' : '$n sin stock ("NO HAY")';
+  static String importarHojas(int n) =>
+      n == 1 ? 'Se leyó 1 hoja' : 'Se leyeron $n hojas';
+  static String importarHojasIgnoradas(String hojas) =>
+      'No se pudieron leer: $hojas';
+  static String importarAvisos(int n) =>
+      n == 1 ? '1 aviso para revisar' : '$n avisos para revisar';
+  static String importarAvisosMas(int n) => 'y $n avisos más';
+  static String importarBoton(int n) =>
+      n == 1 ? 'Cargar 1 insumo' : 'Cargar $n insumos';
+  static String importarProgreso(int hechos, int total) =>
+      'Cargando… $hechos de $total';
+  static String importarListo(int n) =>
+      n == 1 ? 'Se cargó 1 insumo' : 'Se cargaron $n insumos';
+
   // Lista de ubicaciones (debajo del campo Ubicación del formulario).
   static const String ubicacionExistente = 'Ubicación de la lista';
   static const String ubicacionQuisisteDecir = '¿Quisiste decir…?';

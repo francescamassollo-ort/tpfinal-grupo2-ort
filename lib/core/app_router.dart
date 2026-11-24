@@ -10,6 +10,7 @@ import '../screens/auth/welcome_screen.dart';
 import '../screens/compras/compras_screen.dart';
 import '../screens/consumo/consumo_screen.dart';
 import '../screens/historial/historial_screen.dart';
+import '../screens/importar/importar_excel_screen.dart';
 import '../screens/inventario/buscar_filtro_screen.dart';
 import '../screens/inventario/insumo_alta_screen.dart';
 import '../screens/inventario/insumo_detalle_screen.dart';
@@ -119,6 +120,14 @@ final GoRouter appRouter = GoRouter(
         GoRoute(path: '/tp/detalle/:id',builder: (context, state) => TpDetalleScreen(tpId: state.pathParameters['id']!),),
         GoRoute(path: '/tp/editar/:id', builder: (context, state) => TpEditarScreen(tpId: state.pathParameters['id']),),
         GoRoute(path: '/usuarios', builder: (context, state) => const UsuariosScreen()),
+        // Importar el inventario desde un Excel: solo el administrador (R19).
+        GoRoute(
+          path: '/importar',
+          builder: (context, state) => const SoloConPermiso(
+            permitido: Permisos.puedeImportar,
+            child: ImportarExcelScreen(),
+          ),
+        ),
         GoRoute(path: '/perfil', builder: (context, state) => const PerfilScreen()),
       ],
     ),
