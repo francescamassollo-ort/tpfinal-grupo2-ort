@@ -664,20 +664,51 @@ el rol, o saltarse el bloqueo de una cuenta dada de baja. Las reglas por rol son
 rol es una barrera de verdad.
 
 ## Reglas de Firestore
-Las reglas de seguridad de la base estan en [`firestore.rules`](firestore.rules). **Guardar el archivo no las aplica:** hay que
+Las reglas de seguridad de la base están en [`firestore.rules`](firestore.rules). **Guardar el archivo no las aplica:** hay que
 publicarlas en la consola de Firebase (Firestore Database > Reglas) o con
 `firebase deploy --only firestore:rules --project proyecto-final-ort-d54c1` (`firebase.json` ya apunta al archivo).
 
-- **Hoy:** `allow read, write: if request.time < timestamp.date(2027, 1, 31)`. Es el "modo de prueba" de Firebase: abierto a
-  cualquiera hasta esa fecha.
-- **Se vencen.** El modo de prueba original (21/10/2026) duraba 30 dias. Cuando vencio, **toda la app dejo de leer y escribir a
-  la vez** (Inventario quedaba cargando para siempre y el error era `permission-denied`), sin importar la rama. Se renovo el
-  23/11/2026 hasta el 31/01/2027. **Hay que renovarlas o cambiarlas antes de esa fecha.**
-- **Si algo "no carga" de golpe en todas las pantallas,** mirar primero esta fecha antes de buscar un error en el codigo.
-- **Proximo paso:** cuando el login este conectado, pedir sesion iniciada (`request.auth != null`); mas adelante, reglas por
-  rol leyendo `usuarios/{uid}` (para eso el registro tiene que crear ese documento).
-- Las colecciones que usa la app son `insumos`, `movimientosStock`, `listaCompras`, `listasTP`, `usuarios` y `alertasVistas`;
-  las que todavia no existen en la consola se crean solas la primera vez que se escribe en ellas.
+**Qué hacen.** Hacen cumplir en la base lo que la app ya muestra según el rol, así alguien que hable directo con Firebase no se
+las salta (issue #46). Todo exige **sesión con el mail verificado**; una cuenta **dada de baja** no puede nada.
+
+| Colección | Leer | Escribir |
+|---|---|---|
+| `insumos` | todos los roles | **administrador**: alta, edición, baja y reactivación. **Ayudante**: solo cambiar el `stock`. Nadie borra (la baja es lógica). Se rechazan stock negativo o decimal, y nombre o ubicación vacíos |
+| `movimientosStock` | todos los roles | administrador y ayudante **crean**, firmados con su propio id; nunca se editan ni se borran |
+| `listaCompras` | administrador y ayudante | administrador y ayudante (el docente no tiene acceso) |
+| `listasTP` | todos los roles | administrador y docente; nadie borra (la baja es lógica) |
+| `ubicaciones` | todos los roles | solo el administrador crea; nadie edita ni borra |
+| `usuarios` | cada persona el suyo; el administrador todos | **crear**: solo el propio, siempre como `docente`, activo y sin Sedronar (nadie se da un rol más alto). **Actualizar**: el administrador cambia roles y da de baja o reactiva; cada persona solo su `nombre`. Nadie borra |
+| `alertasVistas` | cada persona las suyas | cada persona crea, cambia y borra solo las suyas |
+
+Cualquier otra colección está prohibida.
+
+**Probarlas.** Las reglas tienen pruebas automáticas con el emulador de Firebase, una por cada permiso y por cada cosa que tiene que
+estar prohibida (40 pruebas: cada rol, una cuenta nueva, una dada de baja, un consumo, una importación...):
+
+```powershell
+cd firestore_tests
+npm install
+npm test
+```
+
+Hace falta Node y Java 21 en el PATH; el emulador se baja solo la primera vez. **Probar siempre antes de publicar**: una regla
+mal escrita deja a toda la app sin leer ni escribir.
+
+**Publicarlas por primera vez.** Reemplazan a las reglas abiertas de prueba, que vencen el **31/01/2027**. Antes de publicar:
+1. **Todo el equipo tiene que haber iniciado sesión al menos una vez con una versión reciente de la app**, para que exista su
+   documento en `usuarios` (el administrador necesita tener `rol: "administrador"` ahí). Sin documento, una cuenta puede leer pero
+   no escribir.
+2. Verificar en la consola que cada cuenta del equipo tenga el mail **verificado**.
+3. Después de publicar, entrar a la app con una cuenta de cada rol y recorrer lo básico (inventario, un consumo, un TP, Usuarios).
+   Si algo falla, volver a publicar las reglas anteriores desde el historial de la consola (Firestore > Reglas > Historial).
+
+**Dominio institucional.** `exigeDominioInstitucional()` en `firestore.rules` está en `false` para no dejar afuera, de golpe, a
+cuentas de prueba que no sean de ORT. En `true`, solo entran cuentas de `@comunidadort.edu.ar` o `@ort.edu.ar` aunque alguien se
+salte la app (cierra el pendiente de Google). Revisar en Authentication > Usuarios que todas lo sean y recién ahí ponerlo en `true`.
+
+**Si algo "no carga" de golpe en todas las pantallas** y aparece `permission-denied`, mirar primero estas reglas (o, si se volvió
+al modo de prueba, su fecha de vencimiento) antes de buscar un error en el código.
 
 ## Flujo de trabajo
 - Ramas: `main` (entregable), `dev` (integración) y `feat/<nombre>` por cada funcionalidad.
