@@ -28,6 +28,17 @@ class Permisos {
   static bool puedeSumarStock(UserRole rol) =>
       rol == UserRole.administrador || rol == UserRole.ayudante;
 
+  /// Ver y modificar la gestión de usuarios (roles y bajas de cuentas).
+  static bool puedeGestionarUsuarios(UserRole rol) => rol == UserRole.administrador;
+
+  /// Usar la lista de compras: el docente no la ve.
+  static bool puedeVerCompras(UserRole rol) => rol != UserRole.docente;
+
+  /// Crear, editar y eliminar trabajos prácticos: los arma el docente y el
+  /// administrador; el ayudante solo los ve.
+  static bool puedeEditarTps(UserRole rol) =>
+      rol == UserRole.administrador || rol == UserRole.docente;
+
   /// Registrar un consumo (salida de stock). El docente solo mira.
   static bool puedeRegistrarConsumo(UserRole rol) =>
       rol == UserRole.administrador || rol == UserRole.ayudante;

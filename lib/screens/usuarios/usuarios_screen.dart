@@ -6,7 +6,6 @@ import '../../core/app_colors.dart';
 import '../../core/app_strings.dart';
 import '../../core/app_text_styles.dart';
 import '../../models/usuario.dart';
-import '../../providers/role_provider.dart';
 import '../../providers/usuario_provider.dart';
 import '../../providers/usuarios_provider.dart';
 import '../../widgets/app_decorative_background.dart';
@@ -25,8 +24,6 @@ class UsuariosScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final rol = ref.watch(roleProvider);
-
     return Material(
       color: AppColors.screenBackground,
       child: AppDecorativeBackground(
@@ -40,11 +37,7 @@ class UsuariosScreen extends ConsumerWidget {
                 title: AppStrings.usuariosTitulo,
                 onBack: () => _volver(context),
               ),
-              Expanded(
-                child: rol == UserRole.administrador
-                    ? const _ListaUsuarios()
-                    : const _Mensaje(AppStrings.usuariosSinPermiso),
-              ),
+              const Expanded(child: _ListaUsuarios()),
             ],
           ),
         ),

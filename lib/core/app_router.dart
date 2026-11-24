@@ -59,7 +59,13 @@ final GoRouter appRouter = GoRouter(
 
     // Lista de compras también va sin barra inferior y con su propio botón
     // flotante, como en el diseño.
-    GoRoute(path: '/compras', builder: (context, state) => const ComprasScreen()),
+    GoRoute(
+      path: '/compras',
+      builder: (context, state) => const SoloConPermiso(
+        permitido: Permisos.puedeVerCompras,
+        child: ComprasScreen(),
+      ),
+    ),
 
     // El escáner de código de barras es la cámara a pantalla completa, sin barra
     // inferior ni botón flotante, como en el diseño.
@@ -119,10 +125,28 @@ final GoRouter appRouter = GoRouter(
         GoRoute(path: '/tp', builder: (context, state) => const TpListaScreen()),
         //GoRoute(path: '/tp/detalle', builder: (context, state) => const TpDetalleScreen()),
         //GoRoute(path: '/tp/nuevo', builder: (context, state) => const TpEditarScreen()),
-        GoRoute(path: '/tp/nuevo', builder: (context, state) => const TpEditarScreen()),
+        GoRoute(
+          path: '/tp/nuevo',
+          builder: (context, state) => const SoloConPermiso(
+            permitido: Permisos.puedeEditarTps,
+            child: TpEditarScreen(),
+          ),
+        ),
         GoRoute(path: '/tp/detalle/:id',builder: (context, state) => TpDetalleScreen(tpId: state.pathParameters['id']!),),
-        GoRoute(path: '/tp/editar/:id', builder: (context, state) => TpEditarScreen(tpId: state.pathParameters['id']),),
-        GoRoute(path: '/usuarios', builder: (context, state) => const UsuariosScreen()),
+        GoRoute(
+          path: '/tp/editar/:id',
+          builder: (context, state) => SoloConPermiso(
+            permitido: Permisos.puedeEditarTps,
+            child: TpEditarScreen(tpId: state.pathParameters['id']),
+          ),
+        ),
+        GoRoute(
+          path: '/usuarios',
+          builder: (context, state) => const SoloConPermiso(
+            permitido: Permisos.puedeGestionarUsuarios,
+            child: UsuariosScreen(),
+          ),
+        ),
         // Insumos dados de baja, para reactivarlos: solo el administrador.
         GoRoute(
           path: '/bajas',

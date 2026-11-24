@@ -5,12 +5,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tpfinal_grupo2/core/app_strings.dart';
+import 'package:tpfinal_grupo2/core/permisos.dart';
 import 'package:tpfinal_grupo2/models/usuario.dart';
 import 'package:tpfinal_grupo2/providers/role_provider.dart';
 import 'package:tpfinal_grupo2/providers/usuario_provider.dart';
 import 'package:tpfinal_grupo2/providers/usuarios_provider.dart';
 import 'package:tpfinal_grupo2/screens/usuarios/usuarios_screen.dart';
 import 'package:tpfinal_grupo2/services/user_service.dart';
+import 'package:tpfinal_grupo2/widgets/solo_con_permiso.dart';
 
 Usuario _usuario(String id, String nombre, UserRole rol) =>
     Usuario(id: id, nombre: nombre, email: '$id@comunidadort.edu.ar', rol: rol);
@@ -189,7 +191,14 @@ void main() {
             ..._overrides(fake, usuarios ?? Stream.value(lista ?? [_yo, _ana, _beto])),
             rolDeSesionProvider.overrideWith((ref) => Stream.value(rol)),
           ],
-          child: const MaterialApp(home: Scaffold(body: UsuariosScreen())),
+          child: const MaterialApp(
+            home: Scaffold(
+              body: SoloConPermiso(
+                permitido: Permisos.puedeGestionarUsuarios,
+                child: UsuariosScreen(),
+              ),
+            ),
+          ),
         ),
       );
       await tester.pumpAndSettle();
@@ -214,7 +223,7 @@ void main() {
     testWidgets('quien no es administrador ve que no tiene permiso', (tester) async {
       await abrir(tester, rol: UserRole.ayudante);
 
-      expect(find.text(AppStrings.usuariosSinPermiso), findsOneWidget);
+      expect(find.text(AppStrings.sinPermiso), findsOneWidget);
       expect(find.text('Ana'), findsNothing);
     });
 
