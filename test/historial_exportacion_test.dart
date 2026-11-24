@@ -83,7 +83,7 @@ Future<void> _abrirPantalla(
         movimientosStockProvider.overrideWith(
           (ref) => movimientos ?? Stream.value(_movimientos),
         ),
-        insumosProvider.overrideWith(
+        insumosConBajasProvider.overrideWith(
           (ref) => Stream.value(
             insumos ?? [_insumo('p1', 'Etanol'), _insumo('p2', 'Pipetas')],
           ),
@@ -268,7 +268,7 @@ void main() {
       ProviderScope(
         overrides: [
           movimientosStockProvider.overrideWith((ref) => sinTerminar.stream),
-          insumosProvider.overrideWith((ref) => Stream.value(const [])),
+          insumosConBajasProvider.overrideWith((ref) => Stream.value(const [])),
           archivoServiceProvider.overrideWithValue(archivo),
         ],
         child: const MaterialApp(home: HistorialScreen()),

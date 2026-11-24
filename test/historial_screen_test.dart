@@ -55,6 +55,10 @@ Future<void> _abrirPantalla(
           (ref) =>
               Stream.value([_insumo('p1', 'Etanol'), _insumo('p2', 'Pipetas')]),
         ),
+        insumosConBajasProvider.overrideWith(
+          (ref) =>
+              Stream.value([_insumo('p1', 'Etanol'), _insumo('p2', 'Pipetas')]),
+        ),
       ],
       child: const MaterialApp(home: HistorialScreen()),
     ),

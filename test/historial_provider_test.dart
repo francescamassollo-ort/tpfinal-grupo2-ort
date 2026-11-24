@@ -48,7 +48,7 @@ Future<ProviderContainer> _contenedor() async {
           ),
         ]),
       ),
-      insumosProvider.overrideWith(
+      insumosConBajasProvider.overrideWith(
         (ref) => Stream.value([_insumo('p1', 'Etanol'), _insumo('p2', 'Pipetas')]),
       ),
     ],
@@ -56,13 +56,13 @@ Future<ProviderContainer> _contenedor() async {
   addTearDown(container.dispose);
   // Como la pantalla real, el test tiene que escuchar los providers: en
   // Riverpod 3 un stream que nadie escucha queda pausado y nunca entrega.
-  for (final provider in [movimientosStockProvider, insumosProvider]) {
+  for (final provider in [movimientosStockProvider, insumosConBajasProvider]) {
     container.listen(provider, (previous, next) {});
   }
   container.listen(historialProvider, (previous, next) {});
   // Espera a que los dos streams entreguen su primer valor.
   await container.read(movimientosStockProvider.future);
-  await container.read(insumosProvider.future);
+  await container.read(insumosConBajasProvider.future);
   return container;
 }
 

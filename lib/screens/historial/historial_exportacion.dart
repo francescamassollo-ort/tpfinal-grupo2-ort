@@ -25,7 +25,7 @@ Future<void> exportarHistorial(
 }) async {
   final messenger = ScaffoldMessenger.of(context);
   final movimientos = ref.read(movimientosStockProvider).value;
-  final insumos = ref.read(insumosProvider).value;
+  final insumos = ref.read(insumosConBajasProvider).value;
   if (movimientos == null || insumos == null) return;
 
   final filtro = ref.read(filtroHistorialProvider);

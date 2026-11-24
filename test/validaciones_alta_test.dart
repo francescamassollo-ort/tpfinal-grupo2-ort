@@ -7,6 +7,27 @@ import 'package:tpfinal_grupo2/screens/inventario/insumo_alta_screen.dart';
 import 'package:tpfinal_grupo2/screens/inventario/validaciones_alta.dart';
 
 void main() {
+  group('otros nombres', () {
+    test('separa por coma o punto y coma y limpia los espacios', () {
+      expect(
+        ValidacionesAlta.otrosNombres(' Fenilmetanol ,Alcohol bencílico; Bencenometanol '),
+        ['Fenilmetanol', 'Alcohol bencílico', 'Bencenometanol'],
+      );
+    });
+
+    test('saca los vacíos y los repetidos (sin distinguir mayúsculas)', () {
+      expect(
+        ValidacionesAlta.otrosNombres('Etanol,, etanol ,ETANOL, '),
+        ['Etanol'],
+      );
+    });
+
+    test('sin texto no hay otros nombres', () {
+      expect(ValidacionesAlta.otrosNombres(null), isEmpty);
+      expect(ValidacionesAlta.otrosNombres('  '), isEmpty);
+    });
+  });
+
   group('números escritos a mano', () {
     test('la coma y el punto son lo mismo', () {
       expect(ValidacionesAlta.numero('0,5'), 0.5);

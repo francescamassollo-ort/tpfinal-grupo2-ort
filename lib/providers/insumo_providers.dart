@@ -9,8 +9,18 @@ import '../services/insumo_service.dart';
 // Cualquier pantalla que haga ref.watch(insumosProvider) se redibuja
 // sola cada vez que cambia algo en Firestore, sin que nadie se lo pida.
 final insumosProvider = StreamProvider<List<Insumo>>((ref) {
-  final service = InsumoService();
-  return service.watchInsumos();
+  return ref.watch(insumoServiceProvider).watchInsumos();
+});
+
+// El servicio de insumos. Se pide por acá para poder reemplazarlo en las
+// pruebas (el de verdad habla con Firestore apenas se crea).
+final insumoServiceProvider = Provider<InsumoService>((ref) => InsumoService());
+
+// Igual que insumosProvider pero **con los insumos dados de baja**. Solo lo usa
+// el Historial para mostrar el nombre de los movimientos viejos; todo lo demás
+// trabaja con los activos.
+final insumosConBajasProvider = StreamProvider<List<Insumo>>((ref) {
+  return ref.watch(insumoServiceProvider).watchInsumos(incluirBajas: true);
 });
 
 // Un insumo puntual, buscado por id dentro de la lista en tiempo real.

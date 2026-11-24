@@ -36,6 +36,12 @@ void main() {
       }
     });
 
+    test('importar desde Excel es solo del administrador', () {
+      for (final rol in UserRole.values) {
+        expect(Permisos.puedeImportar(rol), rol == UserRole.administrador, reason: '$rol');
+      }
+    });
+
     test('registrar consumo es del administrador y del ayudante, no del docente', () {
       expect(Permisos.puedeRegistrarConsumo(UserRole.administrador), isTrue);
       expect(Permisos.puedeRegistrarConsumo(UserRole.ayudante), isTrue);

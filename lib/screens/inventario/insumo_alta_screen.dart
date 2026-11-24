@@ -3,11 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/app_strings.dart';
+import '../../core/formatters.dart';
 import '../../models/datos_escaneados.dart';
 import '../../models/insumo.dart';
 import '../../providers/insumo_providers.dart';
 import '../../providers/ocr_provider.dart';
 import '../../providers/sinonimos_provider.dart';
+import '../../providers/ubicacion_providers.dart';
+import '../../services/ubicaciones_logica.dart';
 import '../../services/duplicate_detection_service.dart';
 import '../../services/ocr_service.dart';
 import '../../services/stock_service.dart';
@@ -15,10 +18,20 @@ import '../../services/synonym_detection_service.dart';
 import 'duplicados_dialog.dart';
 import 'sugerencia_de_categoria.dart';
 import 'sugerencias_nombre.dart';
+import 'sugerencias_ubicacion.dart';
 import 'validaciones_alta.dart';
 
+/// Formulario de insumo: sirve para dar de alta uno nuevo y, con [insumo], para
+/// editar uno existente (R06).
+///
+/// En la edición no se toca el stock, porque el stock cambia solo con
+/// movimientos (consumos y entradas) para que el Historial lo explique; el
+/// tipo tampoco, porque cambiaría qué campos tiene el insumo.
 class InsumoAltaScreen extends ConsumerStatefulWidget {
-  const InsumoAltaScreen({super.key});
+  const InsumoAltaScreen({this.insumo, super.key});
+
+  /// El insumo que se edita, o null para dar de alta uno nuevo.
+  final Insumo? insumo;
 
   @override
   ConsumerState<InsumoAltaScreen> createState() => _InsumoAltaScreenState();
@@ -32,6 +45,9 @@ class _InsumoAltaScreenState extends ConsumerState<InsumoAltaScreen> {
   final _nombreController = TextEditingController();
   final _categoriaController = TextEditingController();
   final _ubicacionController = TextEditingController();
+  final _codigoInternoController = TextEditingController();
+  final _otrosNombresController = TextEditingController();
+  bool _controlado = false;
   final _stockController = TextEditingController();
   final _unidadController = TextEditingController();
   final _codigoBarrasController = TextEditingController();
@@ -53,9 +69,37 @@ class _InsumoAltaScreenState extends ConsumerState<InsumoAltaScreen> {
 
   final bool _guardando = false;
 
+  bool get _esEdicion => widget.insumo != null;
+
+  // Llena el formulario con los datos del insumo que se edita.
+  void _cargar(Insumo insumo) {
+    _tipo = insumo.tipo;
+    _nombreController.text = insumo.nombre;
+    _categoriaController.text = insumo.categoria ?? '';
+    _ubicacionController.text = insumo.ubicacion;
+    _codigoInternoController.text = insumo.codigoInterno ?? '';
+    _otrosNombresController.text = insumo.otrosNombres.join(', ');
+    _controlado = insumo.controlado;
+    _stockController.text = '${insumo.stock}';
+    _unidadController.text = insumo.unidad ?? '';
+    _codigoBarrasController.text = insumo.codigoBarras ?? '';
+    _umbralMinimoController.text =
+        formatearCantidad(insumo.umbralMinimo.toDouble());
+    _marcaController.text = insumo.marca ?? '';
+    _proveedorController.text = insumo.proveedor ?? '';
+    _formulaController.text = insumo.formula ?? '';
+    _pesoMolecularController.text = insumo.pesoMolecular?.toString() ?? '';
+    _concentracionController.text = insumo.concentracion ?? '';
+    _preparadoPorController.text = insumo.preparadoPor ?? '';
+    _fechaElaboracion = insumo.fechaElaboracion;
+    _fechaVencimiento = insumo.fechaVencimiento;
+  }
+
   @override
   void initState() {
     super.initState();
+    final existente = widget.insumo;
+    if (existente != null) _cargar(existente);
     // Mantiene escuchada la lista de insumos mientras la pantalla está
     // abierta, para tenerla cargada cuando se toca "Buscar duplicados". No
     // redibuja nada: solo evita que el stream se pause.
@@ -71,9 +115,9 @@ class _InsumoAltaScreenState extends ConsumerState<InsumoAltaScreen> {
           key: _formKey,
           child: ListView(
             children: [
-              const Text(
-                'Alta de insumo',
-                style: TextStyle(
+              Text(
+                _esEdicion ? AppStrings.editarInsumoTitulo : 'Alta de insumo',
+                style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
                 ),
@@ -95,13 +139,16 @@ class _InsumoAltaScreenState extends ConsumerState<InsumoAltaScreen> {
                     child: Text('Solución preparada'),
                   ),
                 ],
-                onChanged: (value) {
-                  if (value == null) return;
+                // Al editar no se cambia el tipo: cambiaría qué campos tiene.
+                onChanged: _esEdicion
+                    ? null
+                    : (value) {
+                        if (value == null) return;
 
-                  setState(() {
-                    _tipo = value;
-                  });
-                },
+                        setState(() {
+                          _tipo = value;
+                        });
+                      },
               ),
 
               const SizedBox(height: 12),
@@ -115,10 +162,11 @@ class _InsumoAltaScreenState extends ConsumerState<InsumoAltaScreen> {
 
 // Mientras se escribe, avisa si ya existe un insumo con un nombre parecido.
 // Tocar uno abre su detalle; el Alta queda abierta atrás.
-SugerenciasNombre(
-  controller: _nombreController,
-  onElegir: (insumo) => context.push('/insumo/${insumo.id}'),
-),
+if (!_esEdicion)
+  SugerenciasNombre(
+    controller: _nombreController,
+    onElegir: (insumo) => context.push('/insumo/${insumo.id}'),
+  ),
 
 const SizedBox(height: 12),
 
@@ -140,6 +188,26 @@ SugerenciaDeCategoria(
 const SizedBox(height: 12),
 
 TextFormField(
+  controller: _codigoInternoController,
+  decoration: const InputDecoration(
+    labelText: AppStrings.codigoInterno,
+    hintText: AppStrings.codigoInternoPista,
+  ),
+),
+
+const SizedBox(height: 12),
+
+TextFormField(
+  controller: _otrosNombresController,
+  decoration: const InputDecoration(
+    labelText: AppStrings.otrosNombres,
+    hintText: AppStrings.otrosNombresPista,
+  ),
+),
+
+const SizedBox(height: 12),
+
+TextFormField(
   controller: _ubicacionController,
   decoration: const InputDecoration(
     labelText: 'Ubicación',
@@ -147,16 +215,24 @@ TextFormField(
   validator: ValidacionesAlta.ubicacion,
 ),
 
+// Evita que un mismo lugar quede escrito de varias formas: confirma si ya
+// existe, ofrece las parecidas y avisa si es una ubicación nueva.
+SugerenciasUbicacion(controller: _ubicacionController),
+
 const SizedBox(height: 12),
 
-TextFormField(
-  controller: _stockController,
-  decoration: const InputDecoration(
-    labelText: 'Cantidad inicial',
+if (_esEdicion)
+  // El stock no se edita acá: cambia con consumos y entradas.
+  Text(AppStrings.editarInsumoStock(widget.insumo!.stock))
+else
+  TextFormField(
+    controller: _stockController,
+    decoration: const InputDecoration(
+      labelText: 'Cantidad inicial',
+    ),
+    keyboardType: TextInputType.number,
+    validator: ValidacionesAlta.cantidadInicial,
   ),
-  keyboardType: TextInputType.number,
-  validator: ValidacionesAlta.cantidadInicial,
-),
 
 const SizedBox(height: 12),
 
@@ -216,6 +292,14 @@ OutlinedButton.icon(
         ? AppStrings.altaLeyendoEtiqueta
         : AppStrings.altaLeerEtiqueta,
   ),
+),
+
+SwitchListTile(
+  contentPadding: EdgeInsets.zero,
+  title: const Text(AppStrings.controlado),
+  subtitle: const Text(AppStrings.controladoAyuda),
+  value: _controlado,
+  onChanged: (valor) => setState(() => _controlado = valor),
 ),
 
 const SizedBox(height: 16),
@@ -325,15 +409,17 @@ ElevatedButton(
 
 const SizedBox(height: 24),
 
-// Antes de guardar: revisa si ya existe algo parecido con lo que se
-// escribió (nombre, tipo, marca y código de barras).
-OutlinedButton.icon(
-  onPressed: _buscarDuplicados,
-  icon: const Icon(Icons.search),
-  label: const Text(AppStrings.duplicadosBuscar),
-),
+// Antes de guardar un insumo nuevo: revisa si ya existe algo parecido con lo
+// que se escribió (nombre, tipo, marca y código de barras).
+if (!_esEdicion) ...[
+  OutlinedButton.icon(
+    onPressed: _buscarDuplicados,
+    icon: const Icon(Icons.search),
+    label: const Text(AppStrings.duplicadosBuscar),
+  ),
 
-const SizedBox(height: 12),
+  const SizedBox(height: 12),
+],
 
 ElevatedButton(
   onPressed: _guardando ? null : _guardar,
@@ -572,12 +658,22 @@ ElevatedButton(
   }
 
   try {
+    final original = widget.insumo;
+    // Si el lugar ya está en la lista (aunque se haya escrito con otras
+    // mayúsculas o espacios) se usa su escritura; si no, se agrega después.
+    final ubicacion = UbicacionesLogica.canonica(
+      _ubicacionController.text,
+      [
+        for (final u in ref.read(ubicacionesProvider).value ?? const []) u.nombre,
+      ],
+    );
     final insumo = Insumo(
-      id: '',
+      id: original?.id ?? '',
       nombre: _nombreController.text,
       tipo: _tipo,
-      stock: ValidacionesAlta.entero(_stockController.text)!,
-      ubicacion: _ubicacionController.text,
+      // Al editar el stock queda como está: cambia solo con movimientos.
+      stock: original?.stock ?? ValidacionesAlta.entero(_stockController.text)!,
+      ubicacion: ubicacion,
       umbralMinimo: ValidacionesAlta.numero(_umbralMinimoController.text)!,
 
       categoria: _categoriaController.text.isEmpty
@@ -620,16 +716,42 @@ ElevatedButton(
 
       fechaElaboracion: _fechaElaboracion,
       fechaVencimiento: _fechaVencimiento,
+
+      codigoInterno: _codigoInternoController.text.trim().isEmpty
+          ? null
+          : _codigoInternoController.text.trim(),
+      otrosNombres: ValidacionesAlta.otrosNombres(_otrosNombresController.text),
+      controlado: _controlado,
+
+      // Datos que el formulario no muestra: al editar se conservan tal cual.
+      cantidadPorEnvase: original?.cantidadPorEnvase,
+      origen: original?.origen,
+      materia: original?.materia,
+      alarmaVencimiento: original?.alarmaVencimiento ?? false,
     );
 
-    // Guarda el insumo y, si trae stock, su entrada en el historial.
-    await StockService().registrarAlta(insumo);
+    if (original != null) {
+      await ref.read(insumoServiceProvider).actualizarInsumo(insumo);
+    } else {
+      // Guarda el insumo y, si trae stock, su entrada en el historial.
+      await StockService().registrarAlta(insumo);
+    }
+
+    // Suma el lugar a la lista si era nuevo. Si no se puede (sin conexión) el
+    // insumo ya quedó guardado: no es motivo para mostrar un error.
+    try {
+      await ref.read(ubicacionServiceProvider).crearSiNoExiste(ubicacion);
+    } catch (_) {}
 
     if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Insumo guardado correctamente'),
+      SnackBar(
+        content: Text(
+          original != null
+              ? AppStrings.editarInsumoGuardado
+              : 'Insumo guardado correctamente',
+        ),
       ),
     );
 
