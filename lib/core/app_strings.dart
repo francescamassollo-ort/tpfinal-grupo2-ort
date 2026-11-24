@@ -295,6 +295,9 @@ class AppStrings {
   static const String tpStockInsuficiente = 'Stock insuficiente';
   static String tpStockUnidades(int stock) => 'Stock: $stock u.';
 
+  // Logo de ORT (texto para lectores de pantalla).
+  static const String logoOrt = 'ORT Argentina, Educando para la vida';
+
   // Cuenta dada de baja: se le cierra la sesión y no puede volver a usar la app.
   static const String cuentaDadaDeBaja =
       'Tu cuenta fue dada de baja. Hablá con un administrador.';
