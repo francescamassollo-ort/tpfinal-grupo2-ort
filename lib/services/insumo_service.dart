@@ -57,6 +57,12 @@ class InsumoService {
     return _insumosRef.doc(insumoId).update({'activo': false});
   }
 
+  // Deshace una baja: el insumo vuelve a aparecer en el inventario, las alertas,
+  // las compras y los TPs.
+  Future<void> reactivar(String insumoId) {
+    return _insumosRef.doc(insumoId).update({'activo': true});
+  }
+
   // Actualiza solo el stock de un insumo existente (Alta/Consumo).
   Future<void> actualizarStock(String insumoId, int nuevoStock) {
     return _insumosRef.doc(insumoId).update({'stock': nuevoStock});

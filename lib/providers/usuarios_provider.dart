@@ -14,6 +14,11 @@ final usuariosProvider = StreamProvider<List<Usuario>>(
   (ref) => ref.watch(userServiceProvider).watchAll(),
 );
 
+// Todos los usuarios, también los dados de baja, para poder reactivarlos.
+final usuariosConBajasProvider = StreamProvider<List<Usuario>>(
+  (ref) => ref.watch(userServiceProvider).watchTodos(),
+);
+
 /// Por qué no se dejó hacer un cambio sobre un usuario.
 enum MotivoUsuarioRechazado {
   /// El administrador intentó cambiarse el rol o darse de baja a sí mismo.
@@ -41,6 +46,11 @@ class UsuariosAcciones {
   UsuariosAcciones(this._ref);
 
   final Ref _ref;
+
+  /// Deshace la baja de [usuario]: vuelve a poder usar la app.
+  Future<void> reactivar(Usuario usuario) {
+    return _ref.read(userServiceProvider).reactivar(usuario.id);
+  }
 
   /// Cambia el rol de [usuario]. Si ya tiene ese rol no escribe nada.
   Future<void> cambiarRol(Usuario usuario, UserRole nuevoRol) {

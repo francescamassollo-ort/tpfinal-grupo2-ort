@@ -229,6 +229,7 @@ void main() {
 
       expect(find.text('Usuarios'), findsOneWidget);
       expect(find.text('Importar desde Excel'), findsOneWidget);
+      expect(find.text('Insumos dados de baja'), findsOneWidget);
       expect(find.text('Lista de compras'), findsOneWidget);
     });
 
@@ -238,6 +239,7 @@ void main() {
       expect(find.text('Lista de compras'), findsOneWidget);
       expect(find.text('Usuarios'), findsNothing);
       expect(find.text('Importar desde Excel'), findsNothing);
+      expect(find.text('Insumos dados de baja'), findsNothing);
     });
 
     testWidgets('el docente no ve ni Lista de compras ni Usuarios', (tester) async {

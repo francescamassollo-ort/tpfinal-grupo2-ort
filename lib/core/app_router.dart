@@ -14,6 +14,7 @@ import '../screens/importar/importar_excel_screen.dart';
 import '../screens/inventario/insumo_alta_screen.dart';
 import '../screens/inventario/insumo_detalle_screen.dart';
 import '../screens/inventario/insumo_editar_screen.dart';
+import '../screens/inventario/insumos_de_baja_screen.dart';
 import '../screens/inventario/inventario_screen.dart';
 import '../screens/inventario/scanner_screen.dart';
 import '../screens/perfil/perfil_screen.dart';
@@ -118,6 +119,14 @@ final GoRouter appRouter = GoRouter(
         GoRoute(path: '/tp/detalle/:id',builder: (context, state) => TpDetalleScreen(tpId: state.pathParameters['id']!),),
         GoRoute(path: '/tp/editar/:id', builder: (context, state) => TpEditarScreen(tpId: state.pathParameters['id']),),
         GoRoute(path: '/usuarios', builder: (context, state) => const UsuariosScreen()),
+        // Insumos dados de baja, para reactivarlos: solo el administrador.
+        GoRoute(
+          path: '/bajas',
+          builder: (context, state) => const SoloConPermiso(
+            permitido: Permisos.puedeEditarOBaja,
+            child: InsumosDeBajaScreen(),
+          ),
+        ),
         // Importar el inventario desde un Excel: solo el administrador (R19).
         GoRoute(
           path: '/importar',
