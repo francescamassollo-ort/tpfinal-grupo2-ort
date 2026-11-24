@@ -5,6 +5,23 @@ class AppStrings {
   AppStrings._();
 
   static const String volver = 'Volver';
+
+  // Menú lateral y barra inferior.
+  static const String insumoNoExiste = 'El insumo no existe';
+  static const String insumoErrorCarga = 'No se pudo cargar el insumo';
+  static const String menuAbrir = 'Abrir menú';
+  static const String cerrar = 'Cerrar';
+  static const String menuInventario = 'Inventario';
+  static const String menuHistorial = 'Historial';
+  static const String menuTps = 'Lista para trabajos prácticos';
+  static const String menuCompras = 'Lista de compras';
+  static const String menuUsuarios = 'Usuarios';
+  static const String menuImportar = 'Importar desde Excel';
+  static const String menuCerrarSesion = 'Cerrar sesión';
+  static const String menuCerrarTitulo = '¿Cerrar sesión?';
+  static const String menuCerrarTexto =
+      'Vas a tener que ingresar de nuevo para usar la app.';
+  static const String menuCerrarConfirmar = 'Cerrar sesión';
   static const String compartir = 'Compartir';
   static const String descargar = 'Descargar';
   static const String filtros = 'Filtros';
@@ -401,8 +418,6 @@ class AppStrings {
   static const String usuariosTitulo = 'Usuarios';
   static const String usuariosVacio = 'Todavía no hay usuarios cargados';
   static const String usuariosError = 'No se pudieron cargar los usuarios';
-  static const String usuariosSinPermiso =
-      'Esta sección es solo para administradores';
   static const String usuariosCambiarRol = 'Cambiar rol';
   static const String usuariosEliminar = 'Dar de baja';
   static const String usuariosTuCuenta = 'No podés modificar tu propia cuenta';

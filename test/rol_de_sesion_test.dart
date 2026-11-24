@@ -7,6 +7,7 @@ import 'package:tpfinal_grupo2/core/app_shell.dart';
 import 'package:tpfinal_grupo2/models/alerta.dart';
 import 'package:tpfinal_grupo2/models/usuario.dart';
 import 'package:tpfinal_grupo2/providers/alerta_provider.dart';
+import 'package:tpfinal_grupo2/providers/perfil_provider.dart';
 import 'package:tpfinal_grupo2/providers/role_provider.dart';
 import 'package:tpfinal_grupo2/services/rol_de_sesion_service.dart';
 
@@ -213,6 +214,8 @@ void main() {
             alertasProvider.overrideWithValue(const AsyncData(<Alerta>[])),
             alertasVistasProvider.overrideWith((ref) => Stream.value(<String>{})),
             rolDeSesionProvider.overrideWith((ref) => Stream.value(rol)),
+            // El menú muestra el nombre de la persona: sin Firebase en la prueba.
+            perfilUsuarioProvider.overrideWith((ref) => Stream.value(null)),
           ],
           child: const MaterialApp(
             home: AppShell(location: '/inventario', child: SizedBox()),
