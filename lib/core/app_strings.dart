@@ -424,4 +424,18 @@ class AppStrings {
   static const String perfilCerrarSesion = 'Cerrar sesión';
   static const String perfilError = 'No se pudo cargar tu perfil';
   static const String perfilSinNombre = 'Sin nombre';
+
+  // Inicio (tablero)
+  static const String homeTitulo = 'Inicio';
+  static const String homeStockBajo = 'Stock bajo';
+  static const String homeStockBajoDetalle = 'insumos por reponer';
+  static const String homeAlertas = 'Alertas activas';
+  static const String homeAlertasDetalle = 'sin ver';
+  static const String homeUltimoMovimiento = 'Último movimiento';
+  static const String homeSinMovimientos = 'Todavía no hay movimientos';
+  static const String homeErrorDato = 'No se pudo cargar';
+  static const String homeAtajos = 'Atajos';
+  static const String homeIrInventario = 'Inventario';
+  static const String homeIrAlertas = 'Alertas';
+  static const String homeIrHistorial = 'Historial';
 }
