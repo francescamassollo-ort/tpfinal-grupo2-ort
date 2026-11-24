@@ -35,13 +35,29 @@ class AuthService {
 
   // Register with Email and Password. Devuelve true si se creó la cuenta; si no,
   // el motivo ya se mostró en un cartel.
-  Future<bool> registerWithEmailAndPassword(String email, String password) async {
+  //
+  // [nombre] se guarda como nombre de la cuenta (displayName): de ahí sale el
+  // nombre que se ve en Usuarios, en el Historial y en los TPs.
+  Future<bool> registerWithEmailAndPassword(
+    String email,
+    String password, {
+    String? nombre,
+  }) async {
     try {
       // Creates a new user account with the provided email and password.
-      await _auth.createUserWithEmailAndPassword(
+      final credencial = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
+      // La cuenta ya está creada: si el nombre no se puede guardar no se
+      // frena el registro, solo queda con el nombre que sale del mail.
+      if (nombre != null && nombre.trim().isNotEmpty) {
+        try {
+          await credencial.user?.updateDisplayName(nombre.trim());
+        } catch (e) {
+          debugPrint("Error saving display name: $e");
+        }
+      }
       return true;
     } on FirebaseAuthException catch (e) {
       // Catch specific Firebase authentication exceptions for better error handling

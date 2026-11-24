@@ -43,10 +43,11 @@ bool _oculto(WidgetTester tester, String pista) =>
     tester.widget<TextField>(_campo(pista)).obscureText;
 
 void main() {
-  testWidgets('muestra los tres campos y el botón', (tester) async {
+  testWidgets('muestra los cuatro campos y el botón', (tester) async {
     await _abrir(tester);
 
     expect(find.text('Crear cuenta'), findsOneWidget);
+    expect(_campo('Nombre y apellido'), findsOneWidget);
     expect(_campo('Email'), findsOneWidget);
     expect(_campo('Contraseña'), findsOneWidget);
     expect(_campo('Confirmar contraseña'), findsOneWidget);
@@ -81,6 +82,7 @@ void main() {
   testWidgets('lo escrito no se pierde cuando la pantalla se vuelve a dibujar',
       (tester) async {
     await _abrir(tester);
+    await tester.enterText(_campo('Nombre y apellido'), 'Ana Pérez');
     await tester.enterText(_campo('Email'), 'ana@comunidadort.edu.ar');
     await tester.enterText(_campo('Contraseña'), 'abc123');
 
@@ -92,8 +94,23 @@ void main() {
     expect(find.text('abc123'), findsOneWidget);
   });
 
+  testWidgets('sin nombre avisa y no intenta registrar', (tester) async {
+    final auth = AuthFalso();
+    await _abrir(tester, auth);
+    await tester.enterText(_campo('Email'), 'ana@comunidadort.edu.ar');
+    await tester.enterText(_campo('Contraseña'), 'Abcdef1!');
+    await tester.enterText(_campo('Confirmar contraseña'), 'Abcdef1!');
+
+    await tester.tap(find.text('Registrarse'));
+    await tester.pump();
+
+    expect(find.text('Escribí tu nombre y apellido'), findsOneWidget);
+    expect(auth.registros, isEmpty);
+  });
+
   testWidgets('sin mail avisa y no intenta registrar', (tester) async {
     await _abrir(tester);
+    await tester.enterText(_campo('Nombre y apellido'), 'Ana Pérez');
 
     await tester.tap(find.text('Registrarse'));
     await tester.pump();
@@ -103,6 +120,7 @@ void main() {
 
   testWidgets('con contraseñas distintas avisa', (tester) async {
     await _abrir(tester);
+    await tester.enterText(_campo('Nombre y apellido'), 'Ana Pérez');
     await tester.enterText(_campo('Email'), 'ana@comunidadort.edu.ar');
     await tester.enterText(_campo('Contraseña'), 'abc123');
     await tester.enterText(_campo('Confirmar contraseña'), 'abc124');
@@ -116,6 +134,7 @@ void main() {
   testWidgets('un mail institucional largo no se rechaza por su largo',
       (tester) async {
     await _abrir(tester);
+    await tester.enterText(_campo('Nombre y apellido'), 'Ana Pérez');
     await tester.enterText(_campo('Email'), 'prueba@comunidadort.edu.ar');
     await tester.enterText(_campo('Contraseña'), 'abc123');
     await tester.enterText(_campo('Confirmar contraseña'), 'abc124');
@@ -130,6 +149,7 @@ void main() {
 
   testWidgets('con un mail que no es institucional avisa', (tester) async {
     await _abrir(tester);
+    await tester.enterText(_campo('Nombre y apellido'), 'Ana Pérez');
     await tester.enterText(_campo('Email'), 'ana@gmail.com');
     await tester.enterText(_campo('Contraseña'), 'Abcdef1!');
     await tester.enterText(_campo('Confirmar contraseña'), 'Abcdef1!');
@@ -145,6 +165,7 @@ void main() {
 
   testWidgets('con una contraseña débil avisa aunque coincida', (tester) async {
     await _abrir(tester);
+    await tester.enterText(_campo('Nombre y apellido'), 'Ana Pérez');
     await tester.enterText(_campo('Email'), 'ana@comunidadort.edu.ar');
     await tester.enterText(_campo('Contraseña'), 'abc123');
     await tester.enterText(_campo('Confirmar contraseña'), 'abc123');
@@ -178,6 +199,7 @@ void main() {
       (tester) async {
     final auth = AuthFalso();
     await _abrir(tester, auth);
+    await tester.enterText(_campo('Nombre y apellido'), 'Ana Pérez');
     await tester.enterText(_campo('Email'), ' ana@comunidadort.edu.ar ');
     await tester.enterText(_campo('Contraseña'), 'Abcdef1!');
     await tester.enterText(_campo('Confirmar contraseña'), 'Abcdef1!');
@@ -186,6 +208,8 @@ void main() {
     await tester.pump();
 
     expect(auth.registros, ['ana@comunidadort.edu.ar|Abcdef1!']);
+    // El nombre viaja con el registro, sin los espacios de los extremos.
+    expect(auth.nombresRegistrados, ['Ana Pérez']);
     expect(auth.verificacionesEnviadas, 1);
     expect(find.text('Registro exitoso.'), findsOneWidget);
   });
@@ -194,6 +218,7 @@ void main() {
       (tester) async {
     final auth = AuthFalso()..registrar = false;
     await _abrir(tester, auth);
+    await tester.enterText(_campo('Nombre y apellido'), 'Ana Pérez');
     await tester.enterText(_campo('Email'), 'ana@comunidadort.edu.ar');
     await tester.enterText(_campo('Contraseña'), 'Abcdef1!');
     await tester.enterText(_campo('Confirmar contraseña'), 'Abcdef1!');
@@ -209,6 +234,7 @@ void main() {
   testWidgets('con datos inválidos no llega a Firebase', (tester) async {
     final auth = AuthFalso();
     await _abrir(tester, auth);
+    await tester.enterText(_campo('Nombre y apellido'), 'Ana Pérez');
     await tester.enterText(_campo('Email'), 'ana@gmail.com');
     await tester.enterText(_campo('Contraseña'), 'abc');
     await tester.enterText(_campo('Confirmar contraseña'), 'abc');

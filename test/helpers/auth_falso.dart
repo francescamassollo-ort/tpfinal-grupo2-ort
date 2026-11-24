@@ -17,6 +17,7 @@ class AuthFalso extends Fake implements AuthService {
   String? email = 'ana@comunidadort.edu.ar';
 
   final registros = <String>[];
+  final nombresRegistrados = <String?>[];
   final ingresos = <String>[];
   final recuperaciones = <String>[];
   int verificacionesEnviadas = 0;
@@ -28,8 +29,13 @@ class AuthFalso extends Fake implements AuthService {
   String? get emailActual => email;
 
   @override
-  Future<bool> registerWithEmailAndPassword(String email, String password) async {
+  Future<bool> registerWithEmailAndPassword(
+    String email,
+    String password, {
+    String? nombre,
+  }) async {
     registros.add('$email|$password');
+    nombresRegistrados.add(nombre);
     return registrar;
   }
 

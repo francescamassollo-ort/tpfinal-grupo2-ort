@@ -27,6 +27,7 @@ class ValidacionesAuth {
   static const String avisoContrasenaVacia =
       'No dejar espacio vacio en contraseñas!!!';
   static const String avisoNoCoinciden = 'Contraseñas no coinciden!!!';
+  static const String avisoNombre = 'Escribí tu nombre y apellido';
   static const String avisoMailNoInstitucional =
       'Usá tu mail institucional de ORT (@comunidadort.edu.ar o @ort.edu.ar)';
   static const String avisoRecuperacionVacia =
@@ -44,6 +45,10 @@ class ValidacionesAuth {
     'comunidadort.edu.ar',
     'ort.edu.ar',
   ];
+
+  /// El largo máximo del nombre: alcanza para nombres y apellidos compuestos y
+  /// evita que un texto larguísimo desarme las listas donde se muestra.
+  static const int largoMaximoNombre = 60;
 
   /// El largo mínimo de una contraseña nueva.
   static const int largoMinimoContrasena = 8;
@@ -65,23 +70,35 @@ class ValidacionesAuth {
   static String? recuperacion({required String email}) =>
       email.trim().isEmpty ? avisoRecuperacionVacia : null;
 
-  /// Registro: el mail no puede estar vacío y tiene que ser institucional, las
-  /// dos contraseñas tienen que ser iguales y la contraseña tiene que ser
-  /// segura (ver [requisitosFaltantes]).
+  /// Registro: hace falta el nombre, el mail no puede estar vacío y tiene que
+  /// ser institucional, las dos contraseñas tienen que ser iguales y la
+  /// contraseña tiene que ser segura (ver [requisitosFaltantes]).
   ///
   /// No se limita el largo del mail: los institucionales
   /// (`usuario@comunidadort.edu.ar`) tienen más de 20 caracteres.
   static String? registro({
+    required String nombre,
     required String email,
     required String password,
     required String confirmacion,
   }) {
+    if (!esNombreValido(nombre)) return avisoNombre;
     if (email.trim().isEmpty) return avisoEmailVacio;
     if (!esMailInstitucional(email)) return avisoMailNoInstitucional;
     if (password.isEmpty || confirmacion.isEmpty) return avisoContrasenaVacia;
     if (password != confirmacion) return avisoNoCoinciden;
     if (requisitosFaltantes(password).isNotEmpty) return avisoContrasenaDebil;
     return null;
+  }
+
+  /// Si [nombre] sirve como nombre de una persona: tiene alguna letra (no vale
+  /// solo un número, que es lo que se ve cuando el nombre sale del mail de un
+  /// alumno) y no pasa de [largoMaximoNombre] caracteres. Los espacios de los
+  /// extremos no cuentan.
+  static bool esNombreValido(String nombre) {
+    final limpio = nombre.trim();
+    return limpio.length <= largoMaximoNombre &&
+        RegExp(r'\p{L}', unicode: true).hasMatch(limpio);
   }
 
   /// Si el mail es de un dominio institucional de ORT. No distingue mayúsculas y

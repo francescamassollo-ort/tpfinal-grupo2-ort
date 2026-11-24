@@ -23,6 +23,7 @@ class RegisterScreen extends ConsumerStatefulWidget {
 class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   // Los controles viven en el State, no en build(): si la pantalla se vuelve a
   // dibujar, lo escrito no se pierde, y se liberan al salir.
+  final TextEditingController nombre = TextEditingController();
   final TextEditingController email = TextEditingController();
   final TextEditingController password = TextEditingController();
   final TextEditingController confirmPassword = TextEditingController();
@@ -32,6 +33,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   @override
   void dispose() {
+    nombre.dispose();
     email.dispose();
     password.dispose();
     confirmPassword.dispose();
@@ -60,6 +62,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   ),
                 ),
                 const SizedBox(height: 26),
+                TextField(
+                  controller: nombre,
+                  keyboardType: TextInputType.name,
+                  textCapitalization: TextCapitalization.words,
+                  // Con este nombre se ve a la persona en Usuarios, el Historial
+                  // y los trabajos prácticos.
+                  decoration: getInputDecoration('Nombre y apellido'),
+                ),
                 TextField(
                   controller: email,
                   keyboardType: TextInputType.emailAddress,
@@ -102,6 +112,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       registrationCheck(
                         context,
                         auth: ref.read(authServiceProvider),
+                        nombre: nombre.text,
                         email: email.text,
                         password: password.text,
                         confirmPassword: confirmPassword.text,

@@ -13,6 +13,7 @@ import 'validaciones_auth.dart';
 Future<void> registrationCheck(
   BuildContext context, {
   required AuthService auth,
+  required String nombre,
   required String email,
   required String password,
   required String confirmPassword,
@@ -20,6 +21,7 @@ Future<void> registrationCheck(
   final avisos = ScaffoldMessenger.of(context);
 
   final problema = ValidacionesAuth.registro(
+    nombre: nombre,
     email: email,
     password: password,
     confirmacion: confirmPassword,
@@ -29,7 +31,11 @@ Future<void> registrationCheck(
     return;
   }
 
-  final seCreo = await auth.registerWithEmailAndPassword(email.trim(), password);
+  final seCreo = await auth.registerWithEmailAndPassword(
+    email.trim(),
+    password,
+    nombre: nombre.trim(),
+  );
   if (!seCreo) return;
 
   // Si el correo no sale, la cuenta igual quedó creada: la pantalla de

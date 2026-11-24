@@ -134,8 +134,14 @@ void main() {
   });
 
   group('registro', () {
-    String? registro(String email, String password, String confirmacion) =>
+    String? registro(
+      String email,
+      String password,
+      String confirmacion, {
+      String nombre = 'Ana Pérez',
+    }) =>
         ValidacionesAuth.registro(
+          nombre: nombre,
           email: email,
           password: password,
           confirmacion: confirmacion,
@@ -197,6 +203,39 @@ void main() {
       expect(registro(_mail, 'abc123', 'abc123'), ValidacionesAuth.avisoContrasenaDebil);
       expect(registro(_mail, 'abcdefgh', 'abcdefgh'), ValidacionesAuth.avisoContrasenaDebil);
       expect(registro(_mail, 'Abcdefg1', 'Abcdefg1'), ValidacionesAuth.avisoContrasenaDebil);
+    });
+
+    test('sin nombre avisa', () {
+      expect(registro(_mail, _clave, _clave, nombre: ''), ValidacionesAuth.avisoNombre);
+      expect(registro(_mail, _clave, _clave, nombre: '   '), ValidacionesAuth.avisoNombre);
+    });
+
+    test('un número no es un nombre', () {
+      expect(
+        registro(_mail, _clave, _clave, nombre: '42841225'),
+        ValidacionesAuth.avisoNombre,
+      );
+    });
+
+    test('el nombre se revisa antes que el mail', () {
+      expect(
+        registro('ana@gmail.com', _clave, _clave, nombre: ''),
+        ValidacionesAuth.avisoNombre,
+      );
+    });
+
+    test('nombres con tildes, ñ, guiones y apellidos compuestos son válidos', () {
+      for (final nombre in ['José Ñandú', 'María-José de la Torre', "O'Brien", 'Li']) {
+        expect(registro(_mail, _clave, _clave, nombre: nombre), isNull, reason: nombre);
+      }
+    });
+
+    test('un nombre larguísimo se rechaza', () {
+      expect(
+        registro(_mail, _clave, _clave, nombre: 'a' * 61),
+        ValidacionesAuth.avisoNombre,
+      );
+      expect(registro(_mail, _clave, _clave, nombre: 'a' * 60), isNull);
     });
 
     test('el mail se revisa antes que las contraseñas', () {
