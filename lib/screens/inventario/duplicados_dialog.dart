@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/app_colors.dart';
 import '../../core/app_strings.dart';
 import '../../core/app_text_styles.dart';
+import '../../core/breakpoints.dart';
 import '../../models/insumo.dart';
 
 /// Un insumo que ya existe y se parece al que se está por cargar. Si
@@ -52,92 +53,95 @@ class DuplicadosDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: FutureBuilder<List<Insumo>>(
-          future: sugerenciasIa,
-          builder: (context, snapshot) {
-            final buscandoConIa = sugerenciasIa != null &&
-                snapshot.connectionState != ConnectionState.done;
-            final iaFallo = snapshot.hasError;
-            final deIa = snapshot.data ?? const <Insumo>[];
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: Breakpoints.maxDialogWidth),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: FutureBuilder<List<Insumo>>(
+            future: sugerenciasIa,
+            builder: (context, snapshot) {
+              final buscandoConIa = sugerenciasIa != null &&
+                  snapshot.connectionState != ConnectionState.done;
+              final iaFallo = snapshot.hasError;
+              final deIa = snapshot.data ?? const <Insumo>[];
 
-            final filas = <_FilaDatos>[
-              for (final p in parecidos)
-                (
-                  insumo: p.insumo,
-                  motivo: p.mismoCodigoDeBarras
-                      ? AppStrings.duplicadosMismoCodigo
-                      : AppStrings.duplicadosNombreParecido,
-                ),
-              for (final insumo in deIa)
-                (insumo: insumo, motivo: AppStrings.duplicadosSugeridoIa),
-            ];
-
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  AppStrings.duplicadosBuscar,
-                  style: AppTextStyles.itemName,
-                ),
-                const SizedBox(height: 12),
-                if (filas.isNotEmpty) ...[
-                  Text(
-                    AppStrings.duplicadosEncontrados,
-                    style: AppTextStyles.listItemSubtitle,
+              final filas = <_FilaDatos>[
+                for (final p in parecidos)
+                  (
+                    insumo: p.insumo,
+                    motivo: p.mismoCodigoDeBarras
+                        ? AppStrings.duplicadosMismoCodigo
+                        : AppStrings.duplicadosNombreParecido,
                   ),
-                  const SizedBox(height: 8),
-                  // Con varios resultados la lista se desplaza en vez de
-                  // agrandar la ventana más que la pantalla.
-                  ConstrainedBox(
-                    constraints: const BoxConstraints(maxHeight: 320),
-                    child: ListView.separated(
-                      shrinkWrap: true,
-                      itemCount: filas.length,
-                      separatorBuilder: (context, index) =>
-                          const Divider(height: 16),
-                      itemBuilder: (context, index) => _Fila(
-                        datos: filas[index],
-                        onCargarConsumo: () =>
-                            Navigator.of(context).pop(filas[index].insumo),
+                for (final insumo in deIa)
+                  (insumo: insumo, motivo: AppStrings.duplicadosSugeridoIa),
+              ];
+
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    AppStrings.duplicadosBuscar,
+                    style: AppTextStyles.itemName,
+                  ),
+                  const SizedBox(height: 12),
+                  if (filas.isNotEmpty) ...[
+                    Text(
+                      AppStrings.duplicadosEncontrados,
+                      style: AppTextStyles.listItemSubtitle,
+                    ),
+                    const SizedBox(height: 8),
+                    // Con varios resultados la lista se desplaza en vez de
+                    // agrandar la ventana más que la pantalla.
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxHeight: 320),
+                      child: ListView.separated(
+                        shrinkWrap: true,
+                        itemCount: filas.length,
+                        separatorBuilder: (context, index) =>
+                            const Divider(height: 16),
+                        itemBuilder: (context, index) => _Fila(
+                          datos: filas[index],
+                          onCargarConsumo: () =>
+                              Navigator.of(context).pop(filas[index].insumo),
+                        ),
                       ),
                     ),
-                  ),
-                ] else if (!buscandoConIa)
-                  Text(
-                    AppStrings.duplicadosNinguno,
-                    style: AppTextStyles.listItemSubtitle,
-                  ),
-                if (buscandoConIa) ...[
+                  ] else if (!buscandoConIa)
+                    Text(
+                      AppStrings.duplicadosNinguno,
+                      style: AppTextStyles.listItemSubtitle,
+                    ),
+                  if (buscandoConIa) ...[
+                    const SizedBox(height: 12),
+                    const _BuscandoConIa(),
+                  ] else if (sugerenciasIa == null) ...[
+                    const SizedBox(height: 12),
+                    Text(
+                      AppStrings.duplicadosIaNoDisponible,
+                      style: AppTextStyles.listItemSubtitle,
+                    ),
+                  ] else if (iaFallo) ...[
+                    const SizedBox(height: 12),
+                    Text(
+                      AppStrings.duplicadosIaFallo,
+                      style: AppTextStyles.listItemSubtitle,
+                    ),
+                  ],
                   const SizedBox(height: 12),
-                  const _BuscandoConIa(),
-                ] else if (sugerenciasIa == null) ...[
-                  const SizedBox(height: 12),
-                  Text(
-                    AppStrings.duplicadosIaNoDisponible,
-                    style: AppTextStyles.listItemSubtitle,
-                  ),
-                ] else if (iaFallo) ...[
-                  const SizedBox(height: 12),
-                  Text(
-                    AppStrings.duplicadosIaFallo,
-                    style: AppTextStyles.listItemSubtitle,
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: Text(
+                      filas.isEmpty
+                          ? AppStrings.duplicadosCerrar
+                          : AppStrings.duplicadosSeguir,
+                    ),
                   ),
                 ],
-                const SizedBox(height: 12),
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: Text(
-                    filas.isEmpty
-                        ? AppStrings.duplicadosCerrar
-                        : AppStrings.duplicadosSeguir,
-                  ),
-                ),
-              ],
-            );
-          },
+              );
+            },
+          ),
         ),
       ),
     );

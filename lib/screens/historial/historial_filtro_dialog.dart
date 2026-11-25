@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/app_strings.dart';
+import '../../core/breakpoints.dart';
 import '../../models/filtro_historial.dart';
 import '../../models/insumo.dart';
 import '../../models/movimiento_stock.dart';
@@ -50,107 +51,110 @@ class _HistorialFiltroDialogState extends State<HistorialFiltroDialog> {
 
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            DropdownButtonFormField<TipoMovimiento?>(
-              initialValue: _tipo,
-              decoration: const InputDecoration(
-                labelText: AppStrings.historialFiltroTipo,
-              ),
-              items: const [
-                DropdownMenuItem(
-                  value: null,
-                  child: Text(AppStrings.historialFiltroTodos),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: Breakpoints.maxDialogWidth),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              DropdownButtonFormField<TipoMovimiento?>(
+                initialValue: _tipo,
+                decoration: const InputDecoration(
+                  labelText: AppStrings.historialFiltroTipo,
                 ),
-                DropdownMenuItem(
-                  value: TipoMovimiento.entrada,
-                  child: Text(AppStrings.historialFiltroEntrada),
-                ),
-                DropdownMenuItem(
-                  value: TipoMovimiento.salida,
-                  child: Text(AppStrings.historialFiltroSalida),
-                ),
-                DropdownMenuItem(
-                  value: TipoMovimiento.ajuste,
-                  child: Text(AppStrings.historialFiltroAjuste),
-                ),
-              ],
-              onChanged: (value) => setState(() => _tipo = value),
-            ),
-            const SizedBox(height: 12),
-            DropdownButtonFormField<String?>(
-              initialValue: _productoId,
-              // Los nombres de insumo pueden ser largos: que no desborden.
-              isExpanded: true,
-              decoration: const InputDecoration(
-                labelText: AppStrings.historialFiltroInsumo,
-              ),
-              items: [
-                const DropdownMenuItem(
-                  value: null,
-                  child: Text(AppStrings.historialFiltroTodos),
-                ),
-                ...insumos.map(
-                  (i) => DropdownMenuItem(
-                    value: i.id,
-                    child: Text(
-                      etiquetas[i.id]!,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                items: const [
+                  DropdownMenuItem(
+                    value: null,
+                    child: Text(AppStrings.historialFiltroTodos),
                   ),
-                ),
-              ],
-              onChanged: (value) => setState(() => _productoId = value),
-            ),
-            const SizedBox(height: 12),
-            _CampoFecha(
-              etiqueta: AppStrings.historialFiltroDesde,
-              fecha: _desde,
-              onTap: _elegirDesde,
-              onBorrar: () => setState(() => _desde = null),
-            ),
-            const SizedBox(height: 12),
-            _CampoFecha(
-              etiqueta: AppStrings.historialFiltroHasta,
-              fecha: _hasta,
-              onTap: _elegirHasta,
-              onBorrar: () => setState(() => _hasta = null),
-            ),
-            const SizedBox(height: 24),
-            Row(
-              children: [
-                Expanded(
-                  child: TextButton(
-                    // Cierra devolviendo un filtro vacío: se ve todo.
-                    onPressed: () =>
-                        Navigator.of(context).pop(const FiltroHistorial()),
-                    child: const Text(AppStrings.limpiar),
+                  DropdownMenuItem(
+                    value: TipoMovimiento.entrada,
+                    child: Text(AppStrings.historialFiltroEntrada),
                   ),
+                  DropdownMenuItem(
+                    value: TipoMovimiento.salida,
+                    child: Text(AppStrings.historialFiltroSalida),
+                  ),
+                  DropdownMenuItem(
+                    value: TipoMovimiento.ajuste,
+                    child: Text(AppStrings.historialFiltroAjuste),
+                  ),
+                ],
+                onChanged: (value) => setState(() => _tipo = value),
+              ),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<String?>(
+                initialValue: _productoId,
+                // Los nombres de insumo pueden ser largos: que no desborden.
+                isExpanded: true,
+                decoration: const InputDecoration(
+                  labelText: AppStrings.historialFiltroInsumo,
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () => Navigator.of(context).pop(
-                      FiltroHistorial(
-                        productoId: _productoId,
-                        // No hay campo de persona en el panel, pero si el
-                        // filtro ya traía una se conserva.
-                        usuarioId: widget.filtroActual.usuarioId,
-                        desde: _desde,
-                        hasta: _hasta,
-                        tipo: _tipo,
+                items: [
+                  const DropdownMenuItem(
+                    value: null,
+                    child: Text(AppStrings.historialFiltroTodos),
+                  ),
+                  ...insumos.map(
+                    (i) => DropdownMenuItem(
+                      value: i.id,
+                      child: Text(
+                        etiquetas[i.id]!,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    child: const Text(AppStrings.filtrar),
                   ),
-                ),
-              ],
-            ),
-          ],
+                ],
+                onChanged: (value) => setState(() => _productoId = value),
+              ),
+              const SizedBox(height: 12),
+              _CampoFecha(
+                etiqueta: AppStrings.historialFiltroDesde,
+                fecha: _desde,
+                onTap: _elegirDesde,
+                onBorrar: () => setState(() => _desde = null),
+              ),
+              const SizedBox(height: 12),
+              _CampoFecha(
+                etiqueta: AppStrings.historialFiltroHasta,
+                fecha: _hasta,
+                onTap: _elegirHasta,
+                onBorrar: () => setState(() => _hasta = null),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      // Cierra devolviendo un filtro vacío: se ve todo.
+                      onPressed: () =>
+                          Navigator.of(context).pop(const FiltroHistorial()),
+                      child: const Text(AppStrings.limpiar),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.of(context).pop(
+                        FiltroHistorial(
+                          productoId: _productoId,
+                          // No hay campo de persona en el panel, pero si el
+                          // filtro ya traía una se conserva.
+                          usuarioId: widget.filtroActual.usuarioId,
+                          desde: _desde,
+                          hasta: _hasta,
+                          tipo: _tipo,
+                        ),
+                      ),
+                      child: const Text(AppStrings.filtrar),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

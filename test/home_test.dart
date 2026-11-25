@@ -15,6 +15,8 @@ import 'package:tpfinal_grupo2/providers/role_provider.dart';
 import 'package:tpfinal_grupo2/screens/historial/movimiento_item.dart';
 import 'package:tpfinal_grupo2/screens/home/home_screen.dart';
 
+import 'helpers/pantalla_celular.dart';
+
 Insumo _insumo(String id, String nombre, {int stock = 10, int umbral = 2}) =>
     Insumo(
       id: id,
@@ -197,6 +199,7 @@ void main() {
 
   group('barra inferior', () {
     Future<void> mostrar(WidgetTester tester, String ruta, UserRole rol) async {
+      usarPantallaDeCelular(tester);
       await tester.pumpWidget(
         ProviderScope(
           overrides: [

@@ -11,6 +11,7 @@ import '../../providers/insumo_providers.dart';
 import '../../widgets/app_decorative_background.dart';
 import '../../widgets/app_screen_header.dart';
 import '../../widgets/share_download_actions.dart';
+import '../../widgets/contenido_centrado.dart';
 import 'historial_exportacion.dart';
 import 'historial_filtro_dialog.dart';
 import 'movimiento_tile.dart';
@@ -29,71 +30,73 @@ class HistorialScreen extends ConsumerWidget {
       backgroundColor: AppColors.screenBackground,
       body: AppDecorativeBackground(
         child: SafeArea(
-          child: Column(
-            children: [
-              AppScreenHeader(
-                title: AppStrings.historialTitulo,
-                onBack: () => _volver(context),
-              ),
-              Align(
-                alignment: Alignment.centerRight,
-                child: Padding(
-                  padding: const EdgeInsets.only(right: 26),
-                  child: IconButton(
-                    onPressed: () => _abrirFiltros(context, ref),
-                    tooltip: AppStrings.filtros,
-                    // El punto avisa que hay un filtro puesto: sin él, una
-                    // lista corta podría parecer que faltan movimientos.
-                    icon: Badge(
-                      isLabelVisible: !filtro.estaVacio,
-                      smallSize: 9,
-                      backgroundColor: AppColors.movementBlue,
-                      child: const Icon(
-                        Icons.tune,
-                        size: 24,
-                        color: AppColors.titleColor,
+          child: ContenidoCentrado(
+            child: Column(
+              children: [
+                AppScreenHeader(
+                  title: AppStrings.historialTitulo,
+                  onBack: () => _volver(context),
+                ),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 26),
+                    child: IconButton(
+                      onPressed: () => _abrirFiltros(context, ref),
+                      tooltip: AppStrings.filtros,
+                      // El punto avisa que hay un filtro puesto: sin él, una
+                      // lista corta podría parecer que faltan movimientos.
+                      icon: Badge(
+                        isLabelVisible: !filtro.estaVacio,
+                        smallSize: 9,
+                        backgroundColor: AppColors.movementBlue,
+                        child: const Icon(
+                          Icons.tune,
+                          size: 24,
+                          color: AppColors.titleColor,
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-              Expanded(
-                child: movimientos.when(
-                  loading: () =>
-                      const Center(child: CircularProgressIndicator()),
-                  error: (error, stack) => Center(
-                    child: Text(
-                      AppStrings.historialError,
-                      style: AppTextStyles.itemDetail,
+                Expanded(
+                  child: movimientos.when(
+                    loading: () =>
+                        const Center(child: CircularProgressIndicator()),
+                    error: (error, stack) => Center(
+                      child: Text(
+                        AppStrings.historialError,
+                        style: AppTextStyles.itemDetail,
+                      ),
                     ),
+                    data: (lista) => lista.isEmpty
+                        ? _ListaVacia(
+                            hayFiltro: !filtro.estaVacio,
+                            onLimpiar:
+                                ref.read(filtroHistorialProvider.notifier).limpiar,
+                          )
+                        : ListView.separated(
+                            padding: const EdgeInsets.fromLTRB(36, 8, 36, 20),
+                            itemCount: lista.length,
+                            separatorBuilder: (context, index) =>
+                                const SizedBox(height: 12),
+                            itemBuilder: (context, index) =>
+                                MovimientoTile(item: lista[index]),
+                          ),
                   ),
-                  data: (lista) => lista.isEmpty
-                      ? _ListaVacia(
-                          hayFiltro: !filtro.estaVacio,
-                          onLimpiar:
-                              ref.read(filtroHistorialProvider.notifier).limpiar,
-                        )
-                      : ListView.separated(
-                          padding: const EdgeInsets.fromLTRB(36, 8, 36, 20),
-                          itemCount: lista.length,
-                          separatorBuilder: (context, index) =>
-                              const SizedBox(height: 12),
-                          itemBuilder: (context, index) =>
-                              MovimientoTile(item: lista[index]),
-                        ),
                 ),
-              ),
-              // Mientras el historial carga o falla no hay nada que exportar.
-              ShareDownloadActions(
-                onShare: movimientos.hasValue
-                    ? () => exportarHistorial(context, ref, descargar: false)
-                    : null,
-                onDownload: movimientos.hasValue
-                    ? () => exportarHistorial(context, ref, descargar: true)
-                    : null,
-              ),
-            ],
-          ),
+                // Mientras el historial carga o falla no hay nada que exportar.
+                ShareDownloadActions(
+                  onShare: movimientos.hasValue
+                      ? () => exportarHistorial(context, ref, descargar: false)
+                      : null,
+                  onDownload: movimientos.hasValue
+                      ? () => exportarHistorial(context, ref, descargar: true)
+                      : null,
+                ),
+              ],
+            ),
+          ),  
         ),
       ),
     );

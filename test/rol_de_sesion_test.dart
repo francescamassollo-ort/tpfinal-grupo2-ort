@@ -11,6 +11,8 @@ import 'package:tpfinal_grupo2/providers/perfil_provider.dart';
 import 'package:tpfinal_grupo2/providers/role_provider.dart';
 import 'package:tpfinal_grupo2/services/rol_de_sesion_service.dart';
 
+import 'helpers/pantalla_celular.dart';
+
 const PersonaConSesion _persona = (
   uid: 'u1',
   nombre: 'Ana Pérez',
@@ -208,6 +210,7 @@ void main() {
 
   group('el menú según el rol', () {
     Future<void> mostrar(WidgetTester tester, UserRole rol) async {
+      usarPantallaDeCelular(tester);
       await tester.pumpWidget(
         ProviderScope(
           overrides: [

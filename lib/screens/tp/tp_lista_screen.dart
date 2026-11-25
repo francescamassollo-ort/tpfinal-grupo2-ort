@@ -10,6 +10,7 @@ import '../../providers/role_provider.dart';
 import '../../providers/tp_busqueda_provider.dart';
 import '../../providers/trabajopractico_provider.dart';
 import '../../widgets/tp_card.dart';
+import '../../widgets/contenido_centrado.dart';
 
 // ConsumerStatefulWidget: hace falta estado de VISTA (buscador visible,
 // modo selección y qué TPs están marcados). El estado de negocio (la lista,
@@ -120,131 +121,133 @@ class _TpListaScreenState extends ConsumerState<TpListaScreen> {
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.chevron_left),
-                  iconSize: 32,
-                  color: AppColors.backIconColor,
-                  tooltip: AppStrings.volver,
-                  onPressed: _volver,
-                ),
-                Expanded(
-                  child: Text(
-                    AppStrings.tpTitulo,
-                    style: AppTextStyles.screenTitle,
+        child: ContenidoCentrado(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.chevron_left),
+                    iconSize: 32,
+                    color: AppColors.backIconColor,
+                    tooltip: AppStrings.volver,
+                    onPressed: _volver,
                   ),
-                ),
-              ],
-            ),
-            Row(
-              children: [
-                if (_modoSeleccion) ...[
                   Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.only(left: 12),
-                      child: Text(
-                        AppStrings.tpSeleccionados(_seleccionados.length),
-                        style: AppTextStyles.itemDetail,
+                    child: Text(
+                      AppStrings.tpTitulo,
+                      style: AppTextStyles.screenTitle,
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  if (_modoSeleccion) ...[
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 12),
+                        child: Text(
+                          AppStrings.tpSeleccionados(_seleccionados.length),
+                          style: AppTextStyles.itemDetail,
+                        ),
                       ),
                     ),
-                  ),
-                  ElevatedButton(
-                    onPressed:
-                        _seleccionados.isEmpty ? null : _confirmarEliminacion,
-                    child: const Text(AppStrings.tpEliminar),
-                  ),
-                ] else
-                  const Spacer(),
-                IconButton(
-                  icon: const Icon(Icons.search),
-                  color: AppColors.titleColor,
-                  tooltip: AppStrings.buscar,
-                  onPressed: _alternarBusqueda,
-                ),
-                if (puedeEditar)
-                  IconButton(
-                    icon: const Icon(Icons.delete),
-                    // Rojo mientras el modo selección está activo.
-                    color: _modoSeleccion
-                        ? AppColors.stockDanger
-                        : AppColors.titleColor,
-                    tooltip: AppStrings.papelera,
-                    onPressed: _alternarModoSeleccion,
-                  ),
-              ],
-            ),
-            if (_mostrarBusqueda)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: TextField(
-                  controller: _busquedaController,
-                  autofocus: true,
-                  decoration: const InputDecoration(
-                    hintText: AppStrings.tpBuscarHint,
-                    prefixIcon: Icon(Icons.search),
-                  ),
-                  // read (no watch): solo se llama al método del Notifier.
-                  onChanged: (texto) {
-                    ref.read(tpBusquedaProvider.notifier).setTexto(texto);
-                    // Al cambiar la búsqueda se descarta la selección para
-                    // no eliminar TPs que quedaron ocultos por el filtro.
-                    if (_seleccionados.isNotEmpty) {
-                      setState(_seleccionados.clear);
-                    }
-                  },
-                ),
-              ),
-            Expanded(
-              child: filtradosAsync.when(
-                data: (tps) {
-                  if (todosAsync.value?.isEmpty ?? true) {
-                    return const Center(child: Text(AppStrings.tpVacia));
-                  }
-                  if (tps.isEmpty) {
-                    return const Center(
-                      child: Text(AppStrings.tpSinResultados),
-                    );
-                  }
-                  return RefreshIndicator(
-                    onRefresh: () async {
-                      ref.invalidate(tpProvider);
-                      await ref.read(tpProvider.future);
-                    },
-                    child: ListView.builder(
-                      // Espacio abajo para que el botón flotante no tape
-                      // la última tarjeta.
-                      padding: const EdgeInsets.only(bottom: 80),
-                      itemCount: tps.length,
-                      itemBuilder: (context, index) {
-                        final tp = tps[index];
-                        return TpCard(
-                          tp: tp,
-                          modoSeleccion: _modoSeleccion,
-                          seleccionado: _seleccionados.contains(tp.id),
-                          // En modo selección tocar marca/desmarca; si no,
-                          // push (no go) apila el detalle, así "volver"
-                          // regresa a la lista. Solo viaja el id.
-                          onTap: _modoSeleccion
-                              ? () => _alternarSeleccionado(tp.id)
-                              : () => context.push('/tp/detalle/${tp.id}'),
-                          onEditar: puedeEditar
-                              ? () => context.push('/tp/editar/${tp.id}')
-                              : null,
-                        );
-                      },
+                    ElevatedButton(
+                      onPressed:
+                          _seleccionados.isEmpty ? null : _confirmarEliminacion,
+                      child: const Text(AppStrings.tpEliminar),
                     ),
-                  );
-                },
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (error, stack) =>
-                    const Center(child: Text(AppStrings.tpError)),
+                  ] else
+                    const Spacer(),
+                  IconButton(
+                    icon: const Icon(Icons.search),
+                    color: AppColors.titleColor,
+                    tooltip: AppStrings.buscar,
+                    onPressed: _alternarBusqueda,
+                  ),
+                  if (puedeEditar)
+                    IconButton(
+                      icon: const Icon(Icons.delete),
+                      // Rojo mientras el modo selección está activo.
+                      color: _modoSeleccion
+                          ? AppColors.stockDanger
+                          : AppColors.titleColor,
+                      tooltip: AppStrings.papelera,
+                      onPressed: _alternarModoSeleccion,
+                    ),
+                ],
               ),
-            ),
-          ],
+              if (_mostrarBusqueda)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: TextField(
+                    controller: _busquedaController,
+                    autofocus: true,
+                    decoration: const InputDecoration(
+                      hintText: AppStrings.tpBuscarHint,
+                      prefixIcon: Icon(Icons.search),
+                    ),
+                    // read (no watch): solo se llama al método del Notifier.
+                    onChanged: (texto) {
+                      ref.read(tpBusquedaProvider.notifier).setTexto(texto);
+                      // Al cambiar la búsqueda se descarta la selección para
+                      // no eliminar TPs que quedaron ocultos por el filtro.
+                      if (_seleccionados.isNotEmpty) {
+                        setState(_seleccionados.clear);
+                      }
+                    },
+                  ),
+                ),
+              Expanded(
+                child: filtradosAsync.when(
+                  data: (tps) {
+                    if (todosAsync.value?.isEmpty ?? true) {
+                      return const Center(child: Text(AppStrings.tpVacia));
+                    }
+                    if (tps.isEmpty) {
+                      return const Center(
+                        child: Text(AppStrings.tpSinResultados),
+                      );
+                    }
+                    return RefreshIndicator(
+                      onRefresh: () async {
+                        ref.invalidate(tpProvider);
+                        await ref.read(tpProvider.future);
+                      },
+                      child: ListView.builder(
+                        // Espacio abajo para que el botón flotante no tape
+                        // la última tarjeta.
+                        padding: const EdgeInsets.only(bottom: 80),
+                        itemCount: tps.length,
+                        itemBuilder: (context, index) {
+                          final tp = tps[index];
+                          return TpCard(
+                            tp: tp,
+                            modoSeleccion: _modoSeleccion,
+                            seleccionado: _seleccionados.contains(tp.id),
+                            // En modo selección tocar marca/desmarca; si no,
+                            // push (no go) apila el detalle, así "volver"
+                            // regresa a la lista. Solo viaja el id.
+                            onTap: _modoSeleccion
+                                ? () => _alternarSeleccionado(tp.id)
+                                : () => context.push('/tp/detalle/${tp.id}'),
+                            onEditar: puedeEditar
+                                ? () => context.push('/tp/editar/${tp.id}')
+                                : null,
+                          );
+                        },
+                      ),
+                    );
+                  },
+                  loading: () => const Center(child: CircularProgressIndicator()),
+                  error: (error, stack) =>
+                      const Center(child: Text(AppStrings.tpError)),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

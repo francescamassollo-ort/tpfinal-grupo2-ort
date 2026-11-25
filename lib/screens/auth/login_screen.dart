@@ -10,6 +10,7 @@ import '../../widgets/logo_ort.dart';
 import '../../widgets/handy_input_decoration.dart';
 import '../../widgets/handy_button_style_one.dart';
 import '../../widgets/handy_text_button_black.dart';
+import '../../widgets/formulario_centrado.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -35,7 +36,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     
     return Scaffold(
       body: SafeArea(
-        child: SingleChildScrollView(
+        child: FormularioCentrado(
           child: Column(
             children: [
               const LogoOrt(ancho: 220),

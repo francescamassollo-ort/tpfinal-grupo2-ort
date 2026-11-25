@@ -13,6 +13,8 @@ import 'package:tpfinal_grupo2/providers/perfil_provider.dart';
 import 'package:tpfinal_grupo2/providers/role_provider.dart';
 import 'package:tpfinal_grupo2/widgets/solo_con_permiso.dart';
 
+import 'helpers/pantalla_celular.dart';
+
 /// Un router como el de la app: algunas pantallas dentro del shell (barra
 /// inferior y menú) y otras afuera, como Historial.
 GoRouter _router({String inicio = '/inventario'}) => GoRouter(
@@ -43,6 +45,7 @@ Future<GoRouter> _abrir(
   String inicio = '/inventario',
   UserRole rol = UserRole.administrador,
 }) async {
+  usarPantallaDeCelular(tester);
   final router = _router(inicio: inicio);
   await tester.pumpWidget(
     ProviderScope(

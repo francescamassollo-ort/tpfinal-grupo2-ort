@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import './styles/handy_welcome_button_styles.dart';
 import '../../core/app_colors.dart';
+import '../../core/breakpoints.dart';
 import '../../widgets/logo_ort.dart';
 
 class WelcomeScreen extends StatelessWidget {
@@ -10,13 +11,20 @@ class WelcomeScreen extends StatelessWidget {
 // verificar const!!!
   @override
   Widget build(BuildContext context) {
+    final escritorio = Breakpoints.esAnchoEn(context);
+
     return Scaffold(
       backgroundColor: AppColors.cardBackground,
       body: SafeArea(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          mainAxisAlignment: escritorio
+          // Celular: los bloques se reparten todo el alto de la pantalla.
+          // Escritorio: se juntan en el centro, con una separación fija.
+            ? MainAxisAlignment.center
+            : MainAxisAlignment.spaceAround,
           children: [
             const LogoOrt(ancho: 300),
+            if (escritorio) const SizedBox(height: 32),
             
             Column(
               children: [
@@ -43,6 +51,7 @@ class WelcomeScreen extends StatelessWidget {
             // Los botones llenan el ancho disponible hasta un máximo: en el
             // celular ocupan casi toda la fila y en la web no quedan perdidos
             // en los extremos de una pantalla ancha.
+            if (escritorio) const SizedBox(height: 48),
             Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 520),

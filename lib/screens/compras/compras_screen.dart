@@ -12,6 +12,7 @@ import '../../providers/lista_compra_provider.dart';
 import '../../widgets/app_decorative_background.dart';
 import '../../widgets/app_screen_header.dart';
 import '../../widgets/share_download_actions.dart';
+import '../../widgets/contenido_centrado.dart';
 import 'compra_tile.dart';
 import 'compras_agregar_dialog.dart';
 import 'compras_exportacion.dart';
@@ -57,83 +58,85 @@ class _ComprasScreenState extends ConsumerState<ComprasScreen> {
       backgroundColor: AppColors.screenBackground,
       body: AppDecorativeBackground(
         child: SafeArea(
-          child: Column(
-            children: [
-              AppScreenHeader(
-                title: AppStrings.comprasTitulo,
-                onBack: () => _volver(context),
-              ),
-              _AccionesSuperiores(
-                onSugerencias: () => _agregarSugerencias(context, ref),
-                seleccionando: _seleccionando,
-                cantidadElegidos: _elegidos.length,
-                hayItems: todos.isNotEmpty,
-                onPapelera: () => setState(() => _seleccionando = true),
-                onCancelar: _salirDeSeleccion,
-                onTodos: () => setState(() {
-                  _elegidos
-                    ..clear()
-                    ..addAll(todos.map((i) => i.id));
-                }),
-                onEliminar: () => _eliminar(context, ref),
-              ),
-              Expanded(
-                child: items.when(
-                  loading: () =>
-                      const Center(child: CircularProgressIndicator()),
-                  error: (error, stack) => Center(
-                    child: Text(
-                      AppStrings.comprasError,
-                      style: AppTextStyles.listItemSubtitle,
+          child: ContenidoCentrado(
+            child: Column(
+              children: [
+                AppScreenHeader(
+                  title: AppStrings.comprasTitulo,
+                  onBack: () => _volver(context),
+                ),
+                _AccionesSuperiores(
+                  onSugerencias: () => _agregarSugerencias(context, ref),
+                  seleccionando: _seleccionando,
+                  cantidadElegidos: _elegidos.length,
+                  hayItems: todos.isNotEmpty,
+                  onPapelera: () => setState(() => _seleccionando = true),
+                  onCancelar: _salirDeSeleccion,
+                  onTodos: () => setState(() {
+                    _elegidos
+                      ..clear()
+                      ..addAll(todos.map((i) => i.id));
+                  }),
+                  onEliminar: () => _eliminar(context, ref),
+                ),
+                Expanded(
+                  child: items.when(
+                    loading: () =>
+                        const Center(child: CircularProgressIndicator()),
+                    error: (error, stack) => Center(
+                      child: Text(
+                        AppStrings.comprasError,
+                        style: AppTextStyles.listItemSubtitle,
+                      ),
                     ),
-                  ),
-                  data: (lista) => lista.isEmpty
-                      ? Center(
-                          child: Text(
-                            AppStrings.comprasVacia,
-                            style: AppTextStyles.listItemSubtitle,
+                    data: (lista) => lista.isEmpty
+                        ? Center(
+                            child: Text(
+                              AppStrings.comprasVacia,
+                              style: AppTextStyles.listItemSubtitle,
+                            ),
+                          )
+                        : ListView.separated(
+                            padding: const EdgeInsets.fromLTRB(36, 8, 36, 20),
+                            itemCount: lista.length,
+                            separatorBuilder: (context, index) =>
+                                const SizedBox(height: 12),
+                            itemBuilder: (context, index) {
+                              final item = lista[index];
+                              return CompraTile(
+                                item: item,
+                                onDecrement: () => acciones.decrementar(item.id),
+                                onIncrement: () => acciones.incrementar(item.id),
+                                onCambiarEstado: (estado) =>
+                                    _cambiarEstado(context, ref, item, estado),
+                                seleccionando: _seleccionando,
+                                seleccionado: _elegidos.contains(item.id),
+                                onSeleccion: () => _alternar(item.id),
+                              );
+                            },
                           ),
-                        )
-                      : ListView.separated(
-                          padding: const EdgeInsets.fromLTRB(36, 8, 36, 20),
-                          itemCount: lista.length,
-                          separatorBuilder: (context, index) =>
-                              const SizedBox(height: 12),
-                          itemBuilder: (context, index) {
-                            final item = lista[index];
-                            return CompraTile(
-                              item: item,
-                              onDecrement: () => acciones.decrementar(item.id),
-                              onIncrement: () => acciones.incrementar(item.id),
-                              onCambiarEstado: (estado) =>
-                                  _cambiarEstado(context, ref, item, estado),
-                              seleccionando: _seleccionando,
-                              seleccionado: _elegidos.contains(item.id),
-                              onSeleccion: () => _alternar(item.id),
-                            );
-                          },
-                        ),
+                  ),
                 ),
-              ),
-              // 28 del borde derecho y 47 hasta los botones (12 ya los pone
-              // ShareDownloadActions), según Figma.
-              Padding(
-                padding: const EdgeInsets.only(right: 28, bottom: 35),
-                child: Align(
-                  alignment: Alignment.centerRight,
-                  child: ComprasFab(onPressed: () => _agregar(context, ref)),
+                // 28 del borde derecho y 47 hasta los botones (12 ya los pone
+                // ShareDownloadActions), según Figma.
+                Padding(
+                  padding: const EdgeInsets.only(right: 28, bottom: 35),
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: ComprasFab(onPressed: () => _agregar(context, ref)),
+                  ),
                 ),
-              ),
-              // Mientras la lista carga o falla no hay nada que exportar.
-              ShareDownloadActions(
-                onShare: items.hasValue
-                    ? () => exportarListaCompras(context, ref, descargar: false)
-                    : null,
-                onDownload: items.hasValue
-                    ? () => exportarListaCompras(context, ref, descargar: true)
-                    : null,
-              ),
-            ],
+                // Mientras la lista carga o falla no hay nada que exportar.
+                ShareDownloadActions(
+                  onShare: items.hasValue
+                      ? () => exportarListaCompras(context, ref, descargar: false)
+                      : null,
+                  onDownload: items.hasValue
+                      ? () => exportarListaCompras(context, ref, descargar: true)
+                      : null,
+                ),
+              ],
+            ),
           ),
         ),
       ),

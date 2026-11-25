@@ -7,8 +7,17 @@ import 'package:tpfinal_grupo2/models/usuario.dart';
 import 'package:tpfinal_grupo2/providers/alerta_provider.dart';
 import 'package:tpfinal_grupo2/providers/role_provider.dart';
 
+import 'helpers/pantalla_celular.dart';
+
 // Monta el shell en la ruta indicada, sin ir a Firestore.
 Future<void> _mostrar(WidgetTester tester, String ruta) async {
+  usarPantallaDeCelular(tester);
+  // Tamaño de un celular (360 x 800). El botón flotante es el mismo en
+  // escritorio, pero el diseño de celular es el que estas pruebas ya cubrían.
+  tester.view.physicalSize = const Size(1080, 2400);
+  tester.view.devicePixelRatio = 3;
+  addTearDown(tester.view.reset);
+
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
@@ -25,7 +34,6 @@ Future<void> _mostrar(WidgetTester tester, String ruta) async {
   );
   await tester.pump();
 }
-
 void main() {
   group('botón flotante "+"', () {
     testWidgets('en Inventario lleva a dar de alta un insumo', (tester) async {
