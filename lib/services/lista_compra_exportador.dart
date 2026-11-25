@@ -79,6 +79,9 @@ class ListaCompraExportador {
     documento.addPage(
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
+        // El tope por defecto es 20 páginas: una lista larga (por ejemplo tras
+        // una importación grande) fallaba con TooManyPagesException.
+        maxPages: 2000,
         margin: const pw.EdgeInsets.all(40),
         footer: (contexto) => pw.Align(
           alignment: pw.Alignment.centerRight,
