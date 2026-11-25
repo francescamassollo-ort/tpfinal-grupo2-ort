@@ -15,10 +15,10 @@ class Breakpoints {
 
   /// Ancho máximo del contenido de una pantalla de lista o de formulario. Más
   /// ancho que esto las tarjetas se estiran demasiado y cuesta leerlas.
-  static const double maxContentWidth = 720;
+  static const double maxContentWidth = 1000;
 
   /// Ancho máximo de un diálogo (panel de filtros, selector de rol, etc.).
-  static const double maxDialogWidth = 480;
+  static const double maxDialogWidth = 500;
 
   /// Ancho máximo de cada tarjeta de insumo cuando el inventario se muestra
   /// como grilla.
