@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/app_strings.dart';
 import '../../core/app_text_styles.dart';
+import '../../core/breakpoints.dart';
 import '../../models/insumo.dart';
 import '../../models/lista_compra.dart';
 import '../../services/lista_compra_service.dart';
@@ -40,84 +41,87 @@ class _ComprasAgregarDialogState extends State<ComprasAgregarDialog> {
 
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              AppStrings.comprasAgregarTitulo,
-              style: AppTextStyles.listItemTitle,
-            ),
-            const SizedBox(height: 16),
-            DropdownButtonFormField<String>(
-              initialValue: _insumo?.id,
-              // Los nombres de insumo pueden ser largos: que no desborden.
-              isExpanded: true,
-              decoration: InputDecoration(
-                labelText: AppStrings.comprasCampoInsumo,
-                helperText: _insumo == null
-                    ? null
-                    : AppStrings.comprasStockActual(_insumo!.stock),
+      child: ConstrainedBox(
+        constraints:const BoxConstraints(maxWidth: Breakpoints.maxDialogWidth),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                AppStrings.comprasAgregarTitulo,
+                style: AppTextStyles.listItemTitle,
               ),
-              items: [
-                for (final insumo in insumos)
-                  DropdownMenuItem(
-                    value: insumo.id,
+              const SizedBox(height: 16),
+              DropdownButtonFormField<String>(
+                initialValue: _insumo?.id,
+                // Los nombres de insumo pueden ser largos: que no desborden.
+                isExpanded: true,
+                decoration: InputDecoration(
+                  labelText: AppStrings.comprasCampoInsumo,
+                  helperText: _insumo == null
+                      ? null
+                      : AppStrings.comprasStockActual(_insumo!.stock),
+                ),
+                items: [
+                  for (final insumo in insumos)
+                    DropdownMenuItem(
+                      value: insumo.id,
+                      child: Text(
+                        etiquetas[insumo.id]!,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                ],
+                onChanged: _elegirInsumo,
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
                     child: Text(
-                      etiquetas[insumo.id]!,
-                      overflow: TextOverflow.ellipsis,
+                      AppStrings.comprasCampoCantidad,
+                      style: AppTextStyles.listItemSubtitle,
                     ),
                   ),
-              ],
-              onChanged: _elegirInsumo,
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    AppStrings.comprasCampoCantidad,
-                    style: AppTextStyles.listItemSubtitle,
+                  QuantityStepper(
+                    value: _cantidad,
+                    // El control se vuelve a mirar al tocar, no solo al dibujar: así
+                    // dos toques seguidos nunca bajan de la cantidad mínima.
+                    onDecrement: () => setState(() {
+                      if (_cantidad > ListaCompra.cantidadMinima) _cantidad--;
+                    }),
+                    onIncrement: () => setState(() => _cantidad++),
                   ),
-                ),
-                QuantityStepper(
-                  value: _cantidad,
-                  // El control se vuelve a mirar al tocar, no solo al dibujar: así
-                  // dos toques seguidos nunca bajan de la cantidad mínima.
-                  onDecrement: () => setState(() {
-                    if (_cantidad > ListaCompra.cantidadMinima) _cantidad--;
-                  }),
-                  onIncrement: () => setState(() => _cantidad++),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            Row(
-              children: [
-                Expanded(
-                  child: TextButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: const Text(AppStrings.tpCancelar),
+                ],
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: const Text(AppStrings.tpCancelar),
+                    ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton(
-                    // Sin un insumo elegido no hay nada que agregar.
-                    onPressed: _insumo == null
-                        ? null
-                        : () => Navigator.of(context).pop((
-                              productoId: _insumo!.id,
-                              cantidad: _cantidad,
-                            )),
-                    child: const Text(AppStrings.agregar),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      // Sin un insumo elegido no hay nada que agregar.
+                      onPressed: _insumo == null
+                          ? null
+                          : () => Navigator.of(context).pop((
+                                productoId: _insumo!.id,
+                                cantidad: _cantidad,
+                              )),
+                      child: const Text(AppStrings.agregar),
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/app_strings.dart';
 import '../../core/formatters.dart';
+import '../../core/plataforma.dart';
 import '../../models/datos_escaneados.dart';
 import '../../models/insumo.dart';
 import '../../providers/insumo_providers.dart';
@@ -16,6 +17,7 @@ import '../../services/duplicate_detection_service.dart';
 import '../../services/ocr_service.dart';
 import '../../services/stock_service.dart';
 import '../../services/synonym_detection_service.dart';
+import '../../widgets/contenido_centrado.dart';
 import 'duplicados_dialog.dart';
 import 'sugerencia_de_categoria.dart';
 import 'sugerencias_nombre.dart';
@@ -112,6 +114,7 @@ class _InsumoAltaScreenState extends ConsumerState<InsumoAltaScreen> {
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.all(16),
+        child: ContenidoCentrado(
         child: Form(
           key: _formKey,
           child: ListView(
@@ -272,11 +275,12 @@ if (!kIsWeb) ...[
 const SizedBox(height: 8),
 
 // Abre la cámara y completa el formulario con lo que se lea del código.
-OutlinedButton.icon(
-  onPressed: _escanear,
-  icon: const Icon(Icons.qr_code_scanner),
-  label: const Text(AppStrings.altaEscanear),
-),
+if (Plataforma.escanerDisponible)
+  OutlinedButton.icon(
+    onPressed: _escanear,
+    icon: const Icon(Icons.qr_code_scanner),
+    label: const Text(AppStrings.altaEscanear),
+  ),
 
 const SizedBox(height: 8),
 
@@ -433,6 +437,7 @@ ElevatedButton(
             ],
           ),
         ),
+      ),
       ),
     );
   }

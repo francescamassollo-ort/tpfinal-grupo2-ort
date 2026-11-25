@@ -8,6 +8,8 @@ import 'package:tpfinal_grupo2/models/usuario.dart';
 import 'package:tpfinal_grupo2/providers/alerta_provider.dart';
 import 'package:tpfinal_grupo2/providers/role_provider.dart';
 
+import 'helpers/pantalla_celular.dart';
+
 Alerta _alerta(String id, TipoAlerta tipo) =>
     Alerta(productoId: id, productoNombre: 'Insumo $id', tipo: tipo);
 
@@ -16,6 +18,14 @@ Future<void> _mostrar(
   AsyncValue<List<Alerta>> alertas, {
   Set<String> vistas = const {},
 }) async {
+  usarPantallaDeCelular(tester);
+  // Tamaño de un celular (360 x 800): estas pruebas son de la barra inferior,
+  // que solo se usa en ancho angosto. El de escritorio se prueba en
+  // app_shell_responsive_test.dart.
+  tester.view.physicalSize = const Size(1080, 2400);
+  tester.view.devicePixelRatio = 3;
+  addTearDown(tester.view.reset);
+
   await tester.pumpWidget(
     ProviderScope(
       overrides: [

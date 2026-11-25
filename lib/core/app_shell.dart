@@ -12,6 +12,7 @@ import '../models/usuario.dart';
 import 'app_colors.dart';
 import 'app_strings.dart';
 import 'app_text_styles.dart';
+import 'breakpoints.dart';
 
 import '../services/auth_logic/auth_service.dart';
 
@@ -32,6 +33,11 @@ const Set<String> rutasRaizDelShell = {
 // go_router llama a este widget una sola vez y le va cambiando el [child]
 // según la ruta actual, por eso la barra y el drawer no "parpadean" al
 // navegar entre ellas.
+//
+// Se adapta al ancho de la ventana (ver [Breakpoints.compact]):
+// - Angosto (celular): barra inferior + menú lateral que se abre (drawer).
+// - Ancho (escritorio): panel lateral fijo con todos los destinos, sin barra
+//   inferior ni drawer.
 class AppShell extends ConsumerStatefulWidget {
   const AppShell({required this.location, required this.child, super.key});
 
@@ -58,6 +64,9 @@ class _AppShellState extends ConsumerState<AppShell> {
     // Mientras las alertas cargan, o si fallan, va sin número: no hace falta
     // avisar de nada que todavía no se sabe.
     final alertas = ref.watch(alertasSinVerProvider);
+    // El shell ocupa toda la ventana, así que alcanza con el ancho de la
+    // ventana para decidir entre el diseño de celular y el de escritorio.
+    final ancho = Breakpoints.esAnchoEn(context);
 
     return PopScope(
       // En las pantallas raíz, "atrás" lleva a Inventario; en Inventario (o en
@@ -74,15 +83,23 @@ class _AppShellState extends ConsumerState<AppShell> {
       },
       child: Scaffold(
         key: _scaffoldKey,
-        drawer: _AppDrawer(role: role, location: location),
-        body: child,
+        drawer: ancho ? null : _AppDrawer(role: role, location: location),
+        body: ancho
+            ? Row(
+                children: [
+                  _PanelLateral(role: role, location: location, alertas: alertas),
+                  const VerticalDivider(width: 1),
+                  Expanded(child: child),
+                ],
+              )
+            : child,
         floatingActionButton: rutaBotonAgregar != null
             ? FloatingActionButton(
                 onPressed: () => context.push(rutaBotonAgregar),
                 child: const Icon(Icons.add),
               )
             : null,
-        bottomNavigationBar: BottomAppBar(
+        bottomNavigationBar: ancho ? null : BottomAppBar(
           shape: const CircularNotchedRectangle(),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -125,12 +142,9 @@ class _AppShellState extends ConsumerState<AppShell> {
                 iconoActivo: Icons.notifications,
                 activo: location == '/alertas',
                 conInsignia: true,
-                textoInsignia: alertas.length > 99 ? '99+' : '${alertas.length}',
+                textoInsignia: _textoInsignia(alertas),
                 insigniaVisible: alertas.isNotEmpty,
-                colorInsignia:
-                    alertas.any((a) => a.severidad == SeveridadAlerta.critica)
-                        ? AppColors.stockDanger
-                        : AppColors.stockWarning,
+                colorInsignia: _colorInsignia(alertas),
                 onPressed: () => context.go('/alertas'),
               ),
             ],
@@ -140,6 +154,17 @@ class _AppShellState extends ConsumerState<AppShell> {
     );
   }
 }
+
+// El número de la insignia de la campana. Lo usan la barra inferior y el panel
+// lateral, para que digan siempre lo mismo.
+String _textoInsignia(List<Alerta> alertas) =>
+    alertas.length > 99 ? '99+' : '${alertas.length}';
+
+// Rojo si alguna alerta es crítica, naranja si son solo avisos.
+Color _colorInsignia(List<Alerta> alertas) =>
+    alertas.any((a) => a.severidad == SeveridadAlerta.critica)
+        ? AppColors.stockDanger
+        : AppColors.stockWarning;
 
 // Un botón de la barra inferior: el ícono de la pantalla en la que se está va
 // relleno y con el color de la marca, para saber dónde se está parado.
@@ -260,6 +285,124 @@ String? _rutaBotonAgregar(String location, UserRole role) {
   return Permisos.puedeDarDeAlta(role) ? '/insumo/alta' : null;
 }
 
+// Si el destino [route] es la sección en la que está la persona. Una pantalla
+// "hija" cuenta como su sección: el detalle y el alta de un insumo son parte de
+// Inventario, y el detalle y la edición de un TP son parte de TPs.
+bool _estaEnSeccion(String route, String location) {
+  if (route == '/inventario') {
+    return location == route ||
+        location.startsWith('$route/') ||
+        location.startsWith('/insumo/');
+  }
+  return location == route || location.startsWith('$route/');
+}
+
+// El ícono de cada destino en el panel lateral.
+IconData _iconoDe(String route) => switch (route) {
+      '/home' => Icons.home_outlined,
+      '/inventario' => Icons.inventory_2_outlined,
+      '/historial' => Icons.history,
+      '/tp' => Icons.science_outlined,
+      '/compras' => Icons.shopping_cart_outlined,
+      '/usuarios' => Icons.people_outline,
+      '/importar' => Icons.upload_file_outlined,
+      '/bajas' => Icons.archive_outlined,
+      '/alertas' => Icons.notifications_outlined,
+      '/perfil' => Icons.person_outline,
+      _ => Icons.circle_outlined,
+    };
+
+// Panel lateral fijo del diseño de escritorio. Tiene los mismos destinos que el
+// menú de celular, más Inicio, Alertas y Perfil, que en celular están en la
+// barra inferior.
+class _PanelLateral extends StatelessWidget {
+  const _PanelLateral({
+    required this.role,
+    required this.location,
+    required this.alertas,
+  });
+
+  final UserRole role;
+  final String location;
+  final List<Alerta> alertas;
+
+  static const double _ancho = 260;
+
+  @override
+  Widget build(BuildContext context) {
+    final destinos = [
+      const _DrawerItem(AppStrings.homeTitulo, '/home'),
+      ..._itemsForRole(role),
+      const _DrawerItem(AppStrings.alertasTitulo, '/alertas'),
+      const _DrawerItem(AppStrings.perfilTitulo, '/perfil'),
+    ];
+
+    return SizedBox(
+      width: _ancho,
+      child: Material(
+        color: AppColors.screenBackground,
+        child: SafeArea(
+          right: false,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                child: Text(
+                  AppStrings.usuariosRol(role),
+                  style: AppTextStyles.itemDetail,
+                ),
+              ),
+              Expanded(
+                child: ListView(
+                  children: [
+                    for (final destino in destinos)
+                      ListTile(
+                        leading: _icono(destino),
+                        title: Text(destino.label),
+                        selected: _estaEnSeccion(destino.route, location),
+                        selectedColor: AppColors.primary,
+                        onTap: () {
+                          // Igual que en el menú de celular: Historial y
+                          // Compras se abren encima, el resto reemplaza.
+                          if (destino.fueraDelShell) {
+                            context.push(destino.route);
+                          } else {
+                            context.go(destino.route);
+                          }
+                        },
+                      ),
+                  ],
+                ),
+              ),
+              const Divider(height: 1),
+              ListTile(
+                leading: const Icon(Icons.logout),
+                title: const Text(AppStrings.menuCerrarSesion),
+                onTap: () => _AppDrawer.cerrarSesion(context),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // La campana lleva el número de alertas sin ver, como en la barra inferior.
+  Widget _icono(_DrawerItem destino) {
+    final icono = Icon(_iconoDe(destino.route));
+    if (destino.route != '/alertas') return icono;
+
+    return Badge(
+      isLabelVisible: alertas.isNotEmpty,
+      label: Text(_textoInsignia(alertas)),
+      textColor: Colors.white,
+      backgroundColor: _colorInsignia(alertas),
+      child: icono,
+    );
+  }
+}
+
 class _AppDrawer extends ConsumerWidget {
   const _AppDrawer({required this.role, required this.location});
 
@@ -326,7 +469,7 @@ class _AppDrawer extends ConsumerWidget {
             const Spacer(),
             ListTile(
               title: const Text(AppStrings.menuCerrarSesion),
-              onTap: () => _cerrarSesion(context, ref),
+              onTap: () => cerrarSesion(context),
             ),
           ],
         ),
@@ -335,8 +478,9 @@ class _AppDrawer extends ConsumerWidget {
   }
 
   // Pregunta antes de cerrar: es fácil tocarlo sin querer al pie del menú. Al
-  // cerrar la sesión, el router manda solo a Bienvenida.
-  Future<void> _cerrarSesion(BuildContext context, WidgetRef ref) async {
+  // cerrar la sesión, el router manda solo a Bienvenida. Es estático para que
+  // lo use también el panel lateral de escritorio.
+  static Future<void> cerrarSesion(BuildContext context) async {
     final auth = AuthService();
     final confirmado = await showDialog<bool>(
       context: context,

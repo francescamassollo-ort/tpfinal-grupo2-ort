@@ -13,6 +13,7 @@ import '../../widgets/app_action_button.dart';
 import '../../widgets/app_decorative_background.dart';
 import '../../widgets/app_screen_header.dart';
 import '../../widgets/insumo_etiquetas.dart';
+import '../../widgets/contenido_centrado.dart';
 import 'consumo_agregar_dialog.dart';
 import 'consumo_tile.dart';
 
@@ -72,37 +73,39 @@ class _ConsumoScreenState extends ConsumerState<ConsumoScreen> {
       backgroundColor: AppColors.screenBackground,
       body: AppDecorativeBackground(
         child: SafeArea(
-          child: Column(
-            children: [
-              AppScreenHeader(
-                title: AppStrings.consumoTitulo,
-                onBack: _volver,
-              ),
-              Expanded(
-                child: insumos.when(
-                  loading: () =>
-                      const Center(child: CircularProgressIndicator()),
-                  error: (error, stack) => Center(
-                    child: Text(
-                      AppStrings.consumoErrorCargar,
-                      style: AppTextStyles.listItemSubtitle,
+          child:ContenidoCentrado(
+            child: Column(
+              children: [
+                AppScreenHeader(
+                  title: AppStrings.consumoTitulo,
+                  onBack: _volver,
+                ),
+                Expanded(
+                  child: insumos.when(
+                    loading: () =>
+                        const Center(child: CircularProgressIndicator()),
+                    error: (error, stack) => Center(
+                      child: Text(
+                        AppStrings.consumoErrorCargar,
+                        style: AppTextStyles.listItemSubtitle,
+                      ),
                     ),
+                    data: _contenido,
                   ),
-                  data: _contenido,
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(36, 8, 36, 24),
-                child: AppActionButton(
-                  label: AppStrings.consumoConfirmar,
-                  // Sin insumos que retirar, o mientras se guarda, no hace
-                  // nada: así un doble toque no registra dos veces.
-                  onPressed: _lineas.isEmpty || _guardando
-                      ? null
-                      : () => _confirmar(insumos.value ?? const []),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(36, 8, 36, 24),
+                  child: AppActionButton(
+                    label: AppStrings.consumoConfirmar,
+                    // Sin insumos que retirar, o mientras se guarda, no hace
+                    // nada: así un doble toque no registra dos veces.
+                    onPressed: _lineas.isEmpty || _guardando
+                        ? null
+                        : () => _confirmar(insumos.value ?? const []),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

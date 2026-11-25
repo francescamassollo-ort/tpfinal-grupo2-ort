@@ -6,6 +6,7 @@ import '../../core/app_colors.dart';
 import '../../core/app_strings.dart';
 import '../../core/permisos.dart';
 import '../../widgets/app_screen_header.dart';
+import '../../widgets/contenido_centrado.dart';
 import '../../models/filtro_historial.dart';
 import '../../models/insumo.dart';
 import '../../providers/historial_provider.dart';
@@ -14,7 +15,6 @@ import '../../providers/insumo_providers.dart';
 import '../../providers/role_provider.dart';
 import '../../providers/stock_provider.dart';
 import '../../services/stock_logica.dart';
-
 
 // Detalle de un insumo. Recibe solo el id (viene en la ruta /insumo/:id)
 // y busca el insumo actualizado con insumoPorIdProvider: si alguien registra
@@ -99,88 +99,91 @@ class _DetalleContenido extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Column(
-      children: [
-        // Mismo encabezado que el resto de las pantallas: volver, nombre y (si
-        // el rol lo permite) editar y dar de baja.
-        AppScreenHeader(
-          title: insumo.nombre,
-          onBack: () => _volver(context),
-          acciones: [
-            if (puedeEditar) ...[
-              IconButton(
-                icon: const Icon(Icons.edit_outlined),
-                tooltip: 'Editar',
-                onPressed: () => context.push('/insumo/editar/${insumo.id}'),
-              ),
-              IconButton(
-                icon: const Icon(Icons.delete_outline),
-                tooltip: 'Dar de baja',
-                onPressed: () => _darDeBaja(context, ref),
-              ),
-            ],
-          ],
-        ),
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
-            child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    return ContenidoCentrado(
+      child: Column(
         children: [
-          // Expanded + scroll: la ficha puede ser larga, y los botones de
-          // abajo tienen que quedar siempre visibles.
-          Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  _StockCard(insumo: insumo),
-                  const SizedBox(height: 12),
-                  _FichaCard(insumo: insumo),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  // Abre el Historial ya filtrado por este insumo (R13); al
-                  // volver se limpia el filtro para no dejarlo puesto.
-                  onPressed: () => _verHistorial(context, ref),
-                  child: const Text('Historial'),
+          // Mismo encabezado que el resto de las pantallas: volver, nombre y (si
+          // el rol lo permite) editar y dar de baja.
+          AppScreenHeader(
+            title: insumo.nombre,
+            onBack: () => _volver(context),
+            acciones: [
+              if (puedeEditar) ...[
+                IconButton(
+                  icon: const Icon(Icons.edit_outlined),
+                  tooltip: 'Editar',
+                  onPressed: () => context.push('/insumo/editar/${insumo.id}'),
                 ),
-              ),
-              if (puedeConsumir) ...[
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton(
-                    // Abre el registro de consumo con este insumo ya elegido.
-                    onPressed: () => context.push('/consumo?insumo=${insumo.id}'),
-                    child: const Text('Registrar consumo'),
-                  ),
+                IconButton(
+                  icon: const Icon(Icons.delete_outline),
+                  tooltip: 'Dar de baja',
+                  onPressed: () => _darDeBaja(context, ref),
                 ),
               ],
             ],
           ),
-          // Sumar stock: llegó una compra o una donación de un insumo que ya
-          // existe. Deja una entrada de "Reposición" en el Historial.
-          if (puedeSumar) ...[
-            const SizedBox(height: 8),
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: () => _sumarStock(context, ref),
-                icon: const Icon(Icons.add),
-                label: const Text(AppStrings.detalleSumarStock),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Expanded + scroll: la ficha puede ser larga, y los botones de
+                  // abajo tienen que quedar siempre visibles.
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          _StockCard(insumo: insumo),
+                          const SizedBox(height: 12),
+                          _FichaCard(insumo: insumo),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          // Abre el Historial ya filtrado por este insumo (R13); al
+                          // volver se limpia el filtro para no dejarlo puesto.
+                          onPressed: () => _verHistorial(context, ref),
+                          child: const Text('Historial'),
+                        ),
+                      ),
+                      if (puedeConsumir) ...[
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton(
+                            // Abre el registro de consumo con este insumo ya elegido.
+                            onPressed: () =>
+                                context.push('/consumo?insumo=${insumo.id}'),
+                            child: const Text('Registrar consumo'),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                  // Sumar stock: llegó una compra o una donación de un insumo que ya
+                  // existe. Deja una entrada de "Reposición" en el Historial.
+                  if (puedeSumar) ...[
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () => _sumarStock(context, ref),
+                        icon: const Icon(Icons.add),
+                        label: const Text(AppStrings.detalleSumarStock),
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ),
-          ],
-        ],
-            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -191,18 +194,24 @@ class _DetalleContenido extends ConsumerWidget {
     if (cantidad == null || !context.mounted) return;
 
     try {
-      await ref.read(stockServiceProvider).registrarEntrada(
+      await ref
+          .read(stockServiceProvider)
+          .registrarEntrada(
             insumo.id,
             cantidad,
             AppStrings.escanerMotivoReposicion,
           );
       avisos.showSnackBar(
-        SnackBar(content: Text(AppStrings.escanerStockSumado(cantidad, insumo.nombre))),
+        SnackBar(
+          content: Text(AppStrings.escanerStockSumado(cantidad, insumo.nombre)),
+        ),
       );
     } on StockException catch (error) {
       avisos.showSnackBar(SnackBar(content: Text(error.mensaje)));
     } catch (_) {
-      avisos.showSnackBar(const SnackBar(content: Text(AppStrings.escanerErrorSumar)));
+      avisos.showSnackBar(
+        const SnackBar(content: Text(AppStrings.escanerErrorSumar)),
+      );
     }
   }
 
@@ -375,9 +384,10 @@ class _FichaCard extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         child: Column(
           // map: convierte cada par (título, valor) en una fila de la tarjeta.
-          children: [...filas, ...extras]
-              .map((fila) => _FilaDato(titulo: fila.$1, valor: fila.$2))
-              .toList(),
+          children: [
+            ...filas,
+            ...extras,
+          ].map((fila) => _FilaDato(titulo: fila.$1, valor: fila.$2)).toList(),
         ),
       ),
     );

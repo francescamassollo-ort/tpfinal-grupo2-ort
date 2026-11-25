@@ -13,6 +13,7 @@ import '../../providers/role_provider.dart';
 import '../../providers/trabajopractico_provider.dart';
 import '../../widgets/indicador_disponibilidad_tp.dart';
 import '../../widgets/tp_insumo_fila.dart';
+import '../../widgets/contenido_centrado.dart';
 import 'tp_exportacion.dart';
 
 // ConsumerWidget: lee el TP, el rol y el stock desde providers.
@@ -40,41 +41,43 @@ class TpDetalleScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.screenBackground,
       body: SafeArea(
-        child: Column(
-          children: [
-            // Flecha y título van siempre, así se puede volver aunque el TP
-            // todavía esté cargando o haya dado error.
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-              child: Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.chevron_left),
-                    iconSize: 32,
-                    color: AppColors.backIconColor,
-                    tooltip: AppStrings.volver,
-                    onPressed: () => _volver(context),
-                  ),
-                  Expanded(
-                    child: Text(
-                      tpAsync.value?.nombre ?? '',
-                      style: AppTextStyles.screenTitle,
+        child: ContenidoCentrado(
+          child: Column(
+            children: [
+              // Flecha y título van siempre, así se puede volver aunque el TP
+              // todavía esté cargando o haya dado error.
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                child: Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.chevron_left),
+                      iconSize: 32,
+                      color: AppColors.backIconColor,
+                      tooltip: AppStrings.volver,
+                      onPressed: () => _volver(context),
                     ),
-                  ),
-                ],
+                    Expanded(
+                      child: Text(
+                        tpAsync.value?.nombre ?? '',
+                        style: AppTextStyles.screenTitle,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            Expanded(
-              child: tpAsync.when(
-                data: (tp) => tp == null
-                    ? const Center(child: Text(AppStrings.tpNoEncontrado))
-                    : _DetalleTp(tp: tp),
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (error, stack) =>
-                    const Center(child: Text(AppStrings.tpErrorDetalle)),
+              Expanded(
+                child: tpAsync.when(
+                  data: (tp) => tp == null
+                      ? const Center(child: Text(AppStrings.tpNoEncontrado))
+                      : _DetalleTp(tp: tp),
+                  loading: () => const Center(child: CircularProgressIndicator()),
+                  error: (error, stack) =>
+                      const Center(child: Text(AppStrings.tpErrorDetalle)),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

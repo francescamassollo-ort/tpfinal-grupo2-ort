@@ -9,6 +9,7 @@ import '../../models/alerta.dart';
 import '../../providers/alerta_provider.dart';
 import '../../widgets/app_decorative_background.dart';
 import '../../widgets/app_screen_header.dart';
+import '../../widgets/contenido_centrado.dart';
 import 'alerta_tile.dart';
 import 'alertas_filtro_dialog.dart';
 
@@ -70,88 +71,90 @@ class _AlertasScreenState extends ConsumerState<AlertasScreen> {
         // la de arriba.
         child: SafeArea(
           bottom: false,
-          child: Column(
-            children: [
-              AppScreenHeader(
-                title: AppStrings.alertasTitulo,
-                onBack: () => _volver(context),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(left: 24, right: 26),
-                child: Row(
-                  children: [
-                    // Solo si hay algo sin ver: marca todas de una vez, no solo
-                    // las que deja pasar el filtro.
-                    Expanded(
-                      child: Align(
-                        alignment: Alignment.centerLeft,
-                        child: hayAlertasSinVer
-                            ? TextButton(
-                                onPressed: _marcarTodas,
-                                child: const Text(
-                                  AppStrings.alertasMarcarTodas,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              )
-                            : null,
-                      ),
-                    ),
-                    IconButton(
-                    onPressed: _abrirFiltros,
-                    tooltip: AppStrings.filtros,
-                    // El punto avisa que hay un filtro puesto: sin él, una
-                    // lista corta podría parecer que faltan alertas.
-                    icon: Badge(
-                      isLabelVisible: !filtro.estaVacio,
-                      smallSize: 9,
-                      backgroundColor: AppColors.movementBlue,
-                      child: const Icon(
-                        Icons.tune,
-                        size: 24,
-                        color: AppColors.titleColor,
-                      ),
-                    ),
-                  ),
-                  ],
+          child: ContenidoCentrado(
+            child: Column(
+              children: [
+                AppScreenHeader(
+                  title: AppStrings.alertasTitulo,
+                  onBack: () => _volver(context),
                 ),
-              ),
-              Expanded(
-                child: alertas.when(
-                  loading: () =>
-                      const Center(child: CircularProgressIndicator()),
-                  error: (error, stack) => Center(
-                    child: Text(
-                      AppStrings.alertasError,
-                      style: AppTextStyles.listItemSubtitle,
-                    ),
-                  ),
-                  data: (lista) => lista.isEmpty
-                      ? _ListaVacia(
-                          hayFiltro: !filtro.estaVacio && hayAlertas,
-                          onLimpiar:
-                              ref.read(filtroAlertasProvider.notifier).limpiar,
-                        )
-                      : ListView.separated(
-                          padding: const EdgeInsets.fromLTRB(36, 8, 36, 20),
-                          itemCount: lista.length,
-                          separatorBuilder: (context, index) =>
-                              const SizedBox(height: 12),
-                          itemBuilder: (context, index) {
-                            final alerta = lista[index];
-                            final vista = vistas.contains(alerta.id);
-                            return AlertaTile(
-                              alerta: alerta,
-                              vista: vista,
-                              // Abre el insumo, igual que al tocarlo en Inventario.
-                              onTap: () =>
-                                  context.push('/insumo/${alerta.productoId}'),
-                              onToggleVista: () => _alternarVista(alerta, vista),
-                            );
-                          },
+                Padding(
+                  padding: const EdgeInsets.only(left: 24, right: 26),
+                  child: Row(
+                    children: [
+                      // Solo si hay algo sin ver: marca todas de una vez, no solo
+                      // las que deja pasar el filtro.
+                      Expanded(
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: hayAlertasSinVer
+                              ? TextButton(
+                                  onPressed: _marcarTodas,
+                                  child: const Text(
+                                    AppStrings.alertasMarcarTodas,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                )
+                              : null,
                         ),
+                      ),
+                      IconButton(
+                      onPressed: _abrirFiltros,
+                      tooltip: AppStrings.filtros,
+                      // El punto avisa que hay un filtro puesto: sin él, una
+                      // lista corta podría parecer que faltan alertas.
+                      icon: Badge(
+                        isLabelVisible: !filtro.estaVacio,
+                        smallSize: 9,
+                        backgroundColor: AppColors.movementBlue,
+                        child: const Icon(
+                          Icons.tune,
+                          size: 24,
+                          color: AppColors.titleColor,
+                        ),
+                      ),
+                    ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+                Expanded(
+                  child: alertas.when(
+                    loading: () =>
+                        const Center(child: CircularProgressIndicator()),
+                    error: (error, stack) => Center(
+                      child: Text(
+                        AppStrings.alertasError,
+                        style: AppTextStyles.listItemSubtitle,
+                      ),
+                    ),
+                    data: (lista) => lista.isEmpty
+                        ? _ListaVacia(
+                            hayFiltro: !filtro.estaVacio && hayAlertas,
+                            onLimpiar:
+                                ref.read(filtroAlertasProvider.notifier).limpiar,
+                          )
+                        : ListView.separated(
+                            padding: const EdgeInsets.fromLTRB(36, 8, 36, 20),
+                            itemCount: lista.length,
+                            separatorBuilder: (context, index) =>
+                                const SizedBox(height: 12),
+                            itemBuilder: (context, index) {
+                              final alerta = lista[index];
+                              final vista = vistas.contains(alerta.id);
+                              return AlertaTile(
+                                alerta: alerta,
+                                vista: vista,
+                                // Abre el insumo, igual que al tocarlo en Inventario.
+                                onTap: () =>
+                                    context.push('/insumo/${alerta.productoId}'),
+                                onToggleVista: () => _alternarVista(alerta, vista),
+                              );
+                            },
+                          ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

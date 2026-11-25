@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/app_strings.dart';
 import '../../core/app_text_styles.dart';
+import '../../core/breakpoints.dart';
 import '../../models/insumo.dart';
 import '../../widgets/quantity_stepper.dart';
 
@@ -36,57 +37,60 @@ class _SumarStockDialogState extends State<SumarStockDialog> {
 
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(AppStrings.sumarStockTitulo, style: AppTextStyles.listItemTitle),
-            const SizedBox(height: 4),
-            Text(
-              '${insumo.nombre} · ${AppStrings.escanerStockActual(insumo.stock, insumo.unidad ?? AppStrings.escanerUnidadPorDefecto)}',
-              style: AppTextStyles.listItemSubtitle,
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    AppStrings.sumarStockCantidad,
-                    style: AppTextStyles.listItemSubtitle,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: Breakpoints.maxDialogWidth),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(AppStrings.sumarStockTitulo, style: AppTextStyles.listItemTitle),
+              const SizedBox(height: 4),
+              Text(
+                '${insumo.nombre} · ${AppStrings.escanerStockActual(insumo.stock, insumo.unidad ?? AppStrings.escanerUnidadPorDefecto)}',
+                style: AppTextStyles.listItemSubtitle,
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      AppStrings.sumarStockCantidad,
+                      style: AppTextStyles.listItemSubtitle,
+                    ),
                   ),
-                ),
-                QuantityStepper(
-                  value: _cantidad,
-                  // Se vuelve a mirar al tocar, no solo al dibujar: así dos
-                  // toques seguidos nunca bajan de 1.
-                  onDecrement: () => setState(() {
-                    if (_cantidad > 1) _cantidad--;
-                  }),
-                  onIncrement: () => setState(() => _cantidad++),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            Row(
-              children: [
-                Expanded(
-                  child: TextButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: const Text(AppStrings.cancelar),
+                  QuantityStepper(
+                    value: _cantidad,
+                    // Se vuelve a mirar al tocar, no solo al dibujar: así dos
+                    // toques seguidos nunca bajan de 1.
+                    onDecrement: () => setState(() {
+                      if (_cantidad > 1) _cantidad--;
+                    }),
+                    onIncrement: () => setState(() => _cantidad++),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () => Navigator.of(context).pop(_cantidad),
-                    child: const Text(AppStrings.sumarStockConfirmar),
+                ],
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: const Text(AppStrings.cancelar),
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ],
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.of(context).pop(_cantidad),
+                      child: const Text(AppStrings.sumarStockConfirmar),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
