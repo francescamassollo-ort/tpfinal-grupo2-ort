@@ -140,5 +140,14 @@ void main() {
 
       expect(esPdf(bytes), isTrue);
     });
+
+    test('una lista enorme (más de 20 hojas) no falla', () async {
+      // Tras una importación grande, "agregar sugerencias" puede sumar cientos.
+      final items = [for (var i = 0; i < 800; i++) _item('Insumo número $i')];
+
+      final bytes = await ListaCompraExportador.pdf(items, _fecha);
+
+      expect(esPdf(bytes), isTrue);
+    });
   });
 }

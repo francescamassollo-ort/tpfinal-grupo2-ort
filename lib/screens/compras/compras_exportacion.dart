@@ -54,7 +54,9 @@ Future<void> exportarListaCompras(
       // El menú de compartir ya es la confirmación: no se agrega otro aviso.
       await servicio.compartir(archivo);
     }
-  } catch (_) {
+  } catch (error, stack) {
+    // Queda en la consola para saber por qué falló el archivo.
+    debugPrint('No se pudo entregar el archivo: $error\n$stack');
     messenger.showSnackBar(
       SnackBar(
         content: Text(
