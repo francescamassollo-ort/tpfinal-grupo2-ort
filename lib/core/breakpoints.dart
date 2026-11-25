@@ -7,6 +7,8 @@ import 'package:flutter/widgets.dart';
 class Breakpoints {
   Breakpoints._();
 
+  static const double maxFormWidth = 500;
+
   /// Desde este ancho (en px lógicos) se usa el diseño de escritorio: panel
   /// lateral en vez de barra inferior y drawer. Por debajo es el de celular.
   static const double compact = 600;

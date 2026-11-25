@@ -10,6 +10,7 @@ import '../../widgets/handy_input_decoration.dart';
 import '../../widgets/boton_google.dart';
 import '../../widgets/handy_text_button_black.dart';
 import '../../widgets/requisitos_contrasena.dart';
+import '../../widgets/formulario_centrado.dart';
 
 /// Crear una cuenta con mail y contraseña. Las contraseñas se escriben ocultas,
 /// con un ojo para verlas, igual que en el ingreso.
@@ -46,7 +47,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       body: SafeArea(
         // Con el teclado abierto la pantalla puede quedar chica: que se pueda
         // desplazar en vez de desbordar.
-        child: SingleChildScrollView(
+        child: FormularioCentrado(
           child: Padding(
             padding: const EdgeInsets.all(24.0),
             child: Column(
