@@ -125,7 +125,10 @@ void main() {
       await _elegir(tester, 0, 'Marcar como comprado');
 
       expect(acciones.cambios, [('1', EstadoCompra.comprado)]);
-      expect(find.text('Guantes de nitrilo: marcado como comprado'), findsOneWidget);
+      expect(
+        find.text('Guantes de nitrilo: comprado, se sumaron 8 u. al stock'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('descartar el segundo ítem cambia el de esa fila', (tester) async {

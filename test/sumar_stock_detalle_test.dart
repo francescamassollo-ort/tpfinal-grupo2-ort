@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
@@ -28,7 +29,12 @@ class _StockFalso extends Fake implements StockService {
   Object? falla;
 
   @override
-  Future<void> registrarEntrada(String insumoId, int cantidad, String motivo) async {
+  Future<void> registrarEntrada(
+    String insumoId,
+    int cantidad,
+    String motivo, {
+    void Function(Transaction transaccion)? junto,
+  }) async {
     if (falla != null) throw falla!;
     entradas.add((insumoId, cantidad, motivo));
   }

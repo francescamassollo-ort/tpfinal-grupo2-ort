@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -86,6 +87,16 @@ class _ServicioFalso implements ListaCompraService {
 
   @override
   Future<void> actualizarEstado(String id, EstadoCompra estado) async {}
+
+  @override
+  Future<ListaCompra?> obtener(String id) async => null;
+
+  @override
+  void actualizarEstadoEn(
+    Transaction transaccion,
+    String id,
+    EstadoCompra estado,
+  ) {}
 
   @override
   Future<void> eliminar(Iterable<String> ids) async {}

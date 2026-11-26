@@ -9,6 +9,7 @@ import '../../models/insumo.dart';
 import '../../models/lista_compra.dart';
 import '../../providers/insumo_providers.dart';
 import '../../providers/lista_compra_provider.dart';
+import '../../services/stock_logica.dart';
 import '../../widgets/app_decorative_background.dart';
 import '../../widgets/app_screen_header.dart';
 import '../../widgets/share_download_actions.dart';
@@ -26,6 +27,20 @@ class ComprasScreen extends ConsumerStatefulWidget {
 
   @override
   ConsumerState<ComprasScreen> createState() => _ComprasScreenState();
+}
+
+/// Avisa que no se pudo cambiar el estado. Si el motivo es de stock (por
+/// ejemplo, no alcanza para deshacer una compra) dice cuál; si no, el aviso
+/// genérico.
+@visibleForTesting
+void avisarErrorDeEstado(ScaffoldMessengerState messenger, Object error) {
+  messenger.showSnackBar(
+    SnackBar(
+      content: Text(
+        error is StockException ? error.mensaje : AppStrings.comprasErrorEstado,
+      ),
+    ),
+  );
 }
 
 class _ComprasScreenState extends ConsumerState<ComprasScreen> {
@@ -277,20 +292,26 @@ class _ComprasScreenState extends ConsumerState<ComprasScreen> {
         SnackBar(
           content: Text(
             estado == EstadoCompra.comprado
-                ? AppStrings.comprasMarcadoComprado(item.nombre)
+                ? AppStrings.comprasMarcadoComprado(
+                    item.nombre,
+                    item.cantidadSolicitada,
+                  )
                 : AppStrings.comprasDescartado(item.nombre),
           ),
           action: SnackBarAction(
             label: AppStrings.comprasDeshacer,
-            onPressed: () =>
-                acciones.cambiarEstado(item.id, EstadoCompra.pendiente),
+            onPressed: () async {
+              try {
+                await acciones.cambiarEstado(item.id, EstadoCompra.pendiente);
+              } catch (error) {
+                avisarErrorDeEstado(messenger, error);
+              }
+            },
           ),
         ),
       );
-    } catch (_) {
-      messenger.showSnackBar(
-        const SnackBar(content: Text(AppStrings.comprasErrorEstado)),
-      );
+    } catch (error) {
+      avisarErrorDeEstado(messenger, error);
     }
   }
 

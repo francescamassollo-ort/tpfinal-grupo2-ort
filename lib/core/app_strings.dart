@@ -82,8 +82,13 @@ class AppStrings {
 
   // Aviso al sacar un ítem de la lista: sale porque la pantalla muestra solo
   // los pendientes, por eso trae el botón Deshacer.
-  static String comprasMarcadoComprado(String nombre) =>
-      '$nombre: marcado como comprado';
+  static String comprasMarcadoComprado(String nombre, int cantidad) =>
+      '$nombre: comprado, se sumaron $cantidad u. al stock';
+
+  // Motivos que quedan escritos en el historial de movimientos.
+  static const String comprasMotivoEntrada = 'Compra (lista de compras)';
+  static const String comprasMotivoDeshacer =
+      'Compra deshecha (lista de compras)';
   static String comprasDescartado(String nombre) => '$nombre: descartado';
 
   static String comprasSugerenciasAgregadas(int cantidad) => cantidad == 1

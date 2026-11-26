@@ -72,11 +72,16 @@ class StockService {
   }
 
   /// Suma [cantidad] al stock del insumo. Deja un movimiento de entrada.
+  ///
+  /// [junto] permite escribir otra cosa en la misma transacción (por ejemplo,
+  /// marcar como comprado un ítem de la lista de compras): o se guarda todo o
+  /// no se guarda nada.
   Future<void> registrarEntrada(
     String insumoId,
     int cantidad,
-    String motivo,
-  ) {
+    String motivo, {
+    void Function(Transaction transaccion)? junto,
+  }) {
     return _aplicar(
       insumoId,
       (stockActual, usuario, ahora) => StockLogica.entrada(
@@ -87,15 +92,18 @@ class StockService {
         ahora: ahora,
         motivo: motivo,
       ),
+      junto: junto,
     );
   }
 
   /// Resta [cantidad] del stock del insumo. Deja un movimiento de salida.
+  /// [junto] es lo mismo que en [registrarEntrada].
   Future<void> registrarSalida(
     String insumoId,
     int cantidad,
-    String motivo,
-  ) {
+    String motivo, {
+    void Function(Transaction transaccion)? junto,
+  }) {
     return _aplicar(
       insumoId,
       (stockActual, usuario, ahora) => StockLogica.salida(
@@ -106,6 +114,7 @@ class StockService {
         ahora: ahora,
         motivo: motivo,
       ),
+      junto: junto,
     );
   }
 
@@ -193,8 +202,9 @@ class StockService {
       int stockActual,
       UsuarioActual usuario,
       DateTime ahora,
-    ) calcular,
-  ) async {
+    ) calcular, {
+    void Function(Transaction transaccion)? junto,
+  }) async {
     // Quién es la persona se averigua antes: es una lectura de otra colección
     // y no tiene por qué ir dentro de la transacción.
     final usuario = await _usuarioActual.obtener();
@@ -217,6 +227,7 @@ class StockService {
 
       transaccion.update(insumoRef, {'stock': cambio.stockNuevo});
       transaccion.set(movimientoRef, cambio.movimiento.toMap());
+      junto?.call(transaccion);
     });
   }
 }
