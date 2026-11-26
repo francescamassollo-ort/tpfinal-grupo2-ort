@@ -8,6 +8,7 @@ import '../../core/app_text_styles.dart';
 import '../../models/insumo.dart';
 import '../../providers/insumo_providers.dart';
 import '../../widgets/app_screen_header.dart';
+import '../../widgets/contenido_centrado.dart';
 
 /// Los insumos dados de baja, para poder reactivarlos. Solo para el
 /// administrador (el mismo permiso que editar y dar de baja).
@@ -25,32 +26,34 @@ class InsumosDeBajaScreen extends ConsumerWidget {
       color: AppColors.screenBackground,
       child: SafeArea(
         bottom: false,
-        child: Column(
-          children: [
-            AppScreenHeader(
-              title: AppStrings.insumosBajaTitulo,
-              onBack: () => context.canPop() ? context.pop() : context.go('/inventario'),
-            ),
-            Expanded(
-              child: insumos.when(
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (error, stack) =>
-                    const _Mensaje(AppStrings.insumosBajaError),
-                data: (todos) {
-                  final bajas = [for (final i in todos) if (!i.activo) i]
-                    ..sort((a, b) => a.nombre.toLowerCase().compareTo(b.nombre.toLowerCase()));
-                  if (bajas.isEmpty) return const _Mensaje(AppStrings.insumosBajaVacio);
-
-                  return ListView.separated(
-                    padding: const EdgeInsets.fromLTRB(24, 8, 24, 20),
-                    itemCount: bajas.length,
-                    separatorBuilder: (context, index) => const Divider(height: 1),
-                    itemBuilder: (context, index) => _Fila(insumo: bajas[index]),
-                  );
-                },
+        child: ContenidoCentrado(
+          child: Column(
+            children: [
+              AppScreenHeader(
+                title: AppStrings.insumosBajaTitulo,
+                onBack: () => context.canPop() ? context.pop() : context.go('/inventario'),
               ),
-            ),
-          ],
+              Expanded(
+                child: insumos.when(
+                  loading: () => const Center(child: CircularProgressIndicator()),
+                  error: (error, stack) =>
+                      const _Mensaje(AppStrings.insumosBajaError),
+                  data: (todos) {
+                    final bajas = [for (final i in todos) if (!i.activo) i]
+                      ..sort((a, b) => a.nombre.toLowerCase().compareTo(b.nombre.toLowerCase()));
+                    if (bajas.isEmpty) return const _Mensaje(AppStrings.insumosBajaVacio);
+          
+                    return ListView.separated(
+                      padding: const EdgeInsets.fromLTRB(24, 8, 24, 20),
+                      itemCount: bajas.length,
+                      separatorBuilder: (context, index) => const Divider(height: 1),
+                      itemBuilder: (context, index) => _Fila(insumo: bajas[index]),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

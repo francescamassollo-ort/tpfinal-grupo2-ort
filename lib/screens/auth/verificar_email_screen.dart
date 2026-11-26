@@ -7,6 +7,7 @@ import '../../core/app_colors.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/role_provider.dart';
 import '../../widgets/handy_button_style_one.dart';
+import '../../widgets/formulario_centrado.dart';
 
 /// Pide verificar el mail antes de usar la app. Se llega acá, solo, al
 /// registrarse o al ingresar con una cuenta cuyo mail todavía no se verificó.
@@ -76,60 +77,62 @@ class _VerificarEmailScreenState extends ConsumerState<VerificarEmailScreen> {
 
     return Scaffold(
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            spacing: 18,
-            children: [
-              const SizedBox(height: 40),
-              const Icon(
-                Icons.mark_email_unread_outlined,
-                size: 72,
-                color: AppColors.primary,
-              ),
-              Text(
-                'Verificá tu mail',
-                textAlign: TextAlign.center,
-                style: GoogleFonts.poppins(
+        child: FormularioCentrado(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              spacing: 18,
+              children: [
+                const SizedBox(height: 40),
+                const Icon(
+                  Icons.mark_email_unread_outlined,
+                  size: 72,
                   color: AppColors.primary,
-                  fontSize: 26,
-                  fontWeight: FontWeight.w700,
                 ),
-              ),
-              Text(
-                email == null
-                    ? 'Te mandamos un correo con un enlace. Abrilo para '
-                        'confirmar que el mail es tuyo y volvé acá.'
-                    : 'Te mandamos un correo a $email con un enlace. Abrilo '
-                        'para confirmar que el mail es tuyo y volvé acá.',
-                textAlign: TextAlign.center,
-                style: GoogleFonts.poppins(
-                  color: AppColors.bodyColor,
-                  fontSize: 14,
+                Text(
+                  'Verificá tu mail',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.poppins(
+                    color: AppColors.primary,
+                    fontSize: 26,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 12),
-              SizedBox(
-                height: 54,
-                child: ElevatedButton(
-                  style: getButtonStyleOne(),
-                  onPressed: _ocupado ? null : _yaVerifique,
-                  child: const Text('Ya verifiqué'),
+                Text(
+                  email == null
+                      ? 'Te mandamos un correo con un enlace. Abrilo para '
+                          'confirmar que el mail es tuyo y volvé acá.'
+                      : 'Te mandamos un correo a $email con un enlace. Abrilo '
+                          'para confirmar que el mail es tuyo y volvé acá.',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.poppins(
+                    color: AppColors.bodyColor,
+                    fontSize: 14,
+                  ),
                 ),
-              ),
-              TextButton(
-                onPressed: _ocupado ? null : _reenviar,
-                child: const Text('Reenviar el correo'),
-              ),
-              TextButton(
-                // Para quien se registró con un mail equivocado.
-                onPressed: _ocupado
-                    ? null
-                    : () => ref.read(authServiceProvider).signOut(),
-                child: const Text('Usar otra cuenta'),
-              ),
-            ],
+                const SizedBox(height: 12),
+                SizedBox(
+                  height: 54,
+                  child: ElevatedButton(
+                    style: getButtonStyleOne(),
+                    onPressed: _ocupado ? null : _yaVerifique,
+                    child: const Text('Ya verifiqué'),
+                  ),
+                ),
+                TextButton(
+                  onPressed: _ocupado ? null : _reenviar,
+                  child: const Text('Reenviar el correo'),
+                ),
+                TextButton(
+                  // Para quien se registró con un mail equivocado.
+                  onPressed: _ocupado
+                      ? null
+                      : () => ref.read(authServiceProvider).signOut(),
+                  child: const Text('Usar otra cuenta'),
+                ),
+              ],
+            ),
           ),
         ),
       ),

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../core/app_strings.dart';
 import '../../core/app_text_styles.dart';
+import '../../core/breakpoints.dart';
+
 import '../../models/usuario.dart';
 
 /// Panel para cambiar el rol de un usuario. Mismo estilo que los otros paneles
@@ -29,54 +31,57 @@ class _UsuarioRolDialogState extends State<UsuarioRolDialog> {
 
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              AppStrings.usuariosRolDe(widget.usuario.nombre),
-              style: AppTextStyles.listItemTitle,
-            ),
-            const SizedBox(height: 16),
-            DropdownButtonFormField<UserRole>(
-              initialValue: _rol,
-              isExpanded: true,
-              decoration: const InputDecoration(
-                labelText: AppStrings.usuariosCampoRol,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: Breakpoints.maxDialogWidth),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                AppStrings.usuariosRolDe(widget.usuario.nombre),
+                style: AppTextStyles.listItemTitle,
               ),
-              items: [
-                for (final rol in UserRole.values)
-                  DropdownMenuItem(
-                    value: rol,
-                    child: Text(AppStrings.usuariosRol(rol)),
-                  ),
-              ],
-              onChanged: (rol) {
-                if (rol != null) setState(() => _rol = rol);
-              },
-            ),
-            const SizedBox(height: 24),
-            Row(
-              children: [
-                Expanded(
-                  child: TextButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: const Text(AppStrings.cancelar),
-                  ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<UserRole>(
+                initialValue: _rol,
+                isExpanded: true,
+                decoration: const InputDecoration(
+                  labelText: AppStrings.usuariosCampoRol,
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed:
-                        hayCambio ? () => Navigator.of(context).pop(_rol) : null,
-                    child: const Text(AppStrings.usuariosGuardarRol),
+                items: [
+                  for (final rol in UserRole.values)
+                    DropdownMenuItem(
+                      value: rol,
+                      child: Text(AppStrings.usuariosRol(rol)),
+                    ),
+                ],
+                onChanged: (rol) {
+                  if (rol != null) setState(() => _rol = rol);
+                },
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: const Text(AppStrings.cancelar),
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ],
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed:
+                          hayCambio ? () => Navigator.of(context).pop(_rol) : null,
+                      child: const Text(AppStrings.usuariosGuardarRol),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

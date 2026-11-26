@@ -15,6 +15,7 @@ import '../../services/lector_excel.dart';
 import '../../services/plan_de_importacion.dart';
 import '../../services/plantilla_de_insumos.dart';
 import '../../widgets/app_screen_header.dart';
+import '../../widgets/contenido_centrado.dart';
 
 /// Importar el inventario desde un Excel (R19, carga inicial). Solo para el
 /// administrador.
@@ -190,31 +191,33 @@ class _ImportarExcelScreenState extends ConsumerState<ImportarExcelScreen> {
       color: AppColors.screenBackground,
       child: SafeArea(
         bottom: false,
-        child: Column(
-          children: [
-            AppScreenHeader(title: AppStrings.importarTitulo, onBack: _volver),
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
-                children: switch (_paso) {
-                  _Paso.inicio => _inicio(),
-                  _Paso.leyendo => [
-                      const SizedBox(height: 48),
-                      const Center(child: CircularProgressIndicator()),
-                      const SizedBox(height: 16),
-                      Text(
-                        AppStrings.importarLeyendo,
-                        textAlign: TextAlign.center,
-                        style: AppTextStyles.itemDetail,
-                      ),
-                    ],
-                  _Paso.vistaPrevia => _vistaPrevia(),
-                  _Paso.importando => _importando(),
-                  _Paso.listo => _listo(),
-                },
+        child: ContenidoCentrado(
+          child: Column(
+            children: [
+              AppScreenHeader(title: AppStrings.importarTitulo, onBack: _volver),
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+                  children: switch (_paso) {
+                    _Paso.inicio => _inicio(),
+                    _Paso.leyendo => [
+                        const SizedBox(height: 48),
+                        const Center(child: CircularProgressIndicator()),
+                        const SizedBox(height: 16),
+                        Text(
+                          AppStrings.importarLeyendo,
+                          textAlign: TextAlign.center,
+                          style: AppTextStyles.itemDetail,
+                        ),
+                      ],
+                    _Paso.vistaPrevia => _vistaPrevia(),
+                    _Paso.importando => _importando(),
+                    _Paso.listo => _listo(),
+                  },
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
