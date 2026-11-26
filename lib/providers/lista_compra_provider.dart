@@ -1,10 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/app_strings.dart';
 import '../models/lista_compra.dart';
 import '../screens/compras/item_compra.dart';
 import '../services/lista_compra_service.dart';
 import 'insumo_providers.dart';
+import 'stock_provider.dart';
 
 final listaCompraServiceProvider =
     Provider((ref) => ListaCompraService(FirebaseFirestore.instance));
@@ -68,8 +70,37 @@ class ComprasAcciones {
   /// Cambia el estado de un ítem. La pantalla muestra solo los pendientes, así
   /// que pasarlo a comprado o descartado lo saca de la lista, y volverlo a
   /// pendiente (Deshacer) lo trae de nuevo con la misma cantidad.
-  Future<void> cambiarEstado(String id, EstadoCompra estado) {
-    return _ref.read(listaCompraServiceProvider).actualizarEstado(id, estado);
+  ///
+  /// Marcar como comprado **suma la cantidad pedida al stock** del insumo y
+  /// deja la entrada en el historial; Deshacer lo revierte con una salida. El
+  /// stock y el estado se guardan en una sola transacción, así no puede quedar
+  /// el ítem comprado sin stock sumado ni al revés. Si el stock ya no alcanza
+  /// para deshacer (porque se usó), lanza una [StockException].
+  Future<void> cambiarEstado(String id, EstadoCompra estado) async {
+    final lista = _ref.read(listaCompraServiceProvider);
+    final item = await lista.obtener(id);
+    if (item == null || item.estado == estado) return;
+
+    final stock = _ref.read(stockServiceProvider);
+    void guardarEstado(Transaction t) => lista.actualizarEstadoEn(t, id, estado);
+
+    if (estado == EstadoCompra.comprado) {
+      await stock.registrarEntrada(
+        item.productoId,
+        item.cantidadSolicitada,
+        AppStrings.comprasMotivoEntrada,
+        junto: guardarEstado,
+      );
+    } else if (item.estado == EstadoCompra.comprado) {
+      await stock.registrarSalida(
+        item.productoId,
+        item.cantidadSolicitada,
+        AppStrings.comprasMotivoDeshacer,
+        junto: guardarEstado,
+      );
+    } else {
+      await lista.actualizarEstado(id, estado);
+    }
   }
 
   /// Borra de la lista los ítems con estos [ids].

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -54,7 +55,12 @@ class _StockFalso extends StockService {
   Object? error;
 
   @override
-  Future<void> registrarEntrada(String insumoId, int cantidad, String motivo) async {
+  Future<void> registrarEntrada(
+    String insumoId,
+    int cantidad,
+    String motivo, {
+    void Function(Transaction transaccion)? junto,
+  }) async {
     entradas.add((insumoId: insumoId, cantidad: cantidad, motivo: motivo));
     if (error != null) throw error!;
   }

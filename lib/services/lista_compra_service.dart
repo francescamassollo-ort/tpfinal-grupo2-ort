@@ -69,6 +69,18 @@ class ListaCompraService {
     return _ref.doc(id).update({'estado': estado.name});
   }
 
+  /// El ítem con ese [id], con cualquier estado. Null si ya no existe.
+  Future<ListaCompra?> obtener(String id) async {
+    final doc = await _ref.doc(id).get();
+    return doc.data();
+  }
+
+  /// Cambia el estado dentro de una transacción de Firestore que ya está
+  /// abierta, para que quede junto con otra escritura (el stock).
+  void actualizarEstadoEn(Transaction transaccion, String id, EstadoCompra estado) {
+    transaccion.update(_ref.doc(id), {'estado': estado.name});
+  }
+
   /// Borra de la lista los productos con estos [ids]. A diferencia de marcar
   /// como descartado, no queda registro del ítem.
   Future<void> eliminar(Iterable<String> ids) async {
