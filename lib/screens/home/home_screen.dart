@@ -8,6 +8,7 @@ import '../../core/app_text_styles.dart';
 import '../../providers/home_provider.dart';
 import '../../widgets/app_action_button.dart';
 import '../../widgets/app_decorative_background.dart';
+import '../../widgets/contenido_centrado.dart';
 import '../historial/movimiento_item.dart';
 
 /// Inicio: un tablero con lo que más importa de un vistazo (insumos con stock
@@ -28,66 +29,68 @@ class HomeScreen extends ConsumerWidget {
       child: AppDecorativeBackground(
         child: SafeArea(
           bottom: false,
-          child: ListView(
-            padding: const EdgeInsets.fromLTRB(36, 20, 36, 24),
-            children: [
-              Text(AppStrings.homeTitulo, style: AppTextStyles.screenTitle),
-              const SizedBox(height: 20),
-              _TarjetaDato<int>(
-                etiqueta: AppStrings.homeStockBajo,
-                color: AppColors.stockDanger,
-                valor: stockBajo,
-                texto: (cantidad) => '$cantidad',
-                detalle: (cantidad) => AppStrings.homeStockBajoDetalle,
-                onTap: () => context.go('/inventario'),
-              ),
-              const SizedBox(height: 12),
-              _TarjetaDato<ResumenAlertas>(
-                etiqueta: AppStrings.homeAlertas,
-                color: AppColors.stockWarning,
-                valor: alertas,
-                texto: (resumen) => '${resumen.activas}',
-                detalle: (resumen) =>
-                    '${resumen.sinVer} ${AppStrings.homeAlertasDetalle}',
-                onTap: () => context.go('/alertas'),
-              ),
-              const SizedBox(height: 12),
-              _TarjetaDato<MovimientoItem?>(
-                etiqueta: AppStrings.homeUltimoMovimiento,
-                color: AppColors.movementBlue,
-                valor: ultimo,
-                // Sin movimientos no hay nada que mostrar en grande: el
-                // mensaje va en el lugar del dato.
-                texto: (m) =>
-                    m == null ? AppStrings.homeSinMovimientos : m.elementoNombre,
-                detalle: (m) => m == null
-                    ? ''
-                    : '${m.deltaTexto} · ${m.usuarioNombre} · ${m.fechaEtiqueta}',
-                grande: false,
-                onTap: () => context.push('/historial'),
-              ),
-              const SizedBox(height: 28),
-              Text(AppStrings.homeAtajos, style: AppTextStyles.listItemTitle),
-              const SizedBox(height: 12),
-              AppActionButton(
-                label: AppStrings.homeIrInventario,
-                onPressed: () => context.go('/inventario'),
-              ),
-              const SizedBox(height: 12),
-              AppActionButton(
-                label: AppStrings.homeIrAlertas,
-                variant: AppActionButtonVariant.secondary,
-                onPressed: () => context.go('/alertas'),
-              ),
-              const SizedBox(height: 12),
-              AppActionButton(
-                label: AppStrings.homeIrHistorial,
-                variant: AppActionButtonVariant.secondary,
-                // El Historial va fuera del shell: se abre encima y su flecha
-                // vuelve acá.
-                onPressed: () => context.push('/historial'),
-              ),
-            ],
+          child: ContenidoCentrado(
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(36, 20, 36, 24),
+              children: [
+                Text(AppStrings.homeTitulo, style: AppTextStyles.screenTitle),
+                const SizedBox(height: 20),
+                _TarjetaDato<int>(
+                  etiqueta: AppStrings.homeStockBajo,
+                  color: AppColors.stockDanger,
+                  valor: stockBajo,
+                  texto: (cantidad) => '$cantidad',
+                  detalle: (cantidad) => AppStrings.homeStockBajoDetalle,
+                  onTap: () => context.go('/inventario'),
+                ),
+                const SizedBox(height: 12),
+                _TarjetaDato<ResumenAlertas>(
+                  etiqueta: AppStrings.homeAlertas,
+                  color: AppColors.stockWarning,
+                  valor: alertas,
+                  texto: (resumen) => '${resumen.activas}',
+                  detalle: (resumen) =>
+                      '${resumen.sinVer} ${AppStrings.homeAlertasDetalle}',
+                  onTap: () => context.go('/alertas'),
+                ),
+                const SizedBox(height: 12),
+                _TarjetaDato<MovimientoItem?>(
+                  etiqueta: AppStrings.homeUltimoMovimiento,
+                  color: AppColors.movementBlue,
+                  valor: ultimo,
+                  // Sin movimientos no hay nada que mostrar en grande: el
+                  // mensaje va en el lugar del dato.
+                  texto: (m) =>
+                      m == null ? AppStrings.homeSinMovimientos : m.elementoNombre,
+                  detalle: (m) => m == null
+                      ? ''
+                      : '${m.deltaTexto} · ${m.usuarioNombre} · ${m.fechaEtiqueta}',
+                  grande: false,
+                  onTap: () => context.push('/historial'),
+                ),
+                const SizedBox(height: 28),
+                Text(AppStrings.homeAtajos, style: AppTextStyles.listItemTitle),
+                const SizedBox(height: 12),
+                AppActionButton(
+                  label: AppStrings.homeIrInventario,
+                  onPressed: () => context.go('/inventario'),
+                ),
+                const SizedBox(height: 12),
+                AppActionButton(
+                  label: AppStrings.homeIrAlertas,
+                  variant: AppActionButtonVariant.secondary,
+                  onPressed: () => context.go('/alertas'),
+                ),
+                const SizedBox(height: 12),
+                AppActionButton(
+                  label: AppStrings.homeIrHistorial,
+                  variant: AppActionButtonVariant.secondary,
+                  // El Historial va fuera del shell: se abre encima y su flecha
+                  // vuelve acá.
+                  onPressed: () => context.push('/historial'),
+                ),
+              ],
+            ),
           ),
         ),
       ),

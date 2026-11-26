@@ -13,6 +13,7 @@ import '../../services/auth_logic/validaciones_auth.dart';
 import '../../widgets/app_action_button.dart';
 import '../../widgets/app_decorative_background.dart';
 import '../../widgets/app_screen_header.dart';
+import '../../widgets/contenido_centrado.dart';
 
 /// Perfil de la persona que inició sesión. Va dentro del AppShell.
 ///
@@ -71,69 +72,71 @@ class _PerfilScreenState extends ConsumerState<PerfilScreen> {
       child: AppDecorativeBackground(
         child: SafeArea(
           bottom: false,
-          child: Column(
-            children: [
-              AppScreenHeader(
-                title: AppStrings.perfilTitulo,
-                onBack: () => _volver(context),
-              ),
-              Expanded(
-                child: perfil.hasError && !perfil.hasValue
-                    ? Center(
-                        child: Text(
-                          AppStrings.perfilError,
-                          style: AppTextStyles.listItemSubtitle,
-                        ),
-                      )
-                    : ListView(
-                        padding: const EdgeInsets.fromLTRB(36, 16, 36, 24),
-                        children: [
-                          TextField(
-                            controller: _nombre,
-                            enabled: !_guardando,
-                            textCapitalization: TextCapitalization.words,
-                            textInputAction: TextInputAction.done,
-                            decoration: InputDecoration(
-                              labelText: AppStrings.perfilNombre,
-                              errorText: _errorNombre,
-                              filled: true,
-                              fillColor: AppColors.inputBackground,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10),
-                                borderSide: BorderSide.none,
+          child: ContenidoCentrado(
+            child: Column(
+              children: [
+                AppScreenHeader(
+                  title: AppStrings.perfilTitulo,
+                  onBack: () => _volver(context),
+                ),
+                Expanded(
+                  child: perfil.hasError && !perfil.hasValue
+                      ? Center(
+                          child: Text(
+                            AppStrings.perfilError,
+                            style: AppTextStyles.listItemSubtitle,
+                          ),
+                        )
+                      : ListView(
+                          padding: const EdgeInsets.fromLTRB(36, 16, 36, 24),
+                          children: [
+                            TextField(
+                              controller: _nombre,
+                              enabled: !_guardando,
+                              textCapitalization: TextCapitalization.words,
+                              textInputAction: TextInputAction.done,
+                              decoration: InputDecoration(
+                                labelText: AppStrings.perfilNombre,
+                                errorText: _errorNombre,
+                                filled: true,
+                                fillColor: AppColors.inputBackground,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide: BorderSide.none,
+                                ),
                               ),
+                              onChanged: (_) => setState(() {
+                                _editado = true;
+                                _errorNombre = null;
+                              }),
+                              onSubmitted: (_) => _guardar(),
                             ),
-                            onChanged: (_) => setState(() {
-                              _editado = true;
-                              _errorNombre = null;
-                            }),
-                            onSubmitted: (_) => _guardar(),
-                          ),
-                          const SizedBox(height: 16),
-                          _DatoFijo(
-                            etiqueta: AppStrings.perfilEmail,
-                            valor: email,
-                          ),
-                          const SizedBox(height: 12),
-                          _DatoFijo(
-                            etiqueta: AppStrings.perfilRol,
-                            valor: AppStrings.usuariosRol(rol),
-                          ),
-                          const SizedBox(height: 28),
-                          AppActionButton(
-                            label: AppStrings.perfilGuardarNombre,
-                            onPressed: _guardando ? null : _guardar,
-                          ),
-                          const SizedBox(height: 16),
-                          AppActionButton(
-                            label: AppStrings.perfilCerrarSesion,
-                            variant: AppActionButtonVariant.secondary,
-                            onPressed: _cerrarSesion,
-                          ),
-                        ],
-                      ),
-              ),
-            ],
+                            const SizedBox(height: 16),
+                            _DatoFijo(
+                              etiqueta: AppStrings.perfilEmail,
+                              valor: email,
+                            ),
+                            const SizedBox(height: 12),
+                            _DatoFijo(
+                              etiqueta: AppStrings.perfilRol,
+                              valor: AppStrings.usuariosRol(rol),
+                            ),
+                            const SizedBox(height: 28),
+                            AppActionButton(
+                              label: AppStrings.perfilGuardarNombre,
+                              onPressed: _guardando ? null : _guardar,
+                            ),
+                            const SizedBox(height: 16),
+                            AppActionButton(
+                              label: AppStrings.perfilCerrarSesion,
+                              variant: AppActionButtonVariant.secondary,
+                              onPressed: _cerrarSesion,
+                            ),
+                          ],
+                        ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

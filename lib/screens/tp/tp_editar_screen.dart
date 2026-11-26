@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/app_colors.dart';
 import '../../core/app_strings.dart';
 import '../../core/app_text_styles.dart';
+import '../../core/breakpoints.dart';
 import '../../models/insumo.dart';
 import '../../models/trabajo_practico.dart';
 import '../../providers/insumo_providers.dart';
@@ -13,6 +14,7 @@ import '../../providers/usuario_provider.dart';
 import '../../widgets/campo_fecha.dart';
 import '../../widgets/insumo_selector_sheet.dart';
 import '../../widgets/tp_insumo_editable_card.dart';
+import '../../widgets/contenido_centrado.dart';
 
 // El stock es un entero (unidades), por eso los insumos del TP se guardan
 // siempre en "u" y el diseño no trae selector de unidad.
@@ -75,32 +77,44 @@ class _Marco extends StatelessWidget {
       backgroundColor: AppColors.screenBackground,
       floatingActionButton: floatingActionButton,
       bottomNavigationBar:
-          botonInferior == null ? null : SafeArea(child: botonInferior!),
-      body: SafeArea(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-              child: Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.chevron_left),
-                    iconSize: 32,
-                    color: AppColors.backIconColor,
-                    tooltip: AppStrings.volver,
-                    onPressed: () => _volver(context),
-                  ),
-                  Expanded(
-                    child: Text(
-                      AppStrings.tpTitulo,
-                      style: AppTextStyles.screenTitle,
-                    ),
-                  ),
-                ],
+          botonInferior == null ? null : SafeArea(
+            child: Center(
+              heightFactor: 1,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                maxWidth: Breakpoints.maxContentWidth,
+                ),
+              child: botonInferior!,
               ),
             ),
-            Expanded(child: child),
-          ],
+          ),
+      body: SafeArea(
+        child: ContenidoCentrado(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                child: Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.chevron_left),
+                      iconSize: 32,
+                      color: AppColors.backIconColor,
+                      tooltip: AppStrings.volver,
+                      onPressed: () => _volver(context),
+                    ),
+                    Expanded(
+                      child: Text(
+                        AppStrings.tpTitulo,
+                        style: AppTextStyles.screenTitle,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(child: child),
+            ],
+          ),
         ),
       ),
     );

@@ -10,6 +10,7 @@ import '../../providers/usuario_provider.dart';
 import '../../providers/usuarios_provider.dart';
 import '../../widgets/app_decorative_background.dart';
 import '../../widgets/app_screen_header.dart';
+import '../../widgets/contenido_centrado.dart';
 import 'usuario_rol_dialog.dart';
 import 'usuario_tile.dart';
 
@@ -31,14 +32,16 @@ class UsuariosScreen extends ConsumerWidget {
         // la de arriba.
         child: SafeArea(
           bottom: false,
-          child: Column(
-            children: [
-              AppScreenHeader(
-                title: AppStrings.usuariosTitulo,
-                onBack: () => _volver(context),
-              ),
-              const Expanded(child: _ListaUsuarios()),
-            ],
+          child: ContenidoCentrado(
+            child: Column(
+              children: [
+                AppScreenHeader(
+                  title: AppStrings.usuariosTitulo,
+                  onBack: () => _volver(context),
+                ),
+                const Expanded(child: _ListaUsuarios()),
+              ],
+            ),
           ),
         ),
       ),
