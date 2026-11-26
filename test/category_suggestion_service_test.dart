@@ -84,6 +84,18 @@ void main() {
       expect(_categoria('Papel', insumos: insumos), 'Material de oficina');
     });
 
+    test('un insumo de nombre cortísimo no le presta su categoría a cualquiera', () {
+      final insumos = [
+        _insumo('Ibu', categoria: 'Agar'),
+        _insumo('o', categoria: 'Agar'),
+      ];
+
+      expect(
+        CategorySuggestionService.sugerir('Ibuprofeno', insumos: insumos),
+        isNull,
+      );
+    });
+
     test('lo ya existente tiene prioridad sobre las reglas', () {
       final insumos = [_insumo('Guantes de nitrilo', categoria: 'Bioseguridad')];
 

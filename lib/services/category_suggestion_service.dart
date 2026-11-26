@@ -28,6 +28,10 @@ class CategorySuggestionService {
   /// insumo existente.
   static const double umbralParecido = 0.8;
 
+  /// Letras mínimas que debe tener el nombre más corto para que "un nombre
+  /// contiene al otro" cuente como parecido.
+  static const int minimoParaContener = 4;
+
   /// Hay un modelo configurado para [sugerirConIa].
   bool get tieneIa => _modelo != null;
 
@@ -150,7 +154,12 @@ class CategorySuggestionService {
       final propio = SimilitudTexto.normalizar(insumo.nombre);
       if (propio.isEmpty) continue;
 
-      final contiene = propio.contains(consulta) || consulta.contains(propio);
+      // "Contiene" solo vale si el nombre más corto tiene un mínimo de letras:
+      // un insumo llamado "a" o "ib" estaría contenido en casi cualquier nombre
+      // y le prestaría su categoría a todo.
+      final corto = propio.length < consulta.length ? propio : consulta;
+      final contiene = corto.length >= minimoParaContener &&
+          (propio.contains(consulta) || consulta.contains(propio));
       final parecido = contiene
           ? 0.9
           : SimilitudTexto.entreNombres(nombre, insumo.nombre);
