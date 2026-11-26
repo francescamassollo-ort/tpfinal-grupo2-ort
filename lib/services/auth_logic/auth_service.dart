@@ -218,9 +218,18 @@ class AuthService {
   /// Vuelve a pedirle a Firebase los datos de la cuenta y dice si el mail ya
   /// está verificado. Hace falta porque la app no se entera sola de que la
   /// persona tocó el enlace del correo.
+  ///
+  /// Si ya está verificado también renueva el token de la sesión. Las reglas de
+  /// Firestore leen del token si el mail está verificado, y ese token se pidió
+  /// antes de verificar: sin renovarlo, la base rechaza todo (incluso crear el
+  /// documento de la persona en `usuarios`) hasta que Firebase lo renueve solo,
+  /// que puede tardar una hora.
   Future<bool> mailVerificado() async {
     try {
       await _auth.currentUser?.reload();
+      if (_auth.currentUser?.emailVerified ?? false) {
+        await _auth.currentUser?.getIdToken(true);
+      }
     } catch (e) {
       debugPrint("Error reloading user: $e");
       showGlobalErrorSnackBar('No se pudo comprobar. Revisá tu conexión.');
